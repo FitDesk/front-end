@@ -6,6 +6,8 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { ModeToggle } from "./shared/components/mode-toggle"
 
 
 
@@ -13,7 +15,7 @@ const queryClient = new QueryClient()
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <Toaster position="top-right" richColors expand={true} closeButton toastOptions={{
           duration: 4000,
           classNames: {
@@ -25,9 +27,11 @@ export default function App() {
         }} />
         <>
           <h1>Hola</h1>
+          <ModeToggle />
         </>
         <RouterProvider router={appRouter} />
       </ThemeProvider>
+      <ReactQueryDevtools initialIsOpen={true} />
     </QueryClientProvider>
   )
 }
