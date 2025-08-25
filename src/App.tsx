@@ -25,10 +25,9 @@ export default function App() {
             info: 'text-blue-400 border-blue-400'
           }
         }} />
-        <>
+        
           <h1>Hello Word and Test CodeRabbit and test</h1>
           <ModeToggle />
-        </>
         <RouterProvider router={appRouter} />
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={true} />

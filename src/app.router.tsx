@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
 
 export const appRouter = createBrowserRouter([
@@ -11,6 +12,10 @@ export const appRouter = createBrowserRouter([
     },
     {
         path: '*',
-        element: <Navigate to="/" />
+        element: (
+            <Suspense fallback={null}>
+                <Navigate to="/" />
+            </Suspense>
+        )
     }
 ])
