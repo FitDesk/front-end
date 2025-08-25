@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "biome lint --write ./src",
+    "link-check": "biome lint ./src",
+    "format-check": "biome format ./src",
+    "format": "biome format --write ./src",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@biomejs/biome": "2.2.2",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -52,9 +56,6 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react-swc": "^4.0.0",
-    "eslint": "^9.33.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
     "tw-animate-css": "^1.3.7",
     "typescript": "~5.8.3",

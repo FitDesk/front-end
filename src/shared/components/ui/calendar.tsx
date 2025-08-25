@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/noNestedComponentDefinitions: Default */
 "use client"
 
 import * as React from "react"
@@ -6,6 +7,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react"
+// biome-ignore lint/style/useImportType: Default
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
 
 import { cn } from "@/core/lib/utils"

@@ -1,3 +1,4 @@
+// biome-ignore lint/style/useImportType: Default
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -43,4 +44,5 @@ function Badge({
   )
 }
 
+// biome-ignore lint/style/useComponentExportOnlyModules: <explanation>
 export { Badge, badgeVariants }
