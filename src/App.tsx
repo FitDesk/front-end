@@ -26,7 +26,7 @@ export default function App() {
           }
         }} />
         <>
-          <h1>Hola</h1>
+          <h1>Hello Word and Test CodeRabbit and test</h1>
           <ModeToggle />
         </>
         <RouterProvider router={appRouter} />
