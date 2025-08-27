@@ -1,4 +1,3 @@
-// biome-ignore lint/style/useImportType: Default
 import * as React from "react"
 
 import { cn } from "@/core/lib/utils"
