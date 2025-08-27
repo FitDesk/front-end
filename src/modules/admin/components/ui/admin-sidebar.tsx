@@ -13,7 +13,6 @@ import {
     Sun,
     User,
 } from 'lucide-react';
-// import { useTheme } from 'next-themes';
 import { memo } from 'react';
 import {
     Sidebar,
@@ -51,10 +50,13 @@ export const AdminSidebar = memo(() => {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link prefetch='none' to="#dashboard" viewTransition >
-                                <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                                    <LayoutDashboard className="h-5 w-5" />
-                                </div>
+                            <Link prefetch='none' to="/admin" viewTransition >
+                                <img
+                                    src="/favicon.svg"
+                                    alt="App Logo"
+                                    loading="lazy"
+                                    className="h-20 w-20"
+                                />
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-semibold">TechCorp</span>
                                     <span className="truncate text-xs">Admin Panel</span>
@@ -67,7 +69,7 @@ export const AdminSidebar = memo(() => {
 
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+                    <SidebarGroupLabel>Navegacion</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {menuItems.map((item) => {

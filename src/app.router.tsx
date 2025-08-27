@@ -3,11 +3,14 @@ import { createBrowserRouter, Navigate } from "react-router";
 import Home from "./Home";
 import About from "./About";
 
-
-const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
-
-
 const PageLoader = () => <div className="">Cargando</div>
+
+//Admin
+const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
+const DashboardPage = lazy(() => import("@/modules/admin/dashboard/DashboardPage"))
+//Trainer
+
+//Client
 
 export const appRouter = createBrowserRouter([
     //Main
@@ -33,7 +36,7 @@ export const appRouter = createBrowserRouter([
             </Suspense>
         ),
         children: [
-            { index: true }
+            { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> }
         ]
     },
     {
