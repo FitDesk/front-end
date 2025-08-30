@@ -1,11 +1,12 @@
 import { Badge } from '@/shared/components/ui/badge';
 import { ArrowRight, Check, Shield, Sparkles, Star, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { cn } from '@/core/lib/utils';
 import { Button } from '@/shared/components/ui/button';
+import { AnimatedNumber } from '@/shared/components/animated-number';
 
 
 const plans = [
@@ -201,24 +202,20 @@ export const PriceSection = () => {
                                                 frequency as keyof typeof plan.price
                                             ] === 'number' ? (
                                                 <div className="flex items-baseline">
-                                                    {/* <NumberFlow
-                            className={cn(
-                              'text-3xl font-bold',
-                              plan.popular ? 'text-primary' : 'text-foreground',
-                            )}
-                            format={{
-                              style: 'currency',
-                              currency: 'USD',
-                              maximumFractionDigits: 0,
-                            }}
-                            value={
-                              plan.price[
-                                frequency as keyof typeof plan.price
-                              ] as number
-                            }
-                          /> */}
+                                                    <AnimatedNumber
+                                                        value={plan.price[frequency as keyof typeof plan.price] as number}
+                                                        className={cn(
+                                                            'text-3xl font-bold',
+                                                            plan.popular ? 'text-primary' : 'text-foreground',
+                                                        )}
+                                                        format={{
+                                                            style: 'currency',
+                                                            currency: 'PEN',
+                                                            maximumFractionDigits: 0
+                                                        }}
+                                                    />
                                                     <span className="text-muted-foreground ml-1 text-sm">
-                                                        /month, billed {frequency}
+                                                        /mes, facturado {frequency === "monthly" ? "mensual" : "anual"}
                                                     </span>
                                                 </div>
                                             ) : (

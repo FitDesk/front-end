@@ -1,6 +1,6 @@
 import { useTheme } from "@/core/providers/theme-provider";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { Link } from "react-router";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
@@ -164,13 +164,13 @@ export const Header = () => {
                         <Link prefetch="none" to="/auth" viewTransition
                             className="text-foreground font-medium transition-colors duration-200 hover:text-rose-500"
                         >
-                            Login
+                            Inicia Sesion
                         </Link>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Link prefetch="none" to="/signup"
+                            <Link prefetch="none" to="/auth/register"
                                 className="inline-flex items-center space-x-2 rounded-full bg-gradient-to-r from-rose-500 to-rose-700 px-6 py-2.5 font-medium text-white transition-all duration-200 hover:shadow-lg"
                             >
-                                <span>Get Started</span>
+                                <span>Registrarse</span>
                                 <ArrowRight className="h-4 w-4" />
                             </Link>
                         </motion.div>
@@ -211,17 +211,17 @@ export const Header = () => {
                                 ))}
                                 <div className="space-y-2 px-4 py-2">
                                     <ModeToggle />
-                                    <Link prefetch="none" to="/login"
+                                    <Link prefetch="none" to="/auth"
                                         className="text-foreground hover:bg-muted block w-full rounded-lg py-2.5 text-center font-medium transition-colors duration-200"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
-                                        Sign In
+                                        Inicia Sesion
                                     </Link>
-                                    <Link prefetch="none" to="/signup"
-                                        className="block w-full rounded-lg bg-gradient-to-r from-rose-500 to-rose-700 py-2.5 text-center font-medium text-white transition-all duration-200 hover:shadow-lg"
+                                    <Link prefetch="none" to="/auth/register"
+                                        className="block w-full rounded-lg bg-gradient-to-r from-rose-500 to-rose-700 py-2 text-center font-medium text-white transition-all duration-200 hover:shadow-lg"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
-                                        Get Started
+                                        Registrarse
                                     </Link>
                                 </div>
                             </div>

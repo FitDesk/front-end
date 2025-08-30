@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import imageTrainer from '@/assets/trainer.png'
@@ -91,7 +91,7 @@ export const HeroSection = () => {
 
                             {stats.map((stat, index) => {
                                 let positionClasses = ""
-                                const cardClasses = "bg-black/80 backdrop-blur-sm border-gray-700 text-white"
+                                const cardClasses = "bg-black/80 backdrop-blur-sm border-orange-700 text-white"
 
                                 switch (stat.position) {
                                     case "top-right":
