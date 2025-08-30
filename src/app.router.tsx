@@ -1,7 +1,8 @@
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
-import Home from "./Home";
-import About from "./About";
+import { Login } from "./modules/shared/auth/login";
+import { Register } from "./modules/shared/auth/register";
+import { ForgotPassword } from "./modules/shared/auth/forgot-password";
 
 const PageLoader = () => <div className="">Cargando</div>
 
@@ -11,22 +12,36 @@ const DashboardPage = lazy(() => import("@/modules/admin/dashboard/DashboardPage
 //Trainer
 
 //Client
+const ClientLayout = lazy(() => import("@/shared/layouts/ClientLayout"))
+const LandingPage = lazy(() => import("@/modules/client/landing/landing-page"))
 
+//Auth
+const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
 export const appRouter = createBrowserRouter([
     //Main
     {
         path: "/",
         element: (
-            <Home />
-        )
-        // element:
-        // children:[
-        //     {index:true , element}
-        // ]
+            <Suspense fallback={<PageLoader />} >
+                <ClientLayout />
+            </Suspense>
+        ),
+        children: [
+            { index: true, element: <Suspense><LandingPage /></Suspense> }
+        ]
     },
     {
-        path: "/about",
-        element: <About />
+        path: "/auth",
+        element: (
+            <Suspense fallback={<PageLoader />}>
+                <AuthLayout />
+            </Suspense>
+        ),
+        children: [
+            { index: true, element: <Suspense><Login /></Suspense> },
+            { path: "register", element: <Suspense><Register /></Suspense> },
+            { path: "forgot-password", element: <Suspense><ForgotPassword /></Suspense> }
+        ]
     },
     {
         path: "/admin",

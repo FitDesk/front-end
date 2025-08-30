@@ -1,7 +1,7 @@
 import { memo } from 'react';
 
 import { TrendingUp } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 interface DashboardCardProps {
     stat: {
         title: string;

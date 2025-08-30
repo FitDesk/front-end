@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { BarChart3, Calendar } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 
