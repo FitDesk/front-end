@@ -7,8 +7,6 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { ModeToggle } from "./shared/components/mode-toggle"
-
 
 
 const queryClient = new QueryClient()
@@ -26,7 +24,6 @@ export default function App() {
           }
         }} />
         
-          <ModeToggle />
         <RouterProvider router={appRouter} />
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={true} />

@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { User, Download, Settings, Users } from 'lucide-react';
 
 const activities = [

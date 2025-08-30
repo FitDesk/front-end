@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Users, BarChart3, Download, Settings } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 
