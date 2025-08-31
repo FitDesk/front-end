@@ -14,6 +14,7 @@ import { Button } from '@/shared/components/ui/button';
 import avatar1 from '@/assets/avatars/avatar-1.webp';
 import avatar2 from '@/assets/avatars/avatar-2.webp';
 import avatar3 from '@/assets/avatars/avatar-3.webp';
+import { Image } from '@/shared/components/ui/image';
 const users = [
     {
         id: 1,
@@ -85,7 +86,7 @@ export const UsersTable = memo(({ onAddUser }: UsersTableProps) => {
                     >
                         <div className="flex w-full items-center gap-4 sm:w-auto">
                             <div className="relative">
-                                <img
+                                <Image
                                     src={user.avatar}
                                     alt={user.name}
                                     width={40}
