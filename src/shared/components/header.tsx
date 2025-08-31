@@ -5,6 +5,7 @@ import { Link } from "react-router";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import fitdeskLogo from '@/assets/logo.svg'
+import { Image } from "./ui/image";
 interface NavItem {
     name: string;
     href: string;
@@ -94,11 +95,11 @@ export const Header = () => {
                     >
                         <Link prefetch="none" to="/" className="flex items-center space-x-2">
                             {/* <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-rose-700"> */}
-                            <img
+                            <Image
                                 src={fitdeskLogo}
                                 className=" h-9 w-9"
                                 alt="Logo de Aplicacion"
-                                loading="lazy" />
+                                />
                             {/* </div> */}
                             <span className="bg-gradient-to-r from-rose-500 to-rose-700 bg-clip-text text-xl font-bold text-transparent">
                                 Acme Inc.

@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { Input } from "@/shared/components/ui/input";
 import { Link } from "react-router";
 import { Button } from "@/shared/components/ui/button";
-import imageTrainer from '@/assets/trainer.png'
+import imageTrainer from '@/assets/trainer.webp'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod"

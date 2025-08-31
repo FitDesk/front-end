@@ -1,7 +1,8 @@
 import { motion } from 'motion/react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import imageTrainer from '@/assets/trainer.png'
+import imageTrainer from '@/assets/trainer.webp'
+import { Image } from '@/shared/components/ui/image';
 
 const stats = [
     { value: "1300", label: "Positive Reviews", position: "top-right" },
@@ -79,7 +80,7 @@ export const HeroSection = () => {
                         className="relative flex justify-center"
                     >
                         <div className="relative w-80 h-96 md:w-96 md:h-[500px]">
-                            <img
+                            <Image
                                 src={imageTrainer}
                                 alt="Professional Fitness Trainer"
                                 className="w-full h-full object-cover object-center"

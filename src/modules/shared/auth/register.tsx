@@ -5,11 +5,12 @@ import { Input } from "@/shared/components/ui/input";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Link } from "react-router";
 import { Button } from "@/shared/components/ui/button";
-import imageTrainer from '@/assets/trainer.png'
+import imageTrainer from '@/assets/trainer.webp'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Image } from "@/shared/components/ui/image";
 const formSchema = z.object({
     email: z.string().min(2, { message: "El dni debe tener al menos 7 caracteres" }),
     password: z.string()
@@ -65,7 +66,7 @@ export const Register = () => {
                         className="relative w-full h-full flex items-center justify-center"
                     >
                         <div className="relative">
-                            <img
+                            <Image
                                 src={imageTrainer}
                                 alt="Fitness Trainer"
                                 className="w-[600px] h-[700px] object-cover rounded-3xl"

@@ -135,3 +135,33 @@
     --chart-5: oklch(0.645 0.246 16.439);
   }
 }
+
+.trainer-card {
+  perspective: 1100px;
+  -webkit-perspective: 1100px;
+}
+
+.card-inner {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 420ms cubic-bezier(.2,.9,.2,1), box-shadow 300ms;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.card-inner--lift {
+  transform: translateZ(12px);
+}
+
+.card-overlay {
+  transform: translateZ(22px); 
+  backface-visibility: hidden;
+}
+
+.card-shadow {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-inner { transition: none !important; }
+}
