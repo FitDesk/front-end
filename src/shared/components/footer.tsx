@@ -1,4 +1,3 @@
-
 import {
   Dribbble,
   Facebook,
@@ -10,13 +9,15 @@ import {
   Twitter,
 } from 'lucide-react';
 import { Link } from 'react-router';
+import fitdeskLogo from '@/assets/logo.svg';
+import { Image } from './ui/image';
 
 const data = {
-  facebookLink: 'https://facebook.com/mvpblocks',
-  instaLink: 'https://instagram.com/mvpblocks',
-  twitterLink: 'https://twitter.com/mvpblocks',
-  githubLink: 'https://github.com/mvpblocks',
-  dribbbleLink: 'https://dribbble.com/mvpblocks',
+  facebookLink: 'https://facebook.com/fitdesk',
+  instaLink: 'https://instagram.com/fitdesk',
+  twitterLink: 'https://twitter.com/fitdesk',
+  githubLink: 'https://github.com/fitdesk',
+  dribbbleLink: 'https://dribbble.com/fitdesk',
   services: {
     webdev: '/web-development',
     webdesign: '/web-design',
@@ -35,15 +36,15 @@ const data = {
     livechat: '/live-chat',
   },
   contact: {
-    email: 'hello@mvpblocks.com',
-    phone: '+91 8637373116',
-    address: 'Kolkata, West Bengal, India',
+    email: 'contacto@fitdesk.com',
+    phone: '+1 234 567 890',
+    address: 'Tu dirección aquí',
   },
   company: {
-    name: 'Mvpblocks',
+    name: 'FitDesk',
     description:
-      'Building beautiful and functional web experiences with modern technologies. We help startups and businesses create their digital presence.',
-    logo: '/logo.webp',
+      'Tu solución integral para el manejo de gimnasios y centros de entrenamiento. Ofrecemos herramientas poderosas para administrar clientes, clases y pagos.',
+    logo: fitdeskLogo,
   },
 };
 
@@ -88,12 +89,12 @@ export const Footer = () => {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div>
             <div className="text-primary flex justify-center gap-2 sm:justify-start">
-              <img
-                src={data.company.logo || '/placeholder.svg'}
-                alt="logo"
-                className="h-8 w-8 rounded-full"
+              <Image
+                src={data.company.logo}
+                className="h-9 w-9"
+                alt="Logo de FitDesk"
               />
-              <span className="text-2xl font-semibold">
+              <span className="bg-gradient-to-r from-rose-500 to-rose-700 bg-clip-text text-xl font-bold text-transparent">
                 {data.company.name}
               </span>
             </div>

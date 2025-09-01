@@ -102,7 +102,7 @@ export const Header = () => {
                                 />
                             {/* </div> */}
                             <span className="bg-gradient-to-r from-rose-500 to-rose-700 bg-clip-text text-xl font-bold text-transparent">
-                                Acme Inc.
+                                FitDesk .
                             </span>
                         </Link>
                     </motion.div>
