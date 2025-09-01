@@ -3,8 +3,9 @@ import { createBrowserRouter, Navigate } from "react-router";
 import { Login } from "./modules/shared/auth/login";
 import { Register } from "./modules/shared/auth/register";
 import { ForgotPassword } from "./modules/shared/auth/forgot-password";
+import { PageLoader } from "./shared/components/page-loader";
+// import { AdminRoute, NotAuthenticatedRoute, TrainerRoute } from "./shared/components/protected-routes";
 
-const PageLoader = () => <div className="">Cargando</div>
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
@@ -33,9 +34,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/auth",
         element: (
-            <Suspense fallback={<PageLoader />}>
-                <AuthLayout />
-            </Suspense>
+            // <NotAuthenticatedRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <AuthLayout />
+                </Suspense>
+            // </NotAuthenticatedRoute>
         ),
         children: [
             { index: true, element: <Suspense><Login /></Suspense> },
@@ -44,11 +47,23 @@ export const appRouter = createBrowserRouter([
         ]
     },
     {
+        path: "/trainer",
+        element: (
+            <Suspense>
+                {/* <TrainerRoute> */}
+                    <div>Dashboard trainer</div>
+                {/* </TrainerRoute> */}
+            </Suspense>
+        )
+    },
+    {
         path: "/admin",
         element: (
-            <Suspense fallback={<PageLoader />}>
-                <AdminLayout />
-            </Suspense>
+            // <AdminRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <AdminLayout />
+                </Suspense>
+            // </AdminRoute>
         ),
         children: [
             { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> }

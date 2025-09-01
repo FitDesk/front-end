@@ -7,9 +7,12 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+// import { CheckAuthProvider } from "./core/providers/auth-provider"
 
 
 const queryClient = new QueryClient()
+
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -23,8 +26,9 @@ export default function App() {
             info: 'text-blue-400 border-blue-400'
           }
         }} />
-        
-        <RouterProvider router={appRouter} />
+        {/* <CheckAuthProvider> */}
+          <RouterProvider router={appRouter} />
+        {/* </CheckAuthProvider> */}
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={true} />
     </QueryClientProvider>
