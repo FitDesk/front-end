@@ -68,7 +68,7 @@ const PlansPage = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Planes de Suscripción</h1>
-          <p className="text-muted-foreground">Administra los planes de suscripción disponibles</p>
+          <p className="text-muted-foreground">Administra planes de membresía y promociones</p>
         </div>
         <Button onClick={handleCreate} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
