@@ -16,7 +16,7 @@ interface AuthStore {
 }
 
 
-const authAPI: StateCreator<AuthStore> = (set) => ({
+const authAPI: StateCreator<AuthStore> = () => ({
     authStatus: 'checking',
     isAdmin: () => {
         return false
