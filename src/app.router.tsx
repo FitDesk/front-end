@@ -10,6 +10,7 @@ import { PageLoader } from "./shared/components/page-loader";
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
 const DashboardPage = lazy(() => import("@/modules/admin/dashboard/DashboardPage"))
+const PlansPage = lazy(() => import("@/modules/admin/plans/plans-page"))
 //Trainer
 
 //Client
@@ -66,7 +67,11 @@ export const appRouter = createBrowserRouter([
             // </AdminRoute>
         ),
         children: [
-            { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> }
+            { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
+            { 
+                path: "plans",
+                element: <Suspense fallback={<PageLoader />}><PlansPage /></Suspense>
+            }
         ]
     },
     {

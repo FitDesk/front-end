@@ -29,17 +29,18 @@ import {
 } from '@/shared/components/ui/sidebar';
 import { Link } from 'react-router';
 import { useTheme } from '@/core/providers/theme-provider';
+
 const menuItems = [
-    { title: 'Dashboard', icon: LayoutDashboard, href: '#dashboard' },
-    { title: 'Analytics', icon: BarChart3, href: '#analytics' },
-    { title: 'Users', icon: Users, href: '#users' },
-    { title: 'Content', icon: FileText, href: '#content' },
-    { title: 'Activity', icon: Activity, href: '#activity' },
-    { title: 'Database', icon: Database, href: '#database' },
-    { title: 'Security', icon: Shield, href: '#security' },
-    { title: 'Performance', icon: Zap, href: '#performance' },
-    { title: 'Notifications', icon: Bell, href: '#notifications' },
-    { title: 'Settings', icon: Settings, href: '#settings' },
+    { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
+    { title: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
+    { title: 'Users', icon: Users, href: '/admin/users' },
+    { title: 'Content', icon: FileText, href: '/admin/content' },
+    { title: 'Activity', icon: Activity, href: '/admin/activity' },
+    { title: 'Database', icon: Database, href: '/admin/database' },
+    { title: 'Planes', icon: Shield, href: '/admin/plans' },
+    { title: 'Performance', icon: Zap, href: '/admin/performance' },
+    { title: 'Notifications', icon: Bell, href: '/admin/notifications' },
+    { title: 'Settings', icon: Settings, href: '/admin/settings' },
 ];
 
 export const AdminSidebar = memo(() => {
