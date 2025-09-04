@@ -19,21 +19,35 @@ export class PlanService {
       // Obtener planes
       const { data: plans } = await fitdeskApi.get<Plan[]>(this.ENDPOINT);
       
-      // Obtener promociones activas
-      const { data: promotions } = await fitdeskApi.get<Promotion[]>('/promotions/active');
+      if (!plans || !Array.isArray(plans)) {
+        return [];
+      }
       
-      // Asignar promociones a los planes correspondientes
-      return plans.map(plan => ({
-        ...plan,
-        promotions: promotions.filter(promo => 
-          promo.target === 'all' || 
-          (promo.target === 'members' && plan.name.toLowerCase().includes('miembro')) ||
-          (promo.target === 'trainers' && plan.name.toLowerCase().includes('entrenador'))
-        )
-      }));
+      try {
+        // Obtener promociones activas
+        const { data: promotions = [] } = await fitdeskApi.get<Promotion[]>('/promotions/active');
+        
+        // Asignar promociones a los planes correspondientes
+        return plans.map(plan => ({
+          ...plan,
+          promotions: Array.isArray(promotions) ? promotions.filter(promo => 
+            promo && 
+            (promo.target === 'all' || 
+            (promo.target === 'members' && plan.name.toLowerCase().includes('miembro')) ||
+            (promo.target === 'trainers' && plan.name.toLowerCase().includes('entrenador')))
+          ) : []
+        }));
+      } catch (promoError) {
+        console.error('Error cargando promociones:', promoError);
+        // Si falla cargar promociones, devolver planes sin promociones
+        return plans.map(plan => ({
+          ...plan,
+          promotions: []
+        }));
+      }
     } catch (error) {
       console.error('Error en PlanService.getAll:', error);
-      throw new Error('No se pudieron cargar los planes');
+      return [];
     }
   }
 

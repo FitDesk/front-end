@@ -2,9 +2,7 @@ import {
     LayoutDashboard,
     Users,
     BarChart3,
-    FileText,
-    Activity,
-    Database,
+    DollarSign,
     Shield,
     Zap,
     Bell,
@@ -33,15 +31,12 @@ import { useTheme } from '@/core/providers/theme-provider';
 const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
     { title: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
-    { title: 'Users', icon: Users, href: '/admin/users' },
-    { title: 'Content', icon: FileText, href: '/admin/content' },
-    { title: 'Activity', icon: Activity, href: '/admin/activity' },
-    { title: 'Database', icon: Database, href: '/admin/database' },
+    { title: 'Miembros', icon: Users, href: '/admin/users' },
+    { title: 'Facturación', icon: DollarSign, href: '/admin/billing' },
     { title: 'Planes', icon: Shield, href: '/admin/plans' },
     { title: 'Promociones', icon: Zap, href: '/admin/promotions' },
-    { title: 'Performance', icon: Zap, href: '/admin/performance' },
-    { title: 'Notifications', icon: Bell, href: '/admin/notifications' },
-    { title: 'Settings', icon: Settings, href: '/admin/settings' },
+    { title: 'Notificaciones', icon: Bell, href: '/admin/notifications' },
+    { title: 'Configuración', icon: Settings, href: '/admin/settings' },
 ];
 
 export const AdminSidebar = memo(() => {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Shield } from 'lucide-react';
 import { type Plan } from './components/plans-columns';
 import { usePlans, useCreatePlan, useUpdatePlan, useDeletePlan } from './hooks/use-plans';
 import { Card } from '@/shared/components/ui/card';
@@ -9,15 +9,14 @@ import { PlanCard } from './components/plan-card';
 import { toast } from 'sonner';
 
 const PlansPage = () => {
-  const { data: plans, isLoading, error } = usePlans();
-  const createPlan = useCreatePlan();
-  const updatePlan = useUpdatePlan();
-  const deletePlan = useDeletePlan();
-  
+  const { data: plans = [], isLoading, error } = usePlans();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const createPlan = useCreatePlan();
+  const updatePlan = useUpdatePlan();
+  const deletePlan = useDeletePlan();
 
   const handleEdit = (plan: Plan) => {
     setSelectedPlan(plan);
@@ -86,21 +85,18 @@ const PlansPage = () => {
         <div className="bg-destructive/10 border border-destructive/30 text-destructive p-4 rounded-lg">
           <p className="font-semibold">Error al cargar los planes</p>
           <p className="text-sm mt-1">Por favor, intenta recargar la página o contacta con soporte.</p>
-          <pre className="mt-2 text-xs bg-black/10 p-2 rounded overflow-auto">
-            {error instanceof Error ? error.message : 'Error desconocido'}
-          </pre>
-        </div>
-      ) : !Array.isArray(plans) ? (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg">
-          <p>No se pudieron cargar los planes. La respuesta del servidor no es válida.</p>
         </div>
       ) : plans.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <p className="text-muted-foreground">No hay planes disponibles</p>
-          <Button variant="outline" className="mt-4" onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Crear primer plan
-          </Button>
+        <div className="rounded-lg border-2 border-dashed p-12 text-center">
+          <div className="flex flex-col items-center justify-center space-y-2">
+            <Shield className="h-12 w-12 text-muted-foreground" />
+            <h3 className="text-lg font-medium">No hay planes disponibles</h3>
+            <p className="text-sm text-muted-foreground">Comienza creando tu primer plan de suscripción</p>
+            <Button className="mt-4" onClick={handleCreate}>
+              <Plus className="mr-2 h-4 w-4" />
+              Crear primer plan
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
