@@ -40,7 +40,6 @@ const formSchema = z.object({
   isActive: z.boolean().default(true),
   isPopular: z.boolean().default(false),
   currency: z.string().default('USD'),
-  discount: z.number().min(0).max(100).optional(),
   features: z.array(z.string().min(1, 'La característica no puede estar vacía')).min(1, 'Debe agregar al menos una característica'),
 });
 
@@ -65,7 +64,6 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
       isActive: plan?.isActive ?? true,
       isPopular: plan?.isPopular ?? false,
       currency: plan?.currency || 'USD',
-      discount: plan?.discount || 0,
       features: plan?.features || [],
     },
   });
@@ -225,29 +223,6 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="discount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Descuento (%)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="1"
-                    value={field.value}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
         <div className="space-y-4">

@@ -38,6 +38,7 @@ const menuItems = [
     { title: 'Activity', icon: Activity, href: '/admin/activity' },
     { title: 'Database', icon: Database, href: '/admin/database' },
     { title: 'Planes', icon: Shield, href: '/admin/plans' },
+    { title: 'Promociones', icon: Zap, href: '/admin/promotions' },
     { title: 'Performance', icon: Zap, href: '/admin/performance' },
     { title: 'Notifications', icon: Bell, href: '/admin/notifications' },
     { title: 'Settings', icon: Settings, href: '/admin/settings' },
