@@ -7,12 +7,14 @@ export const usePlans = () => {
     queryKey: ['plans'],
     queryFn: async () => {
       try {
-        return await PlanService.getAll();
+        const data = await PlanService.getAll();
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching plans:', error);
-        throw error;
+        return [];
       }
     },
+    initialData: []
   });
 };
 
