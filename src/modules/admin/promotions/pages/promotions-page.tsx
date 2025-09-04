@@ -90,9 +90,12 @@ function PromotionsPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Gestión de Promociones</h1>
+    <div className="space-y-8 px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Gestión de Promociones</h1>
+          <p className="text-muted-foreground">Administra promociones y descuentos especiales para los planes</p>
+        </div>
         <Button onClick={() => {
           setEditingPromotion(undefined);
           setIsDialogOpen(true);
