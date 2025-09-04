@@ -1,5 +1,7 @@
 import { fitdeskApi } from '@/core/api/fitdeskApi';
-import type { Plan } from '../components/plans-columns';
+import type { Plan, Promotion } from '../components/plans-columns';
+
+// El tipo Plan ya incluye promociones
 
 /**
  * Servicio para gestionar las operaciones CRUD de planes
@@ -14,8 +16,21 @@ export class PlanService {
    */
   static async getAll(): Promise<Plan[]> {
     try {
-      const { data } = await fitdeskApi.get<Plan[]>(this.ENDPOINT);
-      return this.validatePlansResponse(data);
+      // Obtener planes
+      const { data: plans } = await fitdeskApi.get<Plan[]>(this.ENDPOINT);
+      
+      // Obtener promociones activas
+      const { data: promotions } = await fitdeskApi.get<Promotion[]>('/promotions/active');
+      
+      // Asignar promociones a los planes correspondientes
+      return plans.map(plan => ({
+        ...plan,
+        promotions: promotions.filter(promo => 
+          promo.target === 'all' || 
+          (promo.target === 'members' && plan.name.toLowerCase().includes('miembro')) ||
+          (promo.target === 'trainers' && plan.name.toLowerCase().includes('entrenador'))
+        )
+      }));
     } catch (error) {
       console.error('Error en PlanService.getAll:', error);
       throw new Error('No se pudieron cargar los planes');
@@ -66,17 +81,6 @@ export class PlanService {
       console.error('Error en PlanService.delete:', error);
       throw new Error('No se pudo eliminar el plan');
     }
-  }
-
-  /**
-   * Valida que la respuesta sea un array de planes
-   * @private
-   */
-  private static validatePlansResponse(data: unknown): Plan[] {
-    if (!Array.isArray(data)) {
-      throw new Error('La respuesta no es un array de planes');
-    }
-    return data;
   }
 }
 

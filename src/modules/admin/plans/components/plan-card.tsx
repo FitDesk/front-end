@@ -1,10 +1,47 @@
-import { Check, Star } from 'lucide-react';
+import { Check, Star, Tag } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
 // Simple cn utility
 const cn = (...classes: (string | undefined)[]) => classes.filter(Boolean).join(' ');
-import type { Plan } from './plans-columns';
+import type { Plan, Promotion } from './plans-columns';
+
+// Componente para mostrar una promoción
+const PromotionBadge = ({ promotion }: { promotion: Promotion }) => {
+  const isActive = promotion.isActive && 
+    new Date(promotion.startDate) <= new Date() && 
+    new Date(promotion.endDate) >= new Date();
+
+  if (!isActive) return null;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Badge variant="outline" className="mt-2 bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 cursor-pointer">
+          <Tag className="w-3 h-3 mr-1" />
+          {promotion.discount}% OFF
+        </Badge>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        <div className="space-y-2">
+          <h4 className="font-medium leading-none">{promotion.title}</h4>
+          <p className="text-sm text-muted-foreground">{promotion.description}</p>
+          <div className="flex items-center pt-2">
+            <span className="text-xs text-muted-foreground">
+              Válido hasta: {new Date(promotion.endDate).toLocaleDateString()}
+            </span>
+            {promotion.code && (
+              <Badge variant="outline" className="ml-auto">
+                Código: {promotion.code}
+              </Badge>
+            )}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 type PlanCardProps = {
   plan: Plan;
@@ -41,24 +78,26 @@ export function PlanCard({ plan, onEdit, onDelete, isDeleting }: PlanCardProps) 
 
       <CardContent className="pb-4">
         <div className="space-y-4">
-          <div className="flex items-end">
-            <span className="text-3xl font-bold">
-              ${plan.price.toFixed(2)}
-            </span>
-            <span className="text-muted-foreground ml-2">
-              /{plan.duration} {plan.duration === 1 ? 'mes' : 'meses'}
-            </span>
-            {plan.discount && plan.discount > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {plan.discount}% OFF
-              </Badge>
-            )}
+          <div className="space-y-1">
+            <div className="flex items-end">
+              <span className="text-3xl font-bold">
+                ${plan.price.toFixed(2)}
+              </span>
+              <span className="text-muted-foreground ml-2">
+                /{plan.duration} {plan.duration === 1 ? 'mes' : 'meses'}
+              </span>
+            </div>
+            {plan.promotions?.map((promo) => (
+              <PromotionBadge key={promo.id} promotion={promo} />
+            ))}
           </div>
           
-          {plan.discount && plan.discount > 0 && (
+          {plan.promotions && plan.promotions.length > 0 && (
             <div className="text-sm text-muted-foreground">
-              <span className="line-through">${(plan.price / (1 - (plan.discount / 100))).toFixed(2)}</span>
-              <span className="ml-2 text-amber-500 font-medium">Ahorras ${((plan.price / (1 - (plan.discount / 100))) - plan.price).toFixed(2)}</span>
+              <span className="line-through">${(plan.price / (1 - (plan.promotions[0].discount / 100))).toFixed(2)}</span>
+              <span className="ml-2 text-amber-600 dark:text-amber-400">
+                {plan.promotions[0].discount}% de descuento
+              </span>
             </div>
           )}
 

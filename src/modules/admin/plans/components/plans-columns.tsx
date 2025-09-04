@@ -8,6 +8,18 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
 
+export type Promotion = {
+  id: string;
+  title: string;
+  description: string;
+  discount: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  target: 'all' | 'members' | 'trainers';
+  code?: string;
+};
+
 export type Plan = {
   id: string;
   name: string;
@@ -18,7 +30,7 @@ export type Plan = {
   features: string[];
   isPopular?: boolean;
   currency?: string;
-  discount?: number;
+  promotions?: Promotion[];
 };
 
 type ColumnsProps = (
