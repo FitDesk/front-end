@@ -4,14 +4,19 @@ import { Login } from "./modules/shared/auth/login";
 import { Register } from "./modules/shared/auth/register";
 import { ForgotPassword } from "./modules/shared/auth/forgot-password";
 import { PageLoader } from "./shared/components/page-loader";
-// import { AdminRoute, NotAuthenticatedRoute, TrainerRoute } from "./shared/components/protected-routes";
-
+// Importaciones de entrenadores
+// Importación directa para evitar problemas con lazy loading
+import { TrainersPage } from "./modules/admin/trainers/pages/TrainersPage";
+import { TrainerFormPage } from "./modules/admin/trainers/pages/TrainerFormPage";
+import { TrainerDetailsPage } from "./modules/admin/trainers/pages/TrainerDetailsPage";
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
 const DashboardPage = lazy(() => import("@/modules/admin/dashboard/DashboardPage"))
 const PlansPage = lazy(() => import("@/modules/admin/plans/plans-page"))
 const PromotionsPage = lazy(() => import("@/modules/admin/promotions/pages/promotions-page"))
+const ClassesPage = lazy(() => import("@/modules/admin/classes/pages/classes-page"))
+const LocationsPage = lazy(() => import("@/modules/admin/classes/pages/locations-page"))
 //Trainer
 
 //Client
@@ -76,6 +81,30 @@ export const appRouter = createBrowserRouter([
             {
                 path: "promotions",
                 element: <Suspense fallback={<PageLoader />}><PromotionsPage /></Suspense>
+            },
+            {
+                path: "classes",
+                element: <Suspense fallback={<PageLoader />}><ClassesPage /></Suspense>
+            },
+            {
+                path: "locations",
+                element: <Suspense fallback={<PageLoader />}><LocationsPage /></Suspense>
+            },
+            {
+                path: "trainers",
+                element: <Suspense fallback={<PageLoader />}><TrainersPage /></Suspense>,
+            },
+            {
+                path: "trainers/nuevo",
+                element: <Suspense fallback={<PageLoader />}><TrainerFormPage /></Suspense>,
+            },
+            {
+                path: "trainers/editar/:id",
+                element: <Suspense fallback={<PageLoader />}><TrainerFormPage isEditMode /></Suspense>,
+            },
+            {
+                path: "trainers/:id",
+                element: <Suspense fallback={<PageLoader />}><TrainerDetailsPage /></Suspense>,
             }
         ]
     },

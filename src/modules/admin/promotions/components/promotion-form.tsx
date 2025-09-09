@@ -10,7 +10,7 @@ import { es } from 'date-fns/locale';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2, Save, PlusCircle } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
 
-// Estilos personalizados para el DayPicker
+
 const dayPickerStyles = {
   root: 'm-0 p-0',
   months: 'm-0 p-0',
@@ -31,7 +31,7 @@ const dayPickerStyles = {
 
 import type { CreatePromotionDTO, UpdatePromotionDTO } from '../types/promotion';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/lib/utils';
 import 'react-day-picker/dist/style.css';
 
 interface PromotionFormProps {

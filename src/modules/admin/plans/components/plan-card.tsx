@@ -3,11 +3,11 @@ import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
-// Simple cn utility
+
 const cn = (...classes: (string | undefined)[]) => classes.filter(Boolean).join(' ');
 import type { Plan, Promotion } from './plans-columns';
 
-// Componente para mostrar una promoción
+
 const PromotionBadge = ({ promotion }: { promotion: Promotion }) => {
   const isActive = promotion.isActive && 
     new Date(promotion.startDate) <= new Date() && 
