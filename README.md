@@ -19,3 +19,10 @@ docker compose down
 ```bash
 bun install
 ```
+# 3.Levantar el frontend  y json-server
+
+```bash
+bun run dev:full
+backend -> http://localhost:3001
+frontend -> http://localhost:5173
+```
