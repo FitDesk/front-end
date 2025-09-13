@@ -2,7 +2,6 @@ import { useState } from "react"
 import { motion } from 'motion/react';
 import { Eye, EyeOff } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
-import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Link } from "react-router";
 import { Button } from "@/shared/components/ui/button";
 import imageTrainer from '@/assets/trainer.webp'
@@ -11,6 +10,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Image } from "@/shared/components/ui/image";
+import { Checkbox } from "@/shared/components/ui/checkbox";
+import { Label } from "@/shared/components/ui/label";
 
 const formSchema = z.object({
     email: z.string().min(2, { message: "El dni debe tener al menos 7 caracteres" }),
@@ -188,14 +189,15 @@ export const Login = () => {
 
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center space-x-2">
+                                                    {/** biome-ignore lint/correctness/useUniqueElementIds: <Enlace con Label> */}
                                                     <Checkbox
-                                                        id={String(Math.random())}
+                                                        id="remember"
                                                         checked={rememberMe}
                                                         onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                                                     />
-                                                    <label htmlFor="remember" className="text-sm text-muted-foreground">
+                                                    <Label htmlFor="remember" className="text-sm text-muted-foreground">
                                                         Recordarme
-                                                    </label>
+                                                    </Label>
                                                 </div>
                                                 <Link to="/auth/forgot-password" viewTransition className=" flex text-sm text-end text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300">
                                                     ¿Olvidaste tu contraseña?
