@@ -25,7 +25,7 @@ export type Plan = {
   name: string;
   description: string;
   price: number;
-  duration: number; // in months
+  duration: number; 
   isActive: boolean;
   features: string[];
   isPopular?: boolean;

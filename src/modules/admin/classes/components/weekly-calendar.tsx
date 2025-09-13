@@ -103,7 +103,7 @@ export function WeeklyCalendar({
               key={i} 
               className={cn(
                 'bg-background p-2 min-h-32 flex flex-col',
-                i > 4 && 'bg-muted/5', // Weekend background
+                i > 4 && 'bg-muted/5', 
                 isSelected && 'ring-2 ring-primary/50'
               )}
               onClick={() => handleDateClick(day)}

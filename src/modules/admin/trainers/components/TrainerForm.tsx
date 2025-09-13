@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { trainerService } from '../services/trainer.service';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
@@ -28,14 +29,12 @@ interface TrainerFormProps {
 export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) {
   const { createTrainer, updateTrainer } = useTrainers();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Usando sonner para notificaciones
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  // TODO: Implementar manejo de certificaciones
   const [certifications, setCertifications] = useState<File[]>([]);
   const [certificationPreviews, setCertificationPreviews] = useState<string[]>([]);
 
-  // Define default values with proper types
+  
   const defaultValues: TrainerFormData = {
     firstName: '',
     lastName: '',
@@ -58,7 +57,7 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
   };
 
   const form = useForm<TrainerFormData>({
-    resolver: zodResolver(TrainerSchema) as any, // Type assertion needed due to zodResolver type mismatch
+    resolver: zodResolver(TrainerSchema) as any, 
     defaultValues,
   });
 
@@ -70,7 +69,7 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
     reset,
   } = form;
 
-  // Cargar datos del entrenador si está en modo edición
+  
   useEffect(() => {
     if (trainer) {
       const formattedTrainer = {
@@ -94,19 +93,28 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
       return;
     }
 
-    // Set the file to form data
-    setValue('profileImage', file as unknown as string);
+    setIsUploading(true);
+    
+    try {
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // TODO: Implementar lógica de subida de archivos
-    // Por ahora, usamos una URL temporal para la vista previa
-    setValue('profileImage', URL.createObjectURL(file));
-    setIsUploading(false);
+      
+      const { url } = await trainerService.uploadFile(file, 'profile');
+      
+      
+      setValue('profileImage', url);
+      toast.success('Imagen subida exitosamente');
+    } catch (error) {
+      console.error('Error al subir la imagen:', error);
+      toast.error('Error al subir la imagen');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleCertificationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +130,7 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
       return;
     }
 
-    // Crear vistas previas para las imágenes
+   
     newFiles.forEach(file => {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
@@ -150,20 +158,19 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
       setIsSubmitting(true);
       const formDataObj = new FormData();
       
-      // Append all form data to FormData
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           if (key === 'birthDate' && value instanceof Date) {
             formDataObj.append(key, value.toISOString().split('T')[0]);
           } else if (Array.isArray(value)) {
-            // Handle array fields like specialties
+            
             value.forEach((item, index) => {
               formDataObj.append(`${key}[${index}]`, item);
             });
           } else if (value instanceof File) {
             formDataObj.append(key, value);
           } else if (typeof value === 'object' && value !== null) {
-            // Handle nested objects if any
+            
             Object.entries(value).forEach(([nestedKey, nestedValue]) => {
               if (nestedValue !== undefined && nestedValue !== null) {
                 formDataObj.append(`${key}.${nestedKey}`, nestedValue.toString());
@@ -175,12 +182,12 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
         }
       });
 
-      // Handle profile photo
+    
       if (previewImage) {
         formDataObj.append('profilePhoto', previewImage);
       }
 
-      // Handle certifications
+      
       certifications.forEach((file, index) => {
         formDataObj.append(`certifications[${index}]`, file);
       });
@@ -355,42 +362,50 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
 
           <div className="md:col-span-2">
             <Label>Foto de Perfil (Opcional)</Label>
-            <div className="mt-2 flex items-center gap-4">
-              <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                {previewImage ? (
-                  <img
-                    src={previewImage}
-                    alt="Preview"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="text-gray-400">
-                    <Upload className="h-5 w-5" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <input
+            <div className="mt-2 flex items-center space-x-6">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full bg-muted overflow-hidden border">
+                  {previewImage ? (
+                    <img
+                      src={previewImage}
+                      alt="Profile preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      <svg className="w-12 h-12" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <label 
+                  htmlFor="profileImage"
+                  className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                      <circle cx="12" cy="13" r="3"></circle>
+                    </svg>
+                  )}
+                  <span className="sr-only">Cambiar foto</span>
+                </label>
+                <input 
+                  id="profileImage" 
+                  accept="image/*" 
+                  className="hidden" 
                   type="file"
-                  id="profileImage"
-                  accept="image/*"
-                  className="hidden"
                   onChange={handleImageUpload}
                   disabled={isUploading}
                 />
-                <Label
-                  htmlFor="profileImage"
-                  className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50"
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Subiendo...
-                    </>
-                  ) : (
-                    'Subir Foto'
-                  )}
-                </Label>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                <p>Formatos soportados: JPG, PNG</p>
+                <p>Tamaño máximo: 5MB</p>
               </div>
             </div>
           </div>

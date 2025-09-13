@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-type ToastType = 'default' | 'destructive';
+type ToastType = 'default' | 'destructive' | 'success' | 'warning' | 'info';
 
 interface Toast {
   id: string;
@@ -11,6 +11,7 @@ interface Toast {
 
 interface ToastContextType {
   showToast: (options: Omit<Toast, 'id'>) => void;
+  toast: (options: Omit<Toast, 'id'>) => void; // Alias para mantener compatibilidad
   hideToast: (id: string) => void;
   toasts: Toast[];
 }
@@ -37,6 +38,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const value = React.useMemo(() => ({
     showToast,
+    toast: showToast, // Alias para mantener compatibilidad
     hideToast,
     toasts,
   }), [showToast, hideToast, toasts]);
@@ -106,3 +108,24 @@ export function useToast() {
   }
   return context;
 }
+
+// Componentes de compatibilidad para mantener la retrocompatibilidad
+export const Toast: React.FC<React.HTMLAttributes<HTMLDivElement>> = (props) => {
+  console.warn('El componente Toast está obsoleto. Usa useToast() en su lugar.');
+  return <div {...props} />;
+};
+
+export const ToastAction: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = (props) => {
+  console.warn('El componente ToastAction está obsoleto. Usa useToast() en su lugar.');
+  return <button {...props} />;
+};
+
+export const ToastTitle: React.FC<React.HTMLAttributes<HTMLDivElement>> = (props) => {
+  console.warn('El componente ToastTitle está obsoleto. Usa useToast() en su lugar.');
+  return <div {...props} />;
+};
+
+export const ToastDescription: React.FC<React.HTMLAttributes<HTMLDivElement>> = (props) => {
+  console.warn('El componente ToastDescription está obsoleto. Usa useToast() en su lugar.');
+  return <div {...props} />;
+};

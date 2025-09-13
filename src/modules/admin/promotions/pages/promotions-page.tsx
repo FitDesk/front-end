@@ -12,10 +12,10 @@ function PromotionsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<CreatePromotionDTO | UpdatePromotionDTO | undefined>(undefined);
 
-  // Hooks para las operaciones CRUD
+  
   const { data, isLoading, error } = usePromotions();
   
-  // Aseguramos que siempre sea un array
+  
   const promotions = Array.isArray(data) ? data : [];
   
   const createMutation = useCreatePromotion();
@@ -45,7 +45,7 @@ function PromotionsPage() {
     if (!data.id) return;
     
     try {
-      // Extract the id and create a new object without it for the update
+      
       const { id, ...updateData } = data;
       await updateMutation.mutateAsync({ id, promotion: updateData });
       toast.success('La promoción se ha actualizado correctamente');
@@ -58,7 +58,7 @@ function PromotionsPage() {
 
   const handleSubmit = (data: CreatePromotionDTO | UpdatePromotionDTO) => {
     if ('id' in data && data.id) {
-      // Create a new object to avoid mutating the original data
+      
       const updateData = { ...data };
       handleUpdate(updateData as UpdatePromotionDTO);
     } else {

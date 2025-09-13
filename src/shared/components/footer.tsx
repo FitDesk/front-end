@@ -36,9 +36,9 @@ const data = {
     livechat: '/live-chat',
   },
   contact: {
-    email: 'contacto@fitdesk.com',
+    email: 'fitdeskdev@gmail.com',
     phone: '+1 234 567 890',
-    address: 'Tu dirección aquí',
+    address: 'Trujillo, Perú',
   },
   company: {
     name: 'FitDesk',

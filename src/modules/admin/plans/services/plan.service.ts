@@ -1,22 +1,16 @@
 import { fitdeskApi } from '@/core/api/fitdeskApi';
 import type { Plan, Promotion } from '../components/plans-columns';
 
-// El tipo Plan ya incluye promociones
-
-/**
- * Servicio para gestionar las operaciones CRUD de planes
- * Implementado como clase con métodos estáticos
- */
 export class PlanService {
   private static readonly ENDPOINT = '/plans';
 
   /**
-   * Obtiene todos los planes disponibles
-   * @returns Promesa con el array de planes
+   * 
+   * @returns 
    */
   static async getAll(): Promise<Plan[]> {
     try {
-      // Obtener planes
+     
       const { data: plans } = await fitdeskApi.get<Plan[]>(this.ENDPOINT);
       
       if (!plans || !Array.isArray(plans)) {
@@ -24,10 +18,10 @@ export class PlanService {
       }
       
       try {
-        // Obtener promociones activas
+        
         const { data: promotions = [] } = await fitdeskApi.get<Promotion[]>('/promotions/active');
         
-        // Asignar promociones a los planes correspondientes
+        
         return plans.map(plan => ({
           ...plan,
           promotions: Array.isArray(promotions) ? promotions.filter(promo => 
@@ -39,7 +33,7 @@ export class PlanService {
         }));
       } catch (promoError) {
         console.error('Error cargando promociones:', promoError);
-        // Si falla cargar promociones, devolver planes sin promociones
+        
         return plans.map(plan => ({
           ...plan,
           promotions: []
@@ -52,9 +46,9 @@ export class PlanService {
   }
 
   /**
-   * Crea un nuevo plan
-   * @param plan Datos del plan a crear (sin ID)
-   * @returns Promesa con el plan creado
+   * 
+   * @param plan 
+   * @returns 
    */
   static async create(plan: Omit<Plan, 'id'>): Promise<Plan> {
     try {
@@ -67,9 +61,9 @@ export class PlanService {
   }
 
   /**
-   * Actualiza un plan existente
-   * @param plan Datos actualizados del plan
-   * @returns Promesa con el plan actualizado
+   * 
+   * @param plan 
+   * @returns 
    */
   static async update(plan: Plan): Promise<Plan> {
     try {
@@ -85,8 +79,8 @@ export class PlanService {
   }
 
   /**
-   * Elimina un plan por su ID
-   * @param id ID del plan a eliminar
+   * 
+   * @param id 
    */
   static async delete(id: string): Promise<void> {
     try {
@@ -98,7 +92,7 @@ export class PlanService {
   }
 }
 
-// Exportar instancia para compatibilidad con código existente
+
 export const planService = {
   getAll: PlanService.getAll,
   create: PlanService.create,

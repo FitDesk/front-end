@@ -56,6 +56,12 @@ class FitdeskApiClient {
     if (axios.isAxiosError(error)) {
       if (error.response) {
         const { data, status } = error.response;
+        
+        // Si es un 404 para la ruta de miembros, lo manejamos de manera especial
+        if (status === 404 && error.config?.url?.includes('/api/members')) {
+          return new Error('NO_MEMBERS_FOUND');
+        }
+        
         const message = (data as any)?.message || error.message || 'An error occurred';
         return new Error(`[${status}] ${message}`);
       } else if (error.request) {
@@ -93,6 +99,14 @@ class FitdeskApiClient {
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.instance.delete<T>(url, config);
+  }
+
+  public async patch<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<AxiosResponse<T>> {
+    return this.instance.patch<T>(url, data, config);
   }
 }
 

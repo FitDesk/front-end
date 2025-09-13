@@ -9,7 +9,7 @@ import { useLocations } from '../hooks/use-locations';
 import { LocationForm } from '../components/location-form';
 import type { Location } from '../types/location';
 
-// Using console.log instead of toast for now
+
 const useToast = () => ({
   toast: (data: { title: string; description: string; variant?: 'default' | 'destructive' }) => {
     console[data.variant === 'destructive' ? 'error' : 'log'](`${data.title}: ${data.description}`);
@@ -61,7 +61,7 @@ export default function LocationsPage() {
   const handleSubmit = async (data: any) => {
     try {
       if (selectedLocation?.id) {
-        // Para actualizar, necesitamos pasar el ID y solo los campos que han cambiado
+       
         const updateData = {
           id: selectedLocation.id,
           ...data
@@ -72,7 +72,7 @@ export default function LocationsPage() {
           description: 'La ubicación ha sido actualizada correctamente',
         });
       } else {
-        // Para crear, solo pasamos los datos del formulario
+     
         await createLocation(data);
         toast({
           title: 'Ubicación creada',
