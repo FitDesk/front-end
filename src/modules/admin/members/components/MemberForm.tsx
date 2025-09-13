@@ -1,6 +1,6 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { memberService } from '../services/member.service';
 import { useState } from 'react';
 import { Loader2, Calendar as CalendarIcon, User, Camera } from 'lucide-react';
