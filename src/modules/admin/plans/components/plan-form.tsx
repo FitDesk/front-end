@@ -55,7 +55,7 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
   const [featureInput, setFeatureInput] = useState('');
   
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any, // Temporary type assertion
+    resolver: zodResolver(formSchema) as any, 
     defaultValues: {
       name: plan?.name || '',
       description: plan?.description || '',

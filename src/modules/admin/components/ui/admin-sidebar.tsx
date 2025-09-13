@@ -12,6 +12,7 @@ import {
     User,
     Dumbbell,
     Calendar,
+    MapPin,
 } from 'lucide-react';
 import { memo } from 'react';
 import {
@@ -33,9 +34,10 @@ import { useTheme } from '@/core/providers/theme-provider';
 const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
     { title: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
-    { title: 'Miembros', icon: Users, href: '/admin/users' },
+    { title: 'Miembros', icon: Users, href: '/admin/members' },
     { title: 'Entrenadores', icon: Dumbbell, href: '/admin/trainers' },
     { title: 'Clases', icon: Calendar, href: '/admin/classes' },
+    { title: 'Ubicaciones', icon: MapPin, href: '/admin/locations' },
     { title: 'Facturación', icon: DollarSign, href: '/admin/billing' },
     { title: 'Planes', icon: Shield, href: '/admin/plans' },
     { title: 'Promociones', icon: Zap, href: '/admin/promotions' },

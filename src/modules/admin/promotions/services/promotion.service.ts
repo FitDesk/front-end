@@ -4,23 +4,19 @@ import type { CreatePromotionDTO, Promotion, UpdatePromotionDTO } from '../types
 const ENDPOINT = '/promotions';
 
 export class PromotionService {
-  /**
-   * Obtiene todas las promociones
-   */
+ 
   static async getAll(): Promise<Promotion[]> {
     try {
       const { data } = await fitdeskApi.get<Promotion[]>(ENDPOINT);
       return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Error al obtener promociones:', error);
-      // Devolvemos un array vacío en lugar de lanzar un error
+     
       return [];
     }
   }
 
-  /**
-   * Crea una nueva promoción
-   */
+  
   static async create(promotion: CreatePromotionDTO): Promise<Promotion> {
     try {
       const { data } = await fitdeskApi.post<Promotion>(ENDPOINT, promotion);
@@ -31,12 +27,10 @@ export class PromotionService {
     }
   }
 
-  /**
-   * Actualiza una promoción existente
-   */
+  
   static async update(id: string, promotion: Omit<UpdatePromotionDTO, 'id'>): Promise<Promotion> {
     try {
-      // Ensure we don't send the id in the request body
+      
       const { id: _, ...updateData } = promotion as UpdatePromotionDTO;
       const { data } = await fitdeskApi.patch<Promotion>(`${ENDPOINT}/${id}`, updateData);
       return data;
@@ -46,9 +40,7 @@ export class PromotionService {
     }
   }
 
-  /**
-   * Elimina una promoción
-   */
+  
   static async delete(id: string): Promise<void> {
     try {
       await fitdeskApi.delete(`${ENDPOINT}/${id}`);
@@ -58,9 +50,7 @@ export class PromotionService {
     }
   }
 
-  /**
-   * Envía una promoción a los usuarios
-   */
+  
   static async sendPromotion(id: string): Promise<{ message: string }> {
     try {
       const { data } = await fitdeskApi.post<{ message: string }>(
@@ -74,5 +64,5 @@ export class PromotionService {
   }
 }
 
-// Exportar instancia para compatibilidad
+
 export const promotionService = new PromotionService();
