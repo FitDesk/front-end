@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { TrainerForm } from '../components/TrainerForm';
 import { trainerService } from '../services/trainer.service';
