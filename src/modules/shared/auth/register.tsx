@@ -11,14 +11,22 @@ import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Image } from "@/shared/components/ui/image";
+import { Tabs, TabsContent, TabsContents, TabsList, TabsTrigger } from "@/shared/components/animated/tabs";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 const formSchema = z.object({
+    firstName: z.string(),
+    lastName: z.string(),
     email: z.string().min(2, { message: "El dni debe tener al menos 7 caracteres" }),
+    dni: z.number(),
     password: z.string()
 })
 export const Register = () => {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            firstName: "",
+            lastName: "",
+            dni: 0,
             email: "",
             password: ""
         }
@@ -126,113 +134,189 @@ export const Register = () => {
                                     </div>
                                     <Form {...form}>
                                         <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="email"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="block text-sm font-medium text-foreground mb-2">Ingresa tu correo</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                required
-                                                                className="w-full bg-background border-border text-foreground"
-                                                                placeholder="Correo"
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name="password"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="block text-sm font-medium text-foreground mb-2">Contraseña</FormLabel>
-                                                        <FormControl>
-                                                            <div className="relative">
-                                                                <Input
-                                                                    type={showPassword ? "text" : "password"}
-                                                                    required
-                                                                    className="w-full bg-background border-border text-foreground pr-10"
-                                                                    placeholder="Contraseña"
-                                                                    {...field}
+                                            <Tabs defaultValue="account">
+
+                                                <TabsList>
+                                                    <TabsTrigger value="account">Account</TabsTrigger>
+                                                    <TabsTrigger value="password">Password</TabsTrigger>
+                                                </TabsList>
+                                                <TabsContents>
+
+                                                    <TabsContent value="account">
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="firstName"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="block text-sm font-medium text-foreground mb-2">Ingresa tu Primer Nombre</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            required
+                                                                            className="w-full bg-background border-border text-foreground"
+                                                                            placeholder="Primer Nombre"
+                                                                            {...field}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="lastName"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="block text-sm font-medium text-foreground mb-2">Ingresa tu Apellido</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            required
+                                                                            className="w-full bg-background border-border text-foreground"
+                                                                            placeholder="Apellido"
+                                                                            {...field}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="dni"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="block text-sm font-medium text-foreground mb-2">Ingresa tu DNI</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            type="number"
+                                                                            required
+                                                                            className="w-full bg-background border-border text-foreground"
+                                                                            placeholder="Correo"
+                                                                            {...field}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </TabsContent>
+
+
+
+                                                    <TabsContent value="password">
+
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="email"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="block text-sm font-medium text-foreground mb-2">Ingresa tu correo</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            required
+                                                                            className="w-full bg-background border-border text-foreground"
+                                                                            placeholder="Correo"
+                                                                            {...field}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="password"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="block text-sm font-medium text-foreground mb-2">Contraseña</FormLabel>
+                                                                    <FormControl>
+                                                                        <div className="relative">
+                                                                            <Input
+                                                                                type={showPassword ? "text" : "password"}
+                                                                                required
+                                                                                className="w-full bg-background border-border text-foreground pr-10"
+                                                                                placeholder="Contraseña"
+                                                                                {...field}
+                                                                            />
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => setShowPassword(!showPassword)}
+                                                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                                                                                tabIndex={-1}
+                                                                            >
+                                                                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                                            </button>
+                                                                        </div>
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+
+                                                        />
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="password"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="block text-sm font-medium text-foreground mb-2">Repite tu contraseña</FormLabel>
+                                                                    <FormControl>
+                                                                        <div className="relative">
+                                                                            <Input
+                                                                                type={showPassword ? "text" : "password"}
+                                                                                required
+                                                                                className="w-full bg-background border-border text-foreground pr-10"
+                                                                                placeholder="Contraseña"
+                                                                                {...field}
+                                                                            />
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => setShowPassword(!showPassword)}
+                                                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                                                                                tabIndex={-1}
+                                                                            >
+                                                                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                                            </button>
+                                                                        </div>
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+
+                                                        />
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center space-x-2">
+                                                                <Checkbox
+                                                                    id={String(Math.random())}
+                                                                    checked={rememberMe}
+                                                                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                                                                 />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setShowPassword(!showPassword)}
-                                                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                                                                    tabIndex={-1}
-                                                                >
-                                                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                                                </button>
+                                                                <label htmlFor="remember" className="text-sm text-muted-foreground">
+                                                                    Recordarme
+                                                                </label>
                                                             </div>
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
+                                                            <Link to="/auth/forgot-password" viewTransition className=" flex text-sm text-end text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300">
+                                                                ¿Olvidaste tu contraseña?
+                                                            </Link>
+                                                        </div>
 
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name="password"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="block text-sm font-medium text-foreground mb-2">Repite tu contraseña</FormLabel>
-                                                        <FormControl>
-                                                            <div className="relative">
-                                                                <Input
-                                                                    type={showPassword ? "text" : "password"}
-                                                                    required
-                                                                    className="w-full bg-background border-border text-foreground pr-10"
-                                                                    placeholder="Contraseña"
-                                                                    {...field}
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setShowPassword(!showPassword)}
-                                                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                                                                    tabIndex={-1}
-                                                                >
-                                                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                                                </button>
-                                                            </div>
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
+                                                        <Button
+                                                            type="submit"
+                                                            className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                                                        >
+                                                            Registrarse
+                                                        </Button>
 
-                                            />
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={String(Math.random())}
-                                                        checked={rememberMe}
-                                                        onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                                                    />
-                                                    <label htmlFor="remember" className="text-sm text-muted-foreground">
-                                                        Recordarme
-                                                    </label>
-                                                </div>
-                                                <Link to="/auth/forgot-password" viewTransition className=" flex text-sm text-end text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300">
-                                                    ¿Olvidaste tu contraseña?
-                                                </Link>
-                                            </div>
+                                                        <div className="text-center">
+                                                            <span className="text-sm text-muted-foreground">¿Ya tienes cuenta? </span>
+                                                            <Link to="/auth/login" viewTransition className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold">
+                                                                Inicia Sesion
+                                                            </Link>
+                                                        </div>
+                                                    </TabsContent>
 
-                                            <Button
-                                                type="submit"
-                                                className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
-                                            >
-                                                Registrarse
-                                            </Button>
+                                                </TabsContents>
 
-                                            <div className="text-center">
-                                                <span className="text-sm text-muted-foreground">¿Ya tienes cuenta? </span>
-                                                <Link to="/auth/login" viewTransition className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold">
-                                                    Inicia Sesion
-                                                </Link>
-                                            </div>
+                                            </Tabs>
                                         </form>
                                     </Form>
                                 </div>
