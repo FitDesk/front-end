@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 
-import { SidebarInset, SidebarProvider } from '../components/ui/sidebar';
+// import { SidebarInset, SidebarProvider } from '../components/ui/sidebar';
 import { AdminSidebar } from '@/modules/admin/components/ui/admin-sidebar';
 import { DashboardHeader } from '@/modules/admin/components/ui/dashboard-header';
 import { Outlet } from 'react-router';
+import { SidebarInset, SidebarProvider } from '../components/animated/sidebar';
 
 
 

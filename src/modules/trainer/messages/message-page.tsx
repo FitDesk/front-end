@@ -2,11 +2,12 @@
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/shared/components/ui/resizable";
 import { useEffect, useState } from "react";
 import { userData } from "./data";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/shared/components/ui/sidebar";
+// import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/shared/components/ui/sidebar";
 import { cn } from "@/core/lib/utils";
 import { Chat } from "./components/chat";
 import { Link } from "react-router";
 import { Avatar, AvatarImage } from "@/shared/components/ui/avatar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/shared/components/animated/sidebar";
 
 
 
@@ -70,39 +71,39 @@ export const MessagePage = ({
                 )}
             >
                 {/* <Sidebar collapsible="icon"> */}
-                    <Sidebar variant="inset" collapsible="none" className="h-full border-2 border-white">
-                        <SidebarHeader>
-                            <div className="px-2">
-                                <h3 className="font-semibold">Chats</h3>
-                            </div>
-                        </SidebarHeader>
+                <Sidebar variant="inset" collapsible="none" className="h-full">
+                    <SidebarHeader>
+                        <div className="px-2">
+                            <h3 className="font-semibold">Chats</h3>
+                        </div>
+                    </SidebarHeader>
 
-                        <SidebarContent>
-                            <SidebarGroup>
-                                <SidebarGroupLabel>Mensajes</SidebarGroupLabel>
-                                <SidebarGroupContent>
-                                    <SidebarMenu>
-                                        {userData.map((user) => (
-                                            <SidebarMenuItem key={user.name}>
-                                                <SidebarMenuButton
-                                                    asChild
-                                                    isActive={selectedUser.name === user.name}
-                                                    onClick={() => setSelectedUser(user)}
-                                                >
-                                                    <Link to="#" className="flex items-center gap-3">
-                                                        <Avatar>
-                                                            <AvatarImage src={user.avatar} alt={user.name} />
-                                                        </Avatar>
-                                                        <span className="truncate">{user.name}</span>
-                                                    </Link>
-                                                </SidebarMenuButton>
-                                            </SidebarMenuItem>
-                                        ))}
-                                    </SidebarMenu>
-                                </SidebarGroupContent>
-                            </SidebarGroup>
-                        </SidebarContent>
-                    </Sidebar>
+                    <SidebarContent>
+                        <SidebarGroup>
+                            <SidebarGroupLabel>Mensajes</SidebarGroupLabel>
+                            <SidebarGroupContent>
+                                <SidebarMenu>
+                                    {userData.map((user) => (
+                                        <SidebarMenuItem key={user.name}>
+                                            <SidebarMenuButton
+                                                asChild
+                                                isActive={selectedUser.name === user.name}
+                                                onClick={() => setSelectedUser(user)}
+                                            >
+                                                <Link to="#" className="flex items-center gap-3">
+                                                    <Avatar>
+                                                        <AvatarImage src={user.avatar} alt={user.name} />
+                                                    </Avatar>
+                                                    <span className="truncate">{user.name}</span>
+                                                </Link>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                    ))}
+                                </SidebarMenu>
+                            </SidebarGroupContent>
+                        </SidebarGroup>
+                    </SidebarContent>
+                </Sidebar>
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>

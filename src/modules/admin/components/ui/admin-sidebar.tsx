@@ -13,6 +13,7 @@ import {
     Dumbbell,
     Calendar,
     MapPin,
+    LogOut,
 } from 'lucide-react';
 import { memo } from 'react';
 import {
@@ -27,9 +28,12 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
-} from '@/shared/components/ui/sidebar';
+    useSidebar,
+} from '@/shared/components/animated/sidebar';
 import { Link } from 'react-router';
+import { Button } from '@/shared/components/ui/button';
 import { useTheme } from '@/core/providers/theme-provider';
+import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
 
 const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
@@ -47,6 +51,8 @@ const menuItems = [
 
 export const AdminSidebar = memo(() => {
     const { theme, setTheme } = useTheme();
+    const { state, } = useSidebar()
+    const isCollapsed = state === 'collapsed'
     return (
         <Sidebar collapsible="icon">
             <SidebarHeader>
@@ -62,7 +68,7 @@ export const AdminSidebar = memo(() => {
                                 />
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-semibold">TechCorp</span>
-                                    <span className="truncate text-xs">Admin Panel</span>
+                                    <span className="truncate text-xs">Panel Administrador</span>
                                 </div>
                             </Link>
                         </SidebarMenuButton>
@@ -103,14 +109,33 @@ export const AdminSidebar = memo(() => {
                             {theme === 'dark' ? <Sun /> : <Moon />}
                             <span >{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span>
                         </SidebarMenuButton>
+                          <ThemeTogglerButton direction="bottom-left" />
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
                             <Link prefetch='none' to="#profile" viewTransition>
                                 <User />
-                                <span>Admin Profile</span>
+                                <span>Perfil Administrador</span>
                             </Link>
                         </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        {isCollapsed ? (
+                            <SidebarMenuButton asChild>
+                                <Button variant="destructive" size="icon">
+                                    <LogOut className="h-4 w-4" />
+                                    <span className="sr-only">Cerrar Sesión</span>
+                                </Button>
+                            </SidebarMenuButton>
+
+                        ) : (
+                            <SidebarMenuButton asChild>
+                                <Button variant={'destructive'}>
+                                    Cerrar Sesion
+                                </Button>
+                            </SidebarMenuButton>
+                        )}
+
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>

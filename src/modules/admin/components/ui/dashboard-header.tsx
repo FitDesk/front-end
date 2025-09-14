@@ -8,12 +8,12 @@ import {
     RefreshCw,
     MoreHorizontal,
 } from 'lucide-react';
-import { SidebarTrigger } from '@/shared/components/ui/sidebar';
 import { Separator } from '@/shared/components/ui/separator';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from '@/shared/components/ui/breadcrumb';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/components/ui/dropdown-menu';
+import { SidebarTrigger } from '@/shared/components/animated/sidebar';
 
 interface DashboardHeaderProps {
     searchQuery: string;
