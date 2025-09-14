@@ -27,7 +27,7 @@ export default function TrainerLayout() {
 
     return (
         <SidebarProvider>
-            <TrainerSidebar />
+            <TrainerSidebar  />
             <SidebarInset>
                 <DashboardHeader
                     searchQuery={searchQuery}
