@@ -12,26 +12,35 @@ import { buttonVariants } from '../ui/button';
 import type { VariantProps } from 'class-variance-authority';
 import { cn } from '@/core/lib/utils';
 import { useTheme } from '@/core/providers/theme-provider';
+import { useSidebar } from '@/shared/components/animated/sidebar';
 
 const getIcon = (
     effective: ThemeSelection,
     resolved: Resolved,
     modes: ThemeSelection[],
+    showText: boolean,
 ) => {
     const theme = modes.includes('system') ? effective : resolved;
-    return theme === 'system' ? (
-        <Monitor />
-    ) : theme === 'dark' ? (
-        <div className='flex justify-center items-center gap-4'>
+
+    const IconNode =
+        theme === 'system' ? (
+            <Monitor />
+        ) : theme === 'dark' ? (
             <Moon />
-            <span>Modo Oscuro</span>
-        </div>
-    ) : (
-        <div className='flex justify-center items-center gap-4'>
+        ) : (
             <Sun />
-            <span>Modo Claro</span>
-        </div>
-    );
+        );
+
+    if (showText) {
+        return (
+            <div className="flex items-center gap-3">
+                {IconNode}
+                <span>{theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro'}</span>
+            </div>
+        );
+    }
+
+    return IconNode;
 };
 
 const getNextTheme = (
@@ -48,6 +57,7 @@ type ThemeTogglerButtonProps = React.ComponentProps<'button'> &
         modes?: ThemeSelection[];
         onImmediateChange?: ThemeTogglerPrimitiveProps['onImmediateChange'];
         direction?: ThemeTogglerPrimitiveProps['direction'];
+        showLabel?: boolean | 'auto';
     };
 
 function ThemeTogglerButton({
@@ -59,9 +69,20 @@ function ThemeTogglerButton({
     onImmediateChange,
     onClick,
     className,
+    showLabel = 'auto',
     ...props
 }: ThemeTogglerButtonProps) {
     const { theme, resolvedTheme, setTheme } = useTheme();
+    let isCollapsed = false;
+    try {
+        // biome-ignore lint/correctness/useHookAtTopLevel: <>
+        const ctx = useSidebar();
+        isCollapsed = ctx?.state === 'collapsed';
+    } catch {
+        isCollapsed = false;
+    }
+
+    const shouldShowLabel = showLabel === 'auto' ? !isCollapsed : Boolean(showLabel);
 
     return (
         <ThemeTogglerPrimitive
@@ -74,14 +95,33 @@ function ThemeTogglerButton({
             {({ effective, resolved, toggleTheme }) => (
                 <button
                     data-slot="theme-toggler-button"
-                    className={cn(`${buttonVariants({ variant, size, className })} cursor-pointer`)}
+                    className={cn(
+                        buttonVariants({
+                            variant,
+                            size: shouldShowLabel ? size : 'icon',
+                        }),
+                        'cursor-pointer',
+                        className,
+                    )}
                     onClick={(e) => {
                         onClick?.(e);
                         toggleTheme(getNextTheme(effective, modes));
                     }}
+                    aria-label={
+                        shouldShowLabel
+                            ? undefined
+                            : resolved === 'dark'
+                                ? 'Activar modo claro'
+                                : 'Activar modo oscuro'
+                    }
                     {...props}
                 >
-                    {getIcon(effective, resolved, modes)}
+                    {getIcon(effective, resolved, modes, shouldShowLabel)}
+                    {!shouldShowLabel && (
+                        <span className="sr-only">
+                            {resolved === 'dark' ? 'Modo Oscuro' : 'Modo Claro'}
+                        </span>
+                    )}
                 </button>
             )}
         </ThemeTogglerPrimitive>

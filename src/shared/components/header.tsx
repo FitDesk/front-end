@@ -162,7 +162,7 @@ export const Header = () => {
                     </nav>
 
                     <div className="hidden items-center space-x-4 lg:flex">
-                        <ThemeTogglerButton direction="top-left" />
+                        <ThemeTogglerButton direction="top-left" showLabel={false} variant={'ghost'} />
                         <Link prefetch="none" to="/auth" viewTransition
                             className="text-foreground font-medium transition-colors duration-200 hover:text-rose-500"
                         >
@@ -212,7 +212,7 @@ export const Header = () => {
                                     </Link>
                                 ))}
                                 <div className="space-y-2 px-4 py-2">
-                                    <ThemeTogglerButton direction="top-left" />
+                                    <ThemeTogglerButton direction="top-left" showLabel={false} size='icon' />
                                     <Link prefetch="none" to="/auth"
                                         className="text-foreground hover:bg-muted block w-full rounded-lg py-2.5 text-center font-medium transition-colors duration-200"
                                         onClick={() => setIsMobileMenuOpen(false)}

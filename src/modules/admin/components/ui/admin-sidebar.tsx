@@ -31,9 +31,9 @@ import {
 } from '@/shared/components/animated/sidebar';
 import { Link } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
-import { useTheme } from '@/core/providers/theme-provider';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
 import { User } from '@/shared/components/animated/icons/user';
+import { cn } from '@/core/lib/utils';
 
 const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
@@ -50,9 +50,13 @@ const menuItems = [
 ];
 
 export const AdminSidebar = memo(() => {
-    const { theme, setTheme } = useTheme();
     const { state, } = useSidebar()
     const isCollapsed = state === 'collapsed'
+    const togglerWrapperClass = cn(
+        "p-0",
+        // when collapsed center the item; when expanded keep it at start and add small padding
+        isCollapsed ? "flex justify-center" : "flex justify-start pl-2"
+    )
     return (
         <Sidebar collapsible="icon">
             <SidebarHeader>
@@ -101,16 +105,10 @@ export const AdminSidebar = memo(() => {
 
             <SidebarFooter>
                 <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            className='cursor-pointer'
-
-                        >
-                            <ThemeTogglerButton variant={'ghost'} direction="bottom-left" />
-                            {/* {theme === 'dark' ? <Sun /> : <Moon />} */}
-                            {/* <span >{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span> */}
+                    <SidebarMenuItem className={togglerWrapperClass}>
+                        <SidebarMenuButton className="flex w-full justify-center p-0">
+                            <ThemeTogglerButton showLabel="auto" variant="ghost" direction='bottom-left' />
                         </SidebarMenuButton>
-                        {/* <ThemeTogglerButton variant={'ghost'} direction="bottom-left" /> */}
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
