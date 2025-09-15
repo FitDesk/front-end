@@ -22,9 +22,15 @@ const getIcon = (
     return theme === 'system' ? (
         <Monitor />
     ) : theme === 'dark' ? (
-        <Moon />
+        <div className='flex justify-center items-center gap-4'>
+            <Moon />
+            <span>Modo Oscuro</span>
+        </div>
     ) : (
-        <Sun />
+        <div className='flex justify-center items-center gap-4'>
+            <Sun />
+            <span>Modo Claro</span>
+        </div>
     );
 };
 
@@ -68,7 +74,7 @@ function ThemeTogglerButton({
             {({ effective, resolved, toggleTheme }) => (
                 <button
                     data-slot="theme-toggler-button"
-                    className={cn(buttonVariants({ variant, size, className }))}
+                    className={cn(`${buttonVariants({ variant, size, className })} cursor-pointer`)}
                     onClick={(e) => {
                         onClick?.(e);
                         toggleTheme(getNextTheme(effective, modes));

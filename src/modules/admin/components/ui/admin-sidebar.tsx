@@ -9,7 +9,6 @@ import {
     Settings,
     Moon,
     Sun,
-    User,
     Dumbbell,
     Calendar,
     MapPin,
@@ -34,6 +33,7 @@ import { Link } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 import { useTheme } from '@/core/providers/theme-provider';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
+import { User } from '@/shared/components/animated/icons/user';
 
 const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
@@ -104,17 +104,18 @@ export const AdminSidebar = memo(() => {
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             className='cursor-pointer'
-                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+
                         >
-                            {theme === 'dark' ? <Sun /> : <Moon />}
-                            <span >{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span>
+                            <ThemeTogglerButton variant={'ghost'} direction="bottom-left" />
+                            {/* {theme === 'dark' ? <Sun /> : <Moon />} */}
+                            {/* <span >{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span> */}
                         </SidebarMenuButton>
-                          <ThemeTogglerButton direction="bottom-left" />
+                        {/* <ThemeTogglerButton variant={'ghost'} direction="bottom-left" /> */}
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
                             <Link prefetch='none' to="#profile" viewTransition>
-                                <User />
+                                <User animateOnHover />
                                 <span>Perfil Administrador</span>
                             </Link>
                         </SidebarMenuButton>
