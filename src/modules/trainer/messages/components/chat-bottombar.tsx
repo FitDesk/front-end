@@ -1,7 +1,5 @@
 import {
-    FileImage,
     Mic,
-    Paperclip,
     PlusCircle,
     SendHorizontal,
     ThumbsUp,
@@ -20,7 +18,7 @@ interface ChatBottombarProps {
     isMobile: boolean;
 }
 
-export const BottombarIcons = [{ icon: FileImage }, { icon: Paperclip }];
+// export const BottombarIcons = [{ icon: FileImage }, { icon: Paperclip }];
 
 export default function ChatBottombar({ isMobile }: ChatBottombarProps) {
     const [message, setMessage] = useState("");
@@ -142,7 +140,7 @@ export default function ChatBottombar({ isMobile }: ChatBottombarProps) {
                                 >
                                     <Mic size={22} className="text-muted-foreground" />
                                 </Link>
-                                {BottombarIcons.map((icon, index) => (
+                                {/* {BottombarIcons.map((icon, index) => (
                                     <Link
                                         // biome-ignore lint/suspicious/noArrayIndexKey: <>
                                         key={index}
@@ -155,7 +153,7 @@ export default function ChatBottombar({ isMobile }: ChatBottombarProps) {
                                     >
                                         <icon.icon size={22} className="text-muted-foreground" />
                                     </Link>
-                                ))}
+                                ))} */}
                             </div>
                         ) : (
                             <Link
@@ -173,7 +171,7 @@ export default function ChatBottombar({ isMobile }: ChatBottombarProps) {
                 </Popover>
                 {!message.trim() && !isMobile && (
                     <div className="flex">
-                        {BottombarIcons.map((icon, index) => (
+                        {/* {BottombarIcons.map((icon, index) => (
                             <Link
                                 // biome-ignore lint/suspicious/noArrayIndexKey: <>
                                 key={index}
@@ -186,7 +184,7 @@ export default function ChatBottombar({ isMobile }: ChatBottombarProps) {
                             >
                                 <icon.icon size={22} className="text-muted-foreground" />
                             </Link>
-                        ))}
+                        ))} */}
                     </div>
                 )}
             </div>
@@ -212,7 +210,7 @@ export default function ChatBottombar({ isMobile }: ChatBottombarProps) {
                         ref={inputRef}
                         onKeyDown={handleKeyPress}
                         onChange={handleInputChange}
-                        placeholder="Type a message..."
+                        placeholder="Escribe un mensaje..."
                         className="rounded-full"
                     />
                     {/* <div className="absolute right-4 bottom-2  ">
