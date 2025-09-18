@@ -190,18 +190,51 @@ export function useMember(memberId?: string) {
   const queryClient = useQueryClient();
   
  
+  console.log('=== useMember ejecutado ===');
+  console.log('memberId recibido:', memberId);
+  
   const { 
     data: member, 
     isLoading, 
     error,
-    refetch 
-  } = useQuery<Member | null>({
+    refetch
+  } = useQuery<Member | null, Error>({
     queryKey: ['member', memberId],
     queryFn: async () => {
-      if (!memberId) return null;
-      return memberService.getMemberById(memberId);
+      console.log('=== Ejecutando queryFn en useMember ===');
+      console.log('memberId en queryFn:', memberId);
+      
+      if (!memberId) {
+        console.warn('No se proporcionó un ID de miembro');
+        return null;
+      }
+      
+      try {
+        console.log(`Buscando miembro con ID: ${memberId}`);
+        const data = await memberService.getMemberById(memberId);
+        console.log('Datos del miembro recibidos:', data);
+        
+        if (!data) {
+          console.warn('No se encontró ningún miembro con el ID proporcionado');
+          throw new Error('No se encontró ningún miembro con el ID proporcionado');
+        }
+        
+        return data;
+      } catch (err) {
+        console.error('Error al cargar el miembro:', err);
+        throw new Error(
+          err instanceof Error 
+            ? err.message 
+            : 'No se pudo cargar la información del miembro. Por favor, verifica el ID e inténtalo de nuevo.'
+        );
+      }
     },
     enabled: !!memberId,
+    retry: 1,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
+    // Manejamos los errores en el bloque catch dentro de queryFn
   });
   
   
