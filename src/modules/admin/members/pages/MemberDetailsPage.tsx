@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ArrowLeft, Edit, Trash2, UserCheck, UserX, Mail, Phone, MapPin, Calendar, AlertTriangle } from 'lucide-react';
