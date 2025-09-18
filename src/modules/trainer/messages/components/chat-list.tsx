@@ -8,8 +8,8 @@ import { ChatBubble, ChatBubbleAction, ChatBubbleActionWrapper, ChatBubbleAvatar
 interface ChatListProps {
     messages: Message[];
     selectedUser: UserData;
-    sendMessage: (newMessage: Message) => void;
-    isMobile: boolean;
+    sendMessage?: (newMessage: Message) => void;
+    isMobile?: boolean;
 }
 
 const getMessageVariant = (messageName: string, selectedUserName: string) =>
@@ -18,8 +18,6 @@ const getMessageVariant = (messageName: string, selectedUserName: string) =>
 export function ChatList({
     messages,
     selectedUser,
-    sendMessage,
-    isMobile,
 }: ChatListProps) {
     const actionIcons = [
         { icon: Plus, type: "More" },
@@ -28,8 +26,8 @@ export function ChatList({
     ];
 
     return (
-        <div className="w-full overflow-y-hidden h-full flex flex-col">
-            <ChatMessageList>
+        <div className="w-full h-full flex flex-col">
+            <ChatMessageList smooth={true}>
                 <AnimatePresence>
                     {messages.map((message, index) => {
                         const variant = getMessageVariant(message.name, selectedUser.name);
@@ -38,19 +36,19 @@ export function ChatList({
                                 // biome-ignore lint/suspicious/noArrayIndexKey: <>
                                 key={index}
                                 layout
-                                initial={{ opacity: 0, scale: 1, y: 50, x: 0 }}
+                                initial={{ opacity: 0, scale: 1, y: 20, x: 0 }}
                                 animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
-                                exit={{ opacity: 0, scale: 1, y: 1, x: 0 }}
+                                exit={{ opacity: 0, scale: 1, y: -20, x: 0 }}
                                 transition={{
-                                    opacity: { duration: 0.1 },
+                                    opacity: { duration: 0.2 },
                                     layout: {
                                         type: "spring",
-                                        bounce: 0.3,
-                                        duration: index * 0.05 + 0.2,
+                                        bounce: 0.2,
+                                        duration: 0.3,
                                     },
                                 }}
                                 style={{ originX: 0.5, originY: 0.5 }}
-                                className="flex flex-col gap-2 p-4"
+                                className="flex flex-col gap-2 px-4 py-2"
                             >
                                 <ChatBubble variant={variant}>
                                     <ChatBubbleAvatar src={message.avatar} />

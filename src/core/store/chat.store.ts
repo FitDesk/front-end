@@ -15,6 +15,10 @@ interface State {
     messages: Message[];
     hasInitialAIResponse: boolean;
     hasInitialResponse: boolean;
+    conversations: UserData[];
+    searchQuery: string;
+    isSearching: boolean;
+    searchError: string | null;
 }
 
 interface Actions {
@@ -31,9 +35,15 @@ interface Actions {
     setMessages: (fn: (messages: Message[]) => Message[]) => void;
     setHasInitialAIResponse: (hasInitialAIResponse: boolean) => void;
     setHasInitialResponse: (hasInitialResponse: boolean) => void;
+    setConversations: (conversations: UserData[]) => void;
+    setSearchQuery: (query: string) => void;
+    setIsSearching: (isSearching: boolean) => void;
+    setSearchError: (error: string | null) => void;
+    searchConversations: (query: string) => Promise<void>;
+    setSelectedUser: (user: UserData) => void;
 }
 
-const useChatStore = create<State & Actions>()((set) => ({
+const useChatStore = create<State & Actions>()((set, get) => ({
     selectedUser: Users[4],
 
     selectedExample: { name: "Messenger example", url: "/" },
@@ -45,6 +55,12 @@ const useChatStore = create<State & Actions>()((set) => ({
     ],
 
     input: "",
+
+    // Estados de búsqueda
+    conversations: userData,
+    searchQuery: "",
+    isSearching: false,
+    searchError: null,
 
     setSelectedExample: (selectedExample) => set({ selectedExample }),
 
@@ -70,6 +86,43 @@ const useChatStore = create<State & Actions>()((set) => ({
 
     hasInitialResponse: false,
     setHasInitialResponse: (hasInitialResponse) => set({ hasInitialResponse }),
+
+    // Acciones de búsqueda
+    setConversations: (conversations) => set({ conversations }),
+    setSearchQuery: (searchQuery) => set({ searchQuery }),
+    setIsSearching: (isSearching) => set({ isSearching }),
+    setSearchError: (searchError) => set({ searchError }),
+    setSelectedUser: (selectedUser) => set({ selectedUser }),
+
+    searchConversations: async (query: string) => {
+        const { setConversations, setIsSearching, setSearchError } = get();
+        
+        if (!query.trim()) {
+            setConversations(userData);
+            setSearchError(null);
+            return;
+        }
+
+        try {
+            setIsSearching(true);
+            setSearchError(null);
+            
+            // Importar dinámicamente el servicio para evitar dependencias circulares
+            const { chatService } = await import("@/modules/shared/chat/services/chatService");
+            const results = await chatService.searchConversations(query);
+            setConversations(results);
+        } catch (error) {
+            console.error('Error al buscar conversaciones:', error);
+            setSearchError('Error al buscar conversaciones');
+            // Fallback a búsqueda local
+            const localResults = userData.filter(user =>
+                user.name.toLowerCase().includes(query.toLowerCase())
+            );
+            setConversations(localResults);
+        } finally {
+            setIsSearching(false);
+        }
+    },
 }));
 
 export default useChatStore;

@@ -6,7 +6,8 @@ import {
 } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ToastProvider } from "@/shared/components/ui/toast"
-import { ChatButton, ChatModal } from "@/features/chat"
+
+// import { ChatButton, ChatModal } from "@/modules/shared/chat"              --------chat bot desactivado
 import { MotionConfig } from "motion/react"
 import { ThemeProvider } from "./core/providers/theme-provider"
 // import { CheckAuthProvider } from "@/core/providers/auth-provider"
@@ -22,8 +23,10 @@ export default function App() {
             {/* <CheckAuthProvider> */}
             <RouterProvider router={appRouter} />
             {/* </CheckAuthProvider> */}
+            {/* Temporarily disabled for landing
             <ChatButton />
             <ChatModal />
+            */}
             <ReactQueryDevtools initialIsOpen={false} />
           </ToastProvider>
         </ThemeProvider>

@@ -13,7 +13,7 @@ export interface ButtonProps
     asChild?: boolean;
 }
 
-// ChatBubble
+
 const chatBubbleVariant = cva(
     "flex gap-2 max-w-[60%] items-end relative group",
     {
@@ -61,7 +61,7 @@ const ChatBubble = React.forwardRef<HTMLDivElement, ChatBubbleProps>(
 );
 ChatBubble.displayName = "ChatBubble";
 
-// ChatBubbleAvatar
+
 interface ChatBubbleAvatarProps {
     src?: string;
     fallback?: string;
@@ -79,13 +79,13 @@ const ChatBubbleAvatar: React.FC<ChatBubbleAvatarProps> = ({
     </Avatar>
 );
 
-// ChatBubbleMessage
-const chatBubbleMessageVariants = cva("p-4", {
+
+const chatBubbleMessageVariants = cva("p-3", {
     variants: {
         variant: {
             received:
-                "bg-secondary text-secondary-foreground rounded-r-lg rounded-tl-lg",
-            sent: "bg-primary text-primary-foreground rounded-l-lg rounded-tr-lg",
+                "bg-card text-card-foreground rounded-2xl rounded-tl-sm border border-border shadow-sm",
+            sent: "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl rounded-tr-sm shadow-md",
         },
         layout: {
             default: "",
@@ -132,7 +132,7 @@ const ChatBubbleMessage = React.forwardRef<
 );
 ChatBubbleMessage.displayName = "ChatBubbleMessage";
 
-// ChatBubbleTimestamp
+
 interface ChatBubbleTimestampProps
     extends React.HTMLAttributes<HTMLDivElement> {
     timestamp: string;
@@ -143,12 +143,12 @@ const ChatBubbleTimestamp: React.FC<ChatBubbleTimestampProps> = ({
     className,
     ...props
 }) => (
-    <div className={cn("text-xs mt-2 text-right", className)} {...props}>
+    <div className={cn("text-xs mt-1 text-right opacity-70", className)} {...props}>
         {timestamp}
     </div>
 );
 
-// ChatBubbleAction
+
 type ChatBubbleActionProps = ButtonProps & {
     icon: React.ReactNode;
 };

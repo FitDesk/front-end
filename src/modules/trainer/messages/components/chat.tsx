@@ -5,12 +5,11 @@ import type { Message, UserData } from "../data";
 import useChatStore from "@/core/store/chat.store";
 
 interface ChatProps {
-  messages?: Message[];
   selectedUser: UserData;
   isMobile: boolean;
 }
 
-export function Chat({ messages, selectedUser, isMobile }: ChatProps) {
+export function Chat({ selectedUser, isMobile }: ChatProps) {
   const messagesState = useChatStore((state) => state.messages);
 
   const sendMessage = (newMessage: Message) => {
@@ -20,17 +19,19 @@ export function Chat({ messages, selectedUser, isMobile }: ChatProps) {
   };
 
   return (
-    <div className="flex flex-col justify-between w-full h-full">
+    <div className="flex flex-col h-full bg-background">
       <ChatTopbar selectedUser={selectedUser} />
 
-      <ChatList
-        messages={messagesState}
-        selectedUser={selectedUser}
-        sendMessage={sendMessage}
-        isMobile={isMobile}
-      />
+      <div className="flex-1 overflow-hidden">
+        <ChatList
+          messages={messagesState}
+          selectedUser={selectedUser}
+          sendMessage={sendMessage}
+          isMobile={isMobile}
+        />
+      </div>
 
-      <ChatBottombar isMobile={isMobile} />
+      <ChatBottombar />
     </div>
   );
 }

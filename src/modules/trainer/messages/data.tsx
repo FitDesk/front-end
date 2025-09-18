@@ -117,27 +117,82 @@ export const userData: User[] = [
             },
         ],
         name: "Jane Doe",
+        lastMessage: "It has been good. I went for a run this morning and then had a nice breakfast. How about you?",
+        lastMessageTime: "10:10 AM",
+        unreadCount: 0,
     },
     {
         id: 2,
         avatar:
             "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
         name: "John Doe",
-        messages: [],
+        messages: [
+            {
+                id: 1,
+                avatar:
+                    "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
+                name: "John Doe",
+                message: "¿Cuándo es la próxima clase?",
+                timestamp: "09:30 AM",
+            },
+            {
+                id: 2,
+                avatar:
+                    "https://avatars.githubusercontent.com/u/114422072?s=400&u=8a176a310ca29c1578a70b1c33bdeea42bf000b4&v=4",
+                name: "Jakob Hoeg",
+                message: "El martes a las 6 PM",
+                timestamp: "09:32 AM",
+            },
+        ],
+        lastMessage: "El martes a las 6 PM",
+        lastMessageTime: "09:32 AM",
+        unreadCount: 0,
     },
     {
         id: 3,
         avatar:
             "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
         name: "Elizabeth Smith",
-        messages: [],
+        messages: [
+            {
+                id: 1,
+                avatar:
+                    "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                name: "Elizabeth Smith",
+                message: "Gracias por la rutina de cardio",
+                timestamp: "08:15 AM",
+            },
+        ],
+        lastMessage: "Gracias por la rutina de cardio",
+        lastMessageTime: "08:15 AM",
+        unreadCount: 0,
     },
     {
         id: 4,
         avatar:
             "https://images.freeimages.com/images/large-previews/023/geek-avatar-1632962.jpg?fmt=webp&h=350",
         name: "John Smith",
-        messages: [],
+        messages: [
+            {
+                id: 1,
+                avatar:
+                    "https://images.freeimages.com/images/large-previews/023/geek-avatar-1632962.jpg?fmt=webp&h=350",
+                name: "John Smith",
+                message: "¿Puedo cambiar mi horario?",
+                timestamp: "Ayer",
+            },
+            {
+                id: 2,
+                avatar:
+                    "https://avatars.githubusercontent.com/u/114422072?s=400&u=8a176a310ca29c1578a70b1c33bdeea42bf000b4&v=4",
+                name: "Jakob Hoeg",
+                message: "Claro, ¿qué horario prefieres?",
+                timestamp: "Ayer",
+            },
+        ],
+        lastMessage: "Claro, ¿qué horario prefieres?",
+        lastMessageTime: "Ayer",
+        unreadCount: 1,
     },
 ];
 
@@ -240,4 +295,7 @@ export interface User {
     avatar: string;
     messages: Message[];
     name: string;
+    lastMessage?: string;
+    lastMessageTime?: string;
+    unreadCount?: number;
 }

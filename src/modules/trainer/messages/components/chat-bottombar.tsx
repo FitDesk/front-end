@@ -9,18 +9,12 @@ import { AnimatePresence, motion } from "motion/react";
 import useChatStore from "@/core/store/chat.store";
 import { loggedInUserData, type Message } from "../data";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
-import { Link } from "react-router";
-import { Button, buttonVariants } from "@/shared/components/ui/button";
-import { cn } from "@/core/lib/utils";
+import { Button } from "@/shared/components/ui/button";
 import { ChatInput } from "./chat-input";
-
-interface ChatBottombarProps {
-    isMobile: boolean;
-}
 
 // export const BottombarIcons = [{ icon: FileImage }, { icon: Paperclip }];
 
-export default function ChatBottombar({ isMobile }: ChatBottombarProps) {
+export default function ChatBottombar() {
     const [message, setMessage] = useState("");
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const setMessages = useChatStore((state) => state.setMessages);
@@ -112,87 +106,36 @@ export default function ChatBottombar({ isMobile }: ChatBottombarProps) {
     };
 
     return (
-        <div className="px-2 py-4 flex justify-between w-full items-center gap-2">
-            <div className="flex">
+        <div className="px-4 py-4 flex justify-between w-full items-center gap-3 bg-card border-t border-border">
+            <div className="flex gap-2">
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Link
-                            to="#"
-                            className={cn(
-                                buttonVariants({ variant: "ghost", size: "icon" }),
-                                "h-9 w-9",
-                                "shrink-0",
-                            )}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 shrink-0 hover:bg-muted"
                         >
-                            <PlusCircle size={22} className="text-muted-foreground" />
-                        </Link>
+                            <PlusCircle size={20} className="text-muted-foreground" />
+                        </Button>
                     </PopoverTrigger>
-                    <PopoverContent side="top" className="w-full p-2">
-                        {message.trim() || isMobile ? (
-                            <div className="flex gap-2">
-                                <Link
-                                    to="#"
-                                    className={cn(
-                                        buttonVariants({ variant: "ghost", size: "icon" }),
-                                        "h-9 w-9",
-                                        "shrink-0",
-                                    )}
-                                >
-                                    <Mic size={22} className="text-muted-foreground" />
-                                </Link>
-                                {/* {BottombarIcons.map((icon, index) => (
-                                    <Link
-                                        // biome-ignore lint/suspicious/noArrayIndexKey: <>
-                                        key={index}
-                                        to="#"
-                                        className={cn(
-                                            buttonVariants({ variant: "ghost", size: "icon" }),
-                                            "h-9 w-9",
-                                            "shrink-0",
-                                        )}
-                                    >
-                                        <icon.icon size={22} className="text-muted-foreground" />
-                                    </Link>
-                                ))} */}
-                            </div>
-                        ) : (
-                            <Link
-                                to="#"
-                                className={cn(
-                                    buttonVariants({ variant: "ghost", size: "icon" }),
-                                    "h-9 w-9",
-                                    "shrink-0",
-                                )}
+                    <PopoverContent side="top" className="w-auto p-2 bg-popover border-border">
+                        <div className="flex gap-2">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-10 w-10 hover:bg-muted"
                             >
-                                <Mic size={22} className="text-muted-foreground" />
-                            </Link>
-                        )}
+                                <Mic size={20} className="text-muted-foreground" />
+                            </Button>
+                        </div>
                     </PopoverContent>
                 </Popover>
-                {!message.trim() && !isMobile && (
-                    <div className="flex">
-                        {/* {BottombarIcons.map((icon, index) => (
-                            <Link
-                                // biome-ignore lint/suspicious/noArrayIndexKey: <>
-                                key={index}
-                                to="#"
-                                className={cn(
-                                    buttonVariants({ variant: "ghost", size: "icon" }),
-                                    "h-9 w-9",
-                                    "shrink-0",
-                                )}
-                            >
-                                <icon.icon size={22} className="text-muted-foreground" />
-                            </Link>
-                        ))} */}
-                    </div>
-                )}
             </div>
 
             <AnimatePresence initial={false}>
                 <motion.div
                     key="input"
-                    className="w-full relative"
+                    className="flex-1 relative"
                     layout
                     initial={{ opacity: 0, scale: 1 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -211,39 +154,29 @@ export default function ChatBottombar({ isMobile }: ChatBottombarProps) {
                         onKeyDown={handleKeyPress}
                         onChange={handleInputChange}
                         placeholder="Escribe un mensaje..."
-                        className="rounded-full"
+                        className="rounded-full pr-12"
                     />
-                    {/* <div className="absolute right-4 bottom-2  ">
-                        <EmojiPicker
-                            onChange={(value) => {
-                                setMessage(message + value);
-                                if (inputRef.current) {
-                                    inputRef.current.focus();
-                                }
-                            }}
-                        />
-                    </div> */}
                 </motion.div>
 
                 {message.trim() ? (
                     <Button
-                        className="h-9 w-9 shrink-0"
+                        className="h-10 w-10 shrink-0"
                         onClick={handleSend}
                         disabled={isLoading}
-                        variant="ghost"
+                        variant="default"
                         size="icon"
                     >
-                        <SendHorizontal size={22} className="text-muted-foreground" />
+                        <SendHorizontal size={20} />
                     </Button>
                 ) : (
                     <Button
-                        className="h-9 w-9 shrink-0"
+                        className="h-10 w-10 shrink-0"
                         onClick={handleThumbsUp}
                         disabled={isLoading}
                         variant="ghost"
                         size="icon"
                     >
-                        <ThumbsUp size={22} className="text-muted-foreground" />
+                        <ThumbsUp size={20} className="text-muted-foreground" />
                     </Button>
                 )}
             </AnimatePresence>
