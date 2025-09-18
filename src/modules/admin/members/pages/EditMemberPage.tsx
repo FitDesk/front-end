@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
-
+import { useEffect } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { useToast } from '@/shared/components/ui/toast';
 import { MemberForm } from '../components/MemberForm';
@@ -15,7 +15,25 @@ export function EditMemberPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { member, isLoading, error } = useMember(id);
+  
+  console.log('=== EditMemberPage renderizado ===');
+  console.log('ID del parámetro de la URL:', id);
+  
+  const { member, isLoading, error, refetch } = useMember(id);
+
+  // Efecto para depuración
+  useEffect(() => {
+    console.log('=== Efecto en EditMemberPage ===');
+    console.log('ID del miembro:', id);
+    console.log('Estado de carga:', isLoading);
+    console.log('Error:', error);
+    console.log('Datos del miembro:', member);
+    
+    // Verificar si el ID está definido
+    if (!id) {
+      console.error('Error: No se proporcionó un ID de miembro en la URL');
+    }
+  }, [id, isLoading, error, member]);
 
   const handleSuccess = () => {
     toast({
@@ -25,42 +43,54 @@ export function EditMemberPage() {
     navigate(`/admin/members/${id}`);
   };
 
+  const handleRetry = () => {
+    console.log('Reintentando cargar los datos del miembro...');
+    refetch();
+  };
 
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 sm:px-6 py-6">
-        <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <LoadingSpinner className="h-8 w-8" />
+          <p className="text-muted-foreground">Cargando información del miembro...</p>
         </div>
       </div>
     );
   }
 
- 
   if (error || !member) {
     return (
       <div className="container mx-auto px-4 sm:px-6 py-6">
         <div className="rounded-md bg-destructive/10 p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <span className="text-destructive">Error:</span>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-destructive">
-              No se pudo cargar la información del miembro
-            </h3>
-            <div className="mt-2 text-sm text-destructive">
-              <p>{error instanceof Error ? error.message : String(error) || 'El miembro solicitado no existe o no tienes permisos para editarlo.'}</p>
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <span className="text-destructive">Error:</span>
             </div>
-            <div className="mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/admin/members')}
-              >
-                Volver a la lista
-              </Button>
-            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-destructive">
+                {error ? error.message : 'No se pudo cargar la información del miembro'}
+              </h3>
+              <div className="mt-2 text-sm text-destructive">
+                <p>{error instanceof Error ? error.message : String(error) || 'El miembro solicitado no existe o no tienes permisos para editarlo.'}</p>
+              </div>
+              <div className="mt-4 space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRetry}
+                  className="text-destructive border-destructive hover:bg-destructive/10"
+                >
+                  Reintentar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/admin/members')}
+                >
+                  Volver a la lista
+                </Button>
+              </div>
             </div>
           </div>
         </div>

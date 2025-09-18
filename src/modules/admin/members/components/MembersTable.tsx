@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { MoreVertical, Eye, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
