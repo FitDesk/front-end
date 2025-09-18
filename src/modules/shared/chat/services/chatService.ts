@@ -27,10 +27,32 @@ class ChatService {
     }
   }
 
-  //  más métodos según sea necesario::
-  // - getChatHistory
-  // - startNewChat
-  // - etc.
+  public async searchConversations(query: string): Promise<any[]> {
+    try {
+      const response = await fitdeskApi.get<any[]>(
+        `${this.basePath}/conversations/search`,
+        {
+          params: { q: query }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al buscar conversaciones:', error);
+      throw error;
+    }
+  }
+
+  public async getConversations(): Promise<any[]> {
+    try {
+      const response = await fitdeskApi.get<any[]>(
+        `${this.basePath}/conversations`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener conversaciones:', error);
+      throw error;
+    }
+  }
 }
 
 export const chatService = ChatService.getInstance();

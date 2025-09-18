@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Plus } from 'lucide-react';
 import { PromotionsList } from '../components/promotions-list';
 import { PromotionForm } from '../components/promotion-form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/animated/dialog';
 import { toast } from 'sonner';
 import type { CreatePromotionDTO, UpdatePromotionDTO } from '../types/promotion';
 
@@ -12,17 +12,17 @@ function PromotionsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<CreatePromotionDTO | UpdatePromotionDTO | undefined>(undefined);
 
-  
+
   const { data, isLoading, error } = usePromotions();
-  
-  
+
+
   const promotions = Array.isArray(data) ? data : [];
-  
+
   const createMutation = useCreatePromotion();
   const updateMutation = useUpdatePromotion();
   const deleteMutation = useDeletePromotion();
   const sendMutation = useSendPromotion();
-  
+
   if (error) {
     return (
       <div className="container mx-auto py-6">
@@ -43,9 +43,9 @@ function PromotionsPage() {
 
   const handleUpdate = async (data: UpdatePromotionDTO) => {
     if (!data.id) return;
-    
+
     try {
-      
+
       const { id, ...updateData } = data;
       await updateMutation.mutateAsync({ id, promotion: updateData });
       toast.success('La promoción se ha actualizado correctamente');
@@ -58,7 +58,7 @@ function PromotionsPage() {
 
   const handleSubmit = (data: CreatePromotionDTO | UpdatePromotionDTO) => {
     if ('id' in data && data.id) {
-      
+
       const updateData = { ...data };
       handleUpdate(updateData as UpdatePromotionDTO);
     } else {

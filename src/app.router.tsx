@@ -13,6 +13,7 @@ import { MembersPage } from "./modules/admin/members/pages/MembersPage";
 import { CreateMemberPage } from "./modules/admin/members/pages/CreateMemberPage";
 import { MemberDetailsPage } from "./modules/admin/members/pages/MemberDetailsPage";
 import { EditMemberPage } from "./modules/admin/members/pages/EditMemberPage";
+import { MessagePage } from "./modules/trainer/messages/message-page";
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
@@ -61,9 +62,9 @@ export const appRouter = createBrowserRouter([
         path: "/auth",
         element: (
             // <NotAuthenticatedRoute>
-                <Suspense fallback={<PageLoader />}>
-                    <AuthLayout />
-                </Suspense>
+            <Suspense fallback={<PageLoader />}>
+                <AuthLayout />
+            </Suspense>
             // </NotAuthenticatedRoute>
         ),
         children: [
@@ -76,14 +77,14 @@ export const appRouter = createBrowserRouter([
         path: "/admin",
         element: (
             // <AdminRoute>
-                <Suspense fallback={<PageLoader />}>
-                    <AdminLayout />
-                </Suspense>
+            <Suspense fallback={<PageLoader />}>
+                <AdminLayout />
+            </Suspense>
             // </AdminRoute>
         ),
         children: [
             { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
-            { 
+            {
                 path: "plans",
                 element: <Suspense fallback={<PageLoader />}><PlansPage /></Suspense>
             },
@@ -143,50 +144,50 @@ export const appRouter = createBrowserRouter([
         ),
         children: [
             { index: true, element: <Navigate to="dashboard" replace /> },
-            { 
-                path: "dashboard", 
-                element: <Suspense fallback={<PageLoader />}><DashboardTrainer /></Suspense> 
+            {
+                path: "dashboard",
+                element: <Suspense fallback={<PageLoader />}><DashboardTrainer /></Suspense>
             },
-            { 
-                path: "calendar", 
-                element: <Suspense fallback={<PageLoader />}><TrainerCalendarPage /></Suspense> 
+            {
+                path: "calendar",
+                element: <Suspense fallback={<PageLoader />}><TrainerCalendarPage /></Suspense>
             },
-            { 
-                path: "attendance", 
-                element: <Suspense fallback={<PageLoader />}><TrainerAttendancePage /></Suspense> 
+            {
+                path: "attendance",
+                element: <Suspense fallback={<PageLoader />}><TrainerAttendancePage /></Suspense>
             },
-            { 
-                path: "students", 
-                element: <Suspense fallback={<PageLoader />}><TrainerStudentsPage /></Suspense> 
+            {
+                path: "students",
+                element: <Suspense fallback={<PageLoader />}><TrainerStudentsPage /></Suspense>
             },
             // Add more trainer routes as needed
-            { 
-                path: "workouts", 
-                element: <div className="p-6">Workouts Page</div> 
+            {
+                path: "workouts",
+                element: <div className="p-6">Workouts Page</div>
             },
-            { 
-                path: "nutrition", 
-                element: <div className="p-6">Nutrition Page</div> 
+            {
+                path: "nutrition",
+                element: <div className="p-6">Nutrition Page</div>
             },
-            { 
-                path: "stats", 
-                element: <div className="p-6">Stats Page</div> 
+            {
+                path: "stats",
+                element: <div className="p-6">Stats Page</div>
             },
-            { 
-                path: "messages", 
-                element: <div className="p-6">Messages Page</div> 
+            {
+                path: "messages",
+                element: <Suspense fallback={<PageLoader />}> <MessagePage  /></Suspense>
             },
-            { 
-                path: "reports", 
-                element: <div className="p-6">Reports Page</div> 
+            {
+                path: "reports",
+                element: <div className="p-6">Reports Page</div>
             },
-            { 
-                path: "profile", 
-                element: <div className="p-6">Profile Page</div> 
+            {
+                path: "profile",
+                element: <div className="p-6">Profile Page</div>
             },
-            { 
-                path: "settings", 
-                element: <div className="p-6">Settings Page</div> 
+            {
+                path: "settings",
+                element: <div className="p-6">Settings Page</div>
             },
         ]
     },
