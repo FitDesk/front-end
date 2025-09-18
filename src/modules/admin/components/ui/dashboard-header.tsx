@@ -5,15 +5,16 @@ import {
     Search,
     Filter,
     Download,
-    RefreshCw,
+
     MoreHorizontal,
 } from 'lucide-react';
-import { SidebarTrigger } from '@/shared/components/ui/sidebar';
 import { Separator } from '@/shared/components/ui/separator';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from '@/shared/components/ui/breadcrumb';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/components/ui/dropdown-menu';
+import { SidebarTrigger } from '@/shared/components/animated/sidebar';
+import { RefreshCw } from '@/shared/components/animated/icons/refresh-cw';
 
 interface DashboardHeaderProps {
     searchQuery: string;
@@ -80,7 +81,7 @@ export const DashboardHeader = memo(
                                 onClick={onRefresh}
                                 disabled={isRefreshing}
                             >
-                                <RefreshCw
+                                <RefreshCw animateOnView 
                                     className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
                                 />
                                 Refresh
@@ -99,11 +100,11 @@ export const DashboardHeader = memo(
                                     <Search className="mr-2 h-4 w-4" />
                                     Buscar
                                 </DropdownMenuItem>
-                                <DropdownMenuItem  className='cursor-pointer'>
+                                <DropdownMenuItem className='cursor-pointer'>
                                     <Filter className="mr-2 h-4 w-4" />
                                     Filtrar
                                 </DropdownMenuItem>
-                                <DropdownMenuItem  className='cursor-pointer' onClick={onExport}>
+                                <DropdownMenuItem className='cursor-pointer' onClick={onExport}>
                                     <Download className="mr-2 h-4 w-4" />
                                     Exportar
                                 </DropdownMenuItem>
