@@ -46,57 +46,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div style={{
-        position: 'fixed',
-        bottom: '1rem',
-        right: '1rem',
-        zIndex: 50,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem',
-      }}>
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            style={{
-              backgroundColor: toast.type === 'destructive' ? '#ef4444' : '#ffffff',
-              color: toast.type === 'destructive' ? '#ffffff' : '#1f2937',
-              padding: '1rem',
-              borderRadius: '0.375rem',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-              minWidth: '300px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <div>
-              <p style={{ fontWeight: 500, margin: 0 }}>{toast.title}</p>
-              {toast.description && (
-                <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: '0.25rem 0 0 0' }}>
-                  {toast.description}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={() => hideToast(toast.id)}
-              style={{
-                marginLeft: '1rem',
-                background: 'none',
-                border: 'none',
-                color: 'inherit',
-                cursor: 'pointer',
-                opacity: 0.7,
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.opacity = '1')}
-              onMouseOut={(e) => (e.currentTarget.style.opacity = '0.7')}
-              aria-label="Cerrar notificación"
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-      </div>
+      <Toaster />
     </ToastContext.Provider>
   );
 }
@@ -109,23 +59,71 @@ export function useToast() {
   return context;
 }
 
-// Componentes de compatibilidad para mantener la retrocompatibilidad
-export const Toast: React.FC<React.HTMLAttributes<HTMLDivElement>> = (props) => {
-  console.warn('El componente Toast está obsoleto. Usa useToast() en su lugar.');
-  return <div {...props} />;
-};
+// Componente Toaster para mostrar las notificaciones
+export function Toaster() {
+  const { toasts, hideToast } = useToast();
 
-export const ToastAction: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = (props) => {
-  console.warn('El componente ToastAction está obsoleto. Usa useToast() en su lugar.');
-  return <button {...props} />;
-};
+  if (toasts.length === 0) return null;
 
-export const ToastTitle: React.FC<React.HTMLAttributes<HTMLDivElement>> = (props) => {
-  console.warn('El componente ToastTitle está obsoleto. Usa useToast() en su lugar.');
-  return <div {...props} />;
-};
+  return (
+    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2">
+      {toasts.map((toast) => {
+        const iconMap = {
+          default: 'ℹ️',
+          success: '✅',
+          warning: '⚠️',
+          destructive: '❌',
+          info: 'ℹ️',
+        } as const;
 
-export const ToastDescription: React.FC<React.HTMLAttributes<HTMLDivElement>> = (props) => {
-  console.warn('El componente ToastDescription está obsoleto. Usa useToast() en su lugar.');
-  return <div {...props} />;
-};
+        const bgColorMap = {
+          default: 'bg-background',
+          success: 'bg-green-500/15',
+          warning: 'bg-yellow-500/15',
+          destructive: 'bg-destructive/15',
+          info: 'bg-blue-500/15',
+        } as const;
+
+        const textColorMap = {
+          default: 'text-foreground',
+          success: 'text-green-500',
+          warning: 'text-yellow-500',
+          destructive: 'text-destructive',
+          info: 'text-blue-500',
+        } as const;
+
+        const icon = iconMap[toast.type || 'default'];
+        const bgColor = bgColorMap[toast.type || 'default'];
+        const textColor = textColorMap[toast.type || 'default'];
+
+        return (
+          <div
+            key={toast.id}
+            className={`flex items-center gap-3 p-4 pr-10 rounded-lg shadow-lg max-w-sm w-full relative border border-border/50 ${bgColor}`}
+          >
+            <span className={`text-xl ${textColor}`}>{icon}</span>
+            <div className="flex-1">
+              {toast.title && (
+                <h4 className="font-medium text-foreground">
+                  {toast.title}
+                </h4>
+              )}
+              {toast.description && (
+                <p className="text-sm text-muted-foreground">
+                  {toast.description}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => hideToast(toast.id)}
+              className="absolute right-2 top-2 rounded-md p-1 text-foreground/50 hover:text-foreground focus:outline-none"
+              aria-label="Cerrar notificación"
+            >
+              ×
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

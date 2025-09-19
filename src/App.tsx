@@ -6,7 +6,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { ToastProvider } from "@/shared/components/ui/toast"
+import { ToastProvider, Toaster } from "@/shared/components/ui/toast"
 import { ChatButton, ChatModal } from "@/features/chat"
 // import { CheckAuthProvider } from "@/core/providers/auth-provider"
 
@@ -20,6 +20,7 @@ export default function App() {
           {/* <CheckAuthProvider> */}
           <RouterProvider router={appRouter} />
           {/* </CheckAuthProvider> */}
+          <Toaster />
           <ChatButton />
           <ChatModal />
           <ReactQueryDevtools initialIsOpen={false} />
