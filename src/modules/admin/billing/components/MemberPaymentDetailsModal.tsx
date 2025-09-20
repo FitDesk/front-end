@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import type { MemberDetails } from '../store/slices/member.slice';
+import type { MemberDetails } from '../types/billing.types';
 
 interface MemberPaymentDetailsModalProps {
   member: MemberDetails | null;
@@ -241,7 +241,7 @@ export function MemberPaymentDetailsModal({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {member.paymentHistory.map((payment) => (
+                    {member.paymentHistory.map((payment: { id: string; transactionId: string; date: string; amount: number; paymentMethod: string; status: string }) => (
                       <TableRow key={payment.id}>
                         <TableCell>
                           <div className="font-mono text-sm">{payment.transactionId}</div>

@@ -19,12 +19,36 @@ import {
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { sampleBillingMetrics, sampleOverdueMembers } from '../data/sample-data';
+
+// Definir el tipo para los detalles del miembro
+export interface MemberDetails {
+  id: string;
+  memberId: string;
+  memberName: string;
+  email: string;
+  phone?: string;
+  planName: string;
+  planPrice: number;
+  joinDate: string;
+  lastPaymentDate: string;
+  nextBillingDate: string;
+  totalPayments: number;
+  totalAmount: number;
+  status: 'active' | 'overdue' | 'suspended' | 'cancelled';
+  paymentHistory: Array<{
+    id: string;
+    amount: number;
+    status: 'completed' | 'pending' | 'failed' | 'refunded';
+    paymentMethod: string;
+    transactionId: string;
+    date: string;
+    subscriptionPlan: string;
+  }>;
+}
 
 export default function BillingPage() {
   const { toast } = useToast();
   const {
-    // Payments slice
     payments,
     loading,
     error,
@@ -36,13 +60,57 @@ export default function BillingPage() {
     forceRenewal,
     processRefund,
     exportPayments,
-    // Member slice
-    selectedMember,
-    isMemberModalOpen,
-    memberLoading,
-    openMemberModal,
-    closeMemberModal,
+    billingMetrics,
+    overdueMembers,
   } = useBillingStore();
+
+  // Estado local para manejar el miembro seleccionado
+  const [selectedMember, setSelectedMember] = useState<MemberDetails | null>(null);
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+  const [memberLoading, setMemberLoading] = useState(false);
+
+  // Funciones para manejar el modal del miembro
+  const openMemberModal = (memberId: string) => {
+    setMemberLoading(true);
+    // Aquí iría la lógica para cargar los detalles del miembro desde la API
+    // Por ahora, simulamos una carga
+    setTimeout(() => {
+      // Esto es un ejemplo, deberías reemplazarlo con una llamada real a la API
+      const member: MemberDetails = {
+        id: memberId,
+        memberId: `MEM_${memberId}`,
+        memberName: 'Nombre del Miembro',
+        email: 'ejemplo@email.com',
+        phone: '+1234567890',
+        planName: 'Plan Estándar',
+        planPrice: 49.99,
+        joinDate: new Date().toISOString(),
+        lastPaymentDate: new Date().toISOString(),
+        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        totalPayments: 12,
+        totalAmount: 599.88,
+        status: 'active',
+        paymentHistory: [
+          {
+            id: 'pay_001',
+            amount: 49.99,
+            status: 'completed',
+            paymentMethod: 'Tarjeta de crédito',
+            transactionId: 'txn_123456789',
+            date: new Date().toISOString(),
+            subscriptionPlan: 'Plan Estándar',
+          },
+        ],
+      };
+      setSelectedMember(member);
+      setMemberLoading(false);
+    }, 500);
+  };
+
+  const closeMemberModal = () => {
+    setIsMemberModalOpen(false);
+    setSelectedMember(null);
+  };
 
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
@@ -50,11 +118,26 @@ export default function BillingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState('resumen');
 
-  
   useEffect(() => {
-    fetchPayments();
-  }, [fetchPayments]);
-
+    const loadInitialData = async () => {
+      try {
+        // Cargar pagos
+        await fetchPayments();
+        
+        // Cargar métricas del dashboard y miembros con pagos atrasados
+        // Estas acciones deben ser manejadas por el store
+      } catch (error) {
+        console.error('Error al cargar datos iniciales:', error);
+        toast({
+          title: 'Error',
+          description: 'No se pudieron cargar los datos iniciales. Por favor, intente nuevamente.',
+          type: 'destructive',
+        });
+      }
+    };
+    
+    loadInitialData();
+  }, [fetchPayments, toast]);
 
   useEffect(() => {
     if (error) {
@@ -97,30 +180,28 @@ export default function BillingPage() {
     }
   };
 
-  const handleProcessRefund = async () => {
-    if (!selectedPaymentId) return;
+  const handleRefundSubmit = async () => {
+    if (!selectedPaymentId || !refundAmount) return;
     
-    setIsProcessing(true);
     try {
-      const amount = parseFloat(refundAmount);
-      if (isNaN(amount) || amount <= 0) {
-        throw new Error('Por favor, ingresa un monto de reembolso válido');
-      }
-      
-      await processRefund(selectedPaymentId, amount);
+      setIsProcessing(true);
+      await processRefund(selectedPaymentId, parseFloat(refundAmount));
       
       toast({
-        type: 'success',
-        title: 'Éxito',
-        description: 'El reembolso se ha procesado exitosamente.',
+        title: 'Reembolso exitoso',
+        description: 'El reembolso se ha procesado correctamente.',
       });
+      
       setRefundDialogOpen(false);
-    } catch (err) {
-      const error = err as Error;
-      toast({
-        type: 'destructive',
+      setRefundAmount('');
+      await fetchPayments();
+    } catch (error: unknown) {
+      console.error('Error al procesar el reembolso:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+toast({
         title: 'Error',
-        description: error.message || 'Error al procesar el reembolso. Por favor, inténtalo de nuevo.',
+        description: `No se pudo procesar el reembolso: ${errorMessage}`,
+        type: 'destructive',
       });
     } finally {
       setIsProcessing(false);
@@ -130,16 +211,10 @@ export default function BillingPage() {
   const handleExport = async () => {
     try {
       await exportPayments();
-      toast({
-        title: 'Exportación iniciada',
-        description: 'Tu exportación comenzará en breve.',
-      });
+      // No mostramos el toast aquí porque ya se maneja en el store
     } catch (error) {
-      toast({
-        type: 'destructive',
-        title: 'Error en la exportación',
-        description: 'Error al iniciar la exportación. Por favor, inténtalo de nuevo.',
-      });
+      // El error ya se maneja en el store
+      console.error('Error al exportar pagos:', error);
     }
   };
 
@@ -166,7 +241,8 @@ export default function BillingPage() {
   const handleSendReminders = () => {
     toast({
       title: 'Recordatorios Enviados',
-      description: `Se han enviado ${sampleOverdueMembers.length} recordatorios de pago.`,
+      description: `Se han enviado ${overdueMembers.length} recordatorios de pago.`,
+      type: 'default',
     });
     // Aquí se enviarían los recordatorios al backend
   };
@@ -209,7 +285,12 @@ export default function BillingPage() {
         </TabsList>
 
         <TabsContent value="resumen" className="space-y-6">
-          <BillingDashboard metrics={sampleBillingMetrics} loading={loading} />
+          <BillingDashboard metrics={billingMetrics || {
+            monthlyIncome: { amount: 0, change: 0, trend: 'up' },
+            pendingPayments: { amount: 0, change: 0, trend: 'up' },
+            membersUpToDate: { count: 0, change: 0, trend: 'up' },
+            overduePayments: { count: 0, change: 0, trend: 'up' }
+          }} loading={loading} />
         </TabsContent>
 
         <TabsContent value="pagos" className="space-y-4">
@@ -260,8 +341,8 @@ export default function BillingPage() {
         </TabsContent>
 
         <TabsContent value="vencidos" className="space-y-6">
-          <OverdueMemberships
-            members={sampleOverdueMembers}
+<OverdueMemberships
+            members={overdueMembers}
             loading={loading}
             onCollectPayment={handleCollectPayment}
             onViewDetails={handleViewMemberDetails}
@@ -318,7 +399,7 @@ export default function BillingPage() {
               Cancelar
             </Button>
             <Button
-              onClick={handleProcessRefund}
+              onClick={handleRefundSubmit}
               disabled={isProcessing}
             >
               {isProcessing ? (

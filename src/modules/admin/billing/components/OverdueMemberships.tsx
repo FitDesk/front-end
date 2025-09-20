@@ -78,9 +78,9 @@ export function OverdueMemberships({
   };
 
   const getOverdueColor = (days: number) => {
-    if (days <= 7) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    if (days <= 15) return 'bg-orange-100 text-orange-800 border-orange-200';
-    return 'bg-red-100 text-red-800 border-red-200';
+    if (days <= 7) return 'text-yellow-400';
+    if (days <= 15) return 'text-orange-400';
+    return 'text-red-400';
   };
 
   if (loading) {
@@ -113,7 +113,7 @@ export function OverdueMemberships({
             onClick={handleSendReminders}
             variant="outline"
             size="sm"
-            className="bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200"
+            className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-orange-600 dark:text-orange-400 border-gray-200 dark:border-gray-700 shadow-sm"
             disabled={members.length === 0}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -123,8 +123,8 @@ export function OverdueMemberships({
       </CardHeader>
       <CardContent className="space-y-4">
         {members.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-muted-foreground mb-2">
+          <div className="text-center py-4">
+            <div className="text-muted-foreground dark:text-gray-400 mb-2">
               <CreditCard className="h-12 w-12 mx-auto mb-4 text-green-500" />
               <p className="text-lg font-medium">¡Excelente!</p>
               <p>No hay membresías vencidas</p>
@@ -135,7 +135,7 @@ export function OverdueMemberships({
             {members.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12 bg-red-500">
@@ -144,10 +144,10 @@ export function OverdueMemberships({
                     </AvatarFallback>
                   </Avatar>
                   <div className="space-y-1">
-                    <h4 className="font-semibold text-gray-900">
+                    <h4 className="font-medium text-gray-900 dark:text-white">
                       {member.memberName}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {member.planName} - ${member.planPrice}
                     </p>
                     <Badge 
@@ -162,7 +162,7 @@ export function OverdueMemberships({
                   <Button
                     onClick={() => handleCollectPayment(member.id, member.memberName)}
                     size="sm"
-                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                    className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-orange-600 dark:text-orange-400 border border-gray-200 dark:border-gray-700 shadow-sm"
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
                     Cobrar

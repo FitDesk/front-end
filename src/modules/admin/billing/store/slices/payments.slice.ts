@@ -1,8 +1,8 @@
-import { StateCreator } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
+import type { StateCreator } from 'zustand';
 import type { BillingState } from '../billing.store';
 import type { Payment, BillingFilter, BillingPagination } from '../../types/billing.types';
-import { samplePayments } from '../../data/sample-data';
+import type { BillingMetrics, OverdueMember } from '../../types/billing.types';
+import { fitdeskApi } from '@/core/api/fitdeskApi';
 
 export interface PaymentsSlice {
   payments: Payment[];
@@ -11,8 +11,10 @@ export interface PaymentsSlice {
   pagination: BillingPagination;
   filters: BillingFilter;
   selectedPayments: string[];
+  billingMetrics: BillingMetrics | null;
+  overdueMembers: OverdueMember[];
   
-  // Actions
+
   fetchPayments: (params?: BillingFilter & { page?: number }) => Promise<void>;
   setFilters: (filters: BillingFilter) => void;
   togglePaymentSelection: (id: string) => void;
@@ -40,6 +42,8 @@ export const createPaymentsSlice: StateCreator<
   },
   filters: {},
   selectedPayments: [],
+  billingMetrics: null,
+  overdueMembers: [],
 
   fetchPayments: async (params = {}) => {
     set((state) => {
@@ -48,72 +52,56 @@ export const createPaymentsSlice: StateCreator<
     });
     
     try {
-      const { filters, pagination } = get();
-      const { page = pagination?.page || 1 } = params;
-      const pageSize = pagination?.pageSize || 10;
+      const { page = 1, ...filters } = params;
       
-      // Aplicar filtros a los datos de ejemplo
-      let filteredPayments = [...samplePayments] as Payment[];
-      
-      // Filtrar por término de búsqueda
-      if (filters.searchTerm) {
-        const searchTerm = filters.searchTerm.toLowerCase();
-        filteredPayments = filteredPayments.filter(payment => 
-          payment.memberName.toLowerCase().includes(searchTerm) ||
-          payment.memberId.toLowerCase().includes(searchTerm) ||
-          payment.transactionId.toLowerCase().includes(searchTerm)
-        );
-      }
-      
-      // Filtrar por estado
-      if (filters.status) {
-        filteredPayments = filteredPayments.filter(payment => 
-          payment.status === filters.status
-        );
-      }
-      
-      // Filtrar por método de pago
-      if (filters.paymentMethod) {
-        filteredPayments = filteredPayments.filter(payment => 
-          payment.paymentMethod === filters.paymentMethod
-        );
-      }
-      
-      // Filtrar por rango de fechas
-      if (filters.dateFrom) {
-        filteredPayments = filteredPayments.filter(payment => 
-          new Date(payment.date) >= new Date(filters.dateFrom!)
-        );
-      }
-      
-      if (filters.dateTo) {
-        filteredPayments = filteredPayments.filter(payment => 
-          new Date(payment.date) <= new Date(filters.dateTo!)
-        );
-      }
-      
-      // Aplicar paginación
-      const totalItems = filteredPayments.length;
-      const totalPages = Math.ceil(totalItems / pageSize);
-      const startIndex = (page - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const paginatedPayments = filteredPayments.slice(startIndex, endIndex);
-
-      set((state) => {
-        state.payments = paginatedPayments;
-        state.pagination = {
+     
+      const response = await fitdeskApi.get<{
+        data: Payment[];
+        pagination?: {
+          page: number;
+          pageSize: number;
+          total: number;
+        };
+        // Añadir compatibilidad con diferentes formatos de respuesta
+        page?: number;
+        limit?: number;
+        total?: number;
+        totalPages?: number;
+      }>('/payments', {
+        params: {
           page,
-          pageSize,
-          totalItems,
-          totalPages,
+          pageSize: 10, 
+          ...filters,
+        },
+      });
+      
+      const responseData = response.data;
+      
+      // Manejar diferentes formatos de respuesta
+      const payments = responseData.data || [];
+      const paginationData = responseData.pagination || {
+        page: responseData.page || 1,
+        pageSize: responseData.limit || 10,
+        total: responseData.total || 0,
+      };
+      
+      set((state) => {
+        state.payments = payments;
+        state.pagination = {
+          page: paginationData.page,
+          pageSize: paginationData.pageSize,
+          totalItems: paginationData.total,
+          totalPages: responseData.totalPages || Math.ceil((paginationData.total || 0) / (paginationData.pageSize || 10)),
         };
         state.loading = false;
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al cargar los pagos';
       set((state) => {
-        state.error = error instanceof Error ? error.message : 'Error al cargar los pagos';
+        state.error = errorMessage;
         state.loading = false;
       });
+      throw new Error(errorMessage);
     }
   },
 
@@ -142,46 +130,116 @@ export const createPaymentsSlice: StateCreator<
     });
   },
 
-  forceRenewal: async (paymentId) => {
+  forceRenewal: async (paymentId: string) => {
+    set((state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    
     try {
-      // Simular llamada al backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
+   
+      const response = await fitdeskApi.post(`/payments/${paymentId}/renew`);
+      
+   
+      set((state) => {
+        state.payments = state.payments.map(payment => 
+          payment.id === paymentId 
+            ? response.data.updatedPayment
+            : payment
+        );
+      });
+      
+      
       await get().fetchPayments();
-    } catch (error) {
-      throw error;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al forzar la renovación';
+      set((state) => {
+        state.error = errorMessage;
+      });
+      throw new Error(errorMessage);
+    } finally {
+      set((state) => {
+        state.loading = false;
+      });
     }
   },
 
-  processRefund: async (paymentId, amount) => {
+  processRefund: async (paymentId: string, amount?: number) => {
+    set((state) => {
+      state.loading = true;
+      state.error = null;
+    });
+
     try {
-      // Simular llamada al backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const response = await fitdeskApi.post<{ updatedPayment: Payment }>(`/payments/${paymentId}/refund`, { amount });
+      
+  
+      set((state) => {
+        state.payments = state.payments.map(payment => 
+          payment.id === paymentId 
+            ? response.data.updatedPayment
+            : payment
+        );
+      });
+      
+   
       await get().fetchPayments();
-    } catch (error) {
-      throw error;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al procesar el reembolso';
+      set((state) => {
+        state.error = errorMessage;
+      });
+      throw new Error(errorMessage);
+    } finally {
+      set((state) => {
+        state.loading = false;
+      });
     }
   },
 
   exportPayments: async () => {
+    set((state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    
     try {
-      const { filters } = get();
-      // Simular exportación
-      await new Promise(resolve => setTimeout(resolve, 1000));
+  
+      const response = await fitdeskApi.get('/payments/export', {
+        responseType: 'blob', 
+      });
       
-      const csvContent = get().payments.map(payment => 
-        `${payment.memberName},${payment.amount},${payment.status},${payment.date}`
-      ).join('\n');
-      
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `payments-${new Date().toISOString()}.csv`);
+      
+   
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = `payments-${new Date().toISOString().split('T')[0]}.csv`;
+      
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"/);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+      
+      link.setAttribute('download', fileName);
       document.body.appendChild(link);
       link.click();
-      link.remove();
-    } catch (error) {
-      throw error;
+      document.body.removeChild(link);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al exportar los pagos';
+      set((state) => {
+        state.error = errorMessage;
+      });
+      throw new Error(errorMessage);
+    } finally {
+      set((state) => {
+        state.loading = false;
+      });
     }
   },
 
