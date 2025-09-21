@@ -3,13 +3,11 @@ import { useEffect, useState } from "react";
 import { cn } from "@/core/lib/utils";
 import { Chat } from "./components/chat";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/components/ui/avatar";
-import { useSidebar } from "@/shared/components/animated/sidebar";
 import { Input } from "@/shared/components/ui/input";
-import { Search, MoreVertical, Star, Crown, Loader2, ChevronLeft } from "lucide-react";
+import { Search, MoreVertical, Star, Loader2, ChevronLeft } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import useChatStore from "@/core/store/chat.store";
-
 
 
 export const MessagePage = () => {
@@ -28,9 +26,7 @@ export const MessagePage = () => {
         searchConversations
     } = useChatStore();
 
-   
-    const { state: sidebarState } = useSidebar();
-    const collapsed = sidebarState === "collapsed" || isMobile;
+ 
 
     useEffect(() => {
         const checkScreenWidth = () => {
@@ -52,7 +48,7 @@ export const MessagePage = () => {
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             searchConversations(searchQuery);
-        }, 300); // 300ms de delay
+        }, 300); 
 
         return () => clearTimeout(timeoutId);
     }, [searchQuery, searchConversations]);
@@ -86,8 +82,8 @@ export const MessagePage = () => {
     const renderConversationList = () => (
         <div className={cn(
             "flex-shrink-0 border-r bg-card transition-all duration-300 h-full absolute md:relative z-10",
-            isMobile ? (showConversationList ? "w-full" : "hidden") : "w-80",
-            collapsed && !isMobile && "w-16"
+            isMobile ? (showConversationList ? "w-full" : "hidden") : "w-80"
+           
         )}>
             <div className="h-full flex flex-col">
                 {/* Header del sidebar - Solo visible en desktop */}
@@ -146,7 +142,6 @@ export const MessagePage = () => {
                                 <div className="flex items-center gap-2">
                                     <h3 className="font-medium truncate text-foreground">{user.name}</h3>
                                     <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                    <Crown className="h-4 w-4 text-purple-500" />
                                 </div>
                                 <div className="text-sm text-muted-foreground truncate">
                                     {getLastMessage(user)}
@@ -184,40 +179,71 @@ export const MessagePage = () => {
     );
 
     return (
-        <div className="h-screen w-full flex bg-background relative">
-          
-            {renderConversationList()}
-
-            {/* Panel principal del chat */}
-            <div className={cn(
-                "flex-1 flex flex-col w-full",
-                isMobile && !showConversationList ? "block" : "hidden md:flex"
-            )}>
-                {isMobile && !showConversationList && (
-                    <div className="flex items-center p-2 border-b bg-card">
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="md:hidden mr-2"
-                            onClick={() => setShowConversationList(true)}
-                        >
-                            <ChevronLeft className="h-5 w-5" />
-                        </Button>
-                        <div className="flex items-center">
-                            <Avatar className="h-8 w-8 mr-2">
-                                <AvatarImage src={selectedUser.avatar} alt={selectedUser.name} />
-                                <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white text-xs">
-                                    {selectedUser.name.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                            </Avatar>
-                            <h2 className="font-medium">{selectedUser.name}</h2>
+        <div className="flex flex-col h-[calc(100vh-4rem)]">
+            {/* Contenido principal con scroll */}
+            <div className="flex flex-1 overflow-hidden">
+                {/* Lista de conversaciones */}
+                <div className={cn(
+                    "w-80 border-r bg-card overflow-y-auto",
+                    isMobile && !showConversationList ? "hidden" : "flex"
+                )}>
+                    {renderConversationList()}
+                </div>
+                
+                {/* Área de chat */}
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    {selectedUser ? (
+                        <div className="flex flex-col h-full">
+                            {/* Header del chat */}
+                            <div className="border-b p-4 flex items-center justify-between bg-card">
+                                <div className="flex items-center space-x-3">
+                                    {isMobile && (
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={() => setShowConversationList(true)}
+                                            className="md:hidden"
+                                        >
+                                            <ChevronLeft className="h-5 w-5" />
+                                        </Button>
+                                    )}
+                                    <Avatar>
+                                        <AvatarImage src={selectedUser.avatar} alt={selectedUser.name} />
+                                        <AvatarFallback>{selectedUser.name?.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <h3 className="font-semibold">{selectedUser.name}</h3>
+                                        <p className="text-xs text-muted-foreground">
+                                            {'En línea'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Button variant="ghost" size="icon">
+                                        <MoreVertical className="h-5 w-5" />
+                                    </Button>
+                                </div>
+                            </div>
+                            
+                            {/* Componente de chat */}
+                            <div className="flex-1 overflow-hidden">
+                                <Chat 
+                                    selectedUser={selectedUser}
+                                    isMobile={isMobile}
+                                />
+                            </div>
                         </div>
-                    </div>
-                )}
-                <Chat
-                    selectedUser={selectedUser}
-                    isMobile={isMobile}
-                />
+                    ) : (
+                        <div className="flex items-center justify-center h-full">
+                            <div className="text-center space-y-2 p-4">
+                                <h3 className="text-lg font-medium">Selecciona una conversación</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    Elige un chat para empezar a enviar mensajes
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

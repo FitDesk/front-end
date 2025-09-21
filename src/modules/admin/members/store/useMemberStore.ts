@@ -1,54 +1,71 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { Member, MemberFilters, MemberStatus, MembershipStatus } from '../types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { memberService } from '../services/member.service';
+import type { MemberFilters, MemberStatus } from '../types';
+import { toast } from 'sonner';
 
 interface MemberState {
-  members: Member[];
-  currentMember: Member | null;
-  isLoading: boolean;
-  error: string | null;
+  currentMemberId: string | null;
   filters: MemberFilters;
   pagination: {
     page: number;
     limit: number;
-    total: number;
-    totalPages: number;
   };
   
-  
-  setMembers: (members: Member[]) => void;
-  setCurrentMember: (member: Member | null) => void;
-  setLoading: (isLoading: boolean) => void;
-  setError: (error: string | null) => void;
+  setCurrentMemberId: (id: string | null) => void;
   setFilters: (filters: Partial<MemberFilters>) => void;
   setPagination: (pagination: Partial<{
     page: number;
     limit: number;
-    total: number;
-    totalPages: number;
   }>) => void;
-  
-  
-  updateMemberStatus: (memberId: string, status: MemberStatus) => void;
-  updateMembershipStatus: (memberId: string, status: MembershipStatus) => void;
-  deleteMember: (memberId: string) => Promise<boolean>;
-  
   reset: () => void;
 }
 
 const initialState = {
-  members: [],
-  currentMember: null,
-  isLoading: false,
-  error: null,
+  currentMemberId: null,
   filters: {},
   pagination: {
     page: 1,
     limit: 10,
-    total: 0,
-    totalPages: 1,
   },
+};
+
+// Hook para mutaciones con React Query
+export const useMemberMutations = () => {
+  const queryClient = useQueryClient();
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ memberId, status }: { memberId: string; status: MemberStatus }) => 
+      memberService.updateMemberStatus(memberId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      toast.success('Estado actualizado correctamente');
+    },
+    onError: (error) => {
+      console.error('Error actualizando estado:', error);
+      toast.error('Error al actualizar el estado');
+    }
+  });
+
+  const deleteMemberMutation = useMutation({
+    mutationFn: (memberId: string) => 
+      memberService.deleteMember(memberId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      toast.success('Miembro eliminado correctamente');
+    },
+    onError: (error) => {
+      console.error('Error eliminando miembro:', error);
+      toast.error('Error al eliminar el miembro');
+    }
+  });
+
+  return {
+    updateMemberStatus: updateStatusMutation.mutateAsync,
+    deleteMember: deleteMemberMutation.mutateAsync,
+    isLoading: updateStatusMutation.isPending || deleteMemberMutation.isPending
+  };
 };
 
 export const useMemberStore = create<MemberState>()(
@@ -56,13 +73,7 @@ export const useMemberStore = create<MemberState>()(
     (set) => ({
       ...initialState,
       
-      setMembers: (members) => set({ members }),
-      
-      setCurrentMember: (member) => set({ currentMember: member }),
-      
-      setLoading: (isLoading) => set({ isLoading }),
-      
-      setError: (error) => set({ error }),
+      setCurrentMemberId: (id) => set({ currentMemberId: id }),
       
       setFilters: (filters) => 
         set((state) => ({
@@ -74,56 +85,6 @@ export const useMemberStore = create<MemberState>()(
         set((state) => ({
           pagination: { ...state.pagination, ...pagination },
         })),
-      
-      updateMemberStatus: (memberId, status) =>
-        set((state) => ({
-          members: state.members.map((member) =>
-            member.id === memberId ? { ...member, status } : member
-          ),
-          currentMember:
-            state.currentMember?.id === memberId
-              ? { ...state.currentMember, status }
-              : state.currentMember,
-        })),
-      
-      updateMembershipStatus: (memberId, status) => {
-        set(state => ({
-          members: state.members.map(member =>
-            member.id === memberId
-              ? { 
-                  ...member, 
-                  membership: { 
-                    ...member.membership, 
-                    status 
-                  } 
-                }
-              : member
-          ),
-          currentMember:
-            state.currentMember?.id === memberId
-              ? {
-                  ...state.currentMember,
-                  membership: { ...state.currentMember.membership, status },
-                }
-              : state.currentMember,
-        }));
-      },
-      
-      deleteMember: async (memberId: string) => {
-        try {
-          
-          await memberService.deleteMember(memberId);
-          
-          set(state => ({
-            members: state.members.filter(member => member.id !== memberId),
-            currentMember: state.currentMember?.id === memberId ? null : state.currentMember,
-          }));
-          return true;
-        } catch (error) {
-          console.error('Error al eliminar miembro:', error);
-          return false;
-        }
-      },
       
       reset: () => set(initialState),
     }),

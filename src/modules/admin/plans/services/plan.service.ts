@@ -1,5 +1,5 @@
 import { fitdeskApi } from '@/core/api/fitdeskApi';
-import type { Plan, Promotion } from '../components/plans-columns';
+import type { Plan, Promotion, CreatePlanDto } from '../types';
 
 export class PlanService {
   private static readonly ENDPOINT = '/plans';
@@ -50,13 +50,13 @@ export class PlanService {
    * @param plan 
    * @returns 
    */
-  static async create(plan: Omit<Plan, 'id'>): Promise<Plan> {
+  static async create(plan: CreatePlanDto): Promise<Plan> {
     try {
       const { data } = await fitdeskApi.post<Plan>(this.ENDPOINT, plan);
       return data;
     } catch (error) {
       console.error('Error en PlanService.create:', error);
-      throw new Error('No se pudo crear el plan');
+      throw error;
     }
   }
 

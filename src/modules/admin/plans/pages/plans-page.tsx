@@ -1,0 +1,147 @@
+import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
+import { Plus, Shield } from 'lucide-react';
+import { Card } from '@/shared/components/ui/card';
+import { toast } from 'sonner';
+
+import { PlanModal } from '../components/plan-modal';
+import { PlanCard } from '../components/plan-card';
+import { usePlans, useCreatePlan, useUpdatePlan, useDeletePlan } from '../hooks/usePlansQuery';
+import { usePlanStore } from '../store/usePlanStore';
+import type { Plan } from '../types';
+
+const PlansPage = () => {
+  const { filters } = usePlanStore();
+  const { data: plans = [], isLoading, error } = usePlans(filters);
+  const createPlan = useCreatePlan();
+  const updatePlan = useUpdatePlan();
+  const deletePlan = useDeletePlan();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleEdit = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setSelectedPlan(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (values: Omit<Plan, 'id' | 'promotions'> & { id?: string }) => {
+    setIsSubmitting(true);
+    try {
+      if (selectedPlan) {
+        // Actualizar plan existente
+        await updatePlan.mutateAsync({ ...values, id: selectedPlan.id });
+        toast.success('El plan se ha actualizado correctamente');
+      } else {
+        // Crear nuevo plan
+        await createPlan.mutateAsync(values);
+        toast.success('El plan se ha creado correctamente');
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error saving plan:', error);
+      toast.error('Ha ocurrido un error al guardar el plan');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este plan?')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deletePlan.mutateAsync(id);
+      toast.success('El plan se ha eliminado correctamente');
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      toast.error('Ha ocurrido un error al eliminar el plan');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong className="font-bold">Error: </strong>
+        <span className="block sm:inline">No se pudieron cargar los planes. Por favor, inténtalo de nuevo más tarde.</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 mx-4 sm:mx-6 lg:mx-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Planes</h1>
+          <p className="text-muted-foreground">
+            Gestiona los planes de suscripción disponibles
+          </p>
+        </div>
+        <Button onClick={handleCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nuevo Plan
+        </Button>
+      </div>
+
+      <Card className="p-6">
+        {plans.length === 0 ? (
+          <div className="text-center py-12">
+            <Shield className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-2 text-sm font-semibold">No hay planes</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Empieza creando un nuevo plan.
+            </p>
+            <div className="mt-6">
+              <Button onClick={handleCreate}>
+                <Plus className="-ml-0.5 mr-1.5 h-4 w-4" />
+                Nuevo Plan
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {plans.map((plan) => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                isDeleting={isDeleting}
+              />
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {isModalOpen && (
+        <PlanModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          plan={selectedPlan}
+          onSubmit={handleSubmit}
+          isLoading={isSubmitting}
+        />
+      )}
+    </div>
+  );
+};
+
+export default PlansPage;

@@ -15,7 +15,7 @@ import {
 import { memo } from 'react';
 import { Link } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarRail, useSidebar } from '@/shared/components/animated/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, useSidebar } from '@/shared/components/animated/sidebar';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
 import { cn } from '@/core/lib/utils';
 
@@ -46,17 +46,28 @@ const TrainerSidebar = memo(() => {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link prefetch='none' to="/trainer" viewTransition >
-                                <img
-                                    src="/favicon.svg"
-                                    alt="App Logo"
-                                    loading="lazy"
-                                    className="h-20 w-20"
-                                />
-                                <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">TechCorp</span>
-                                    <span className="truncate text-xs">Panel Entrenador</span>
-                                </div>
+                            <Link prefetch='none' to="/trainer" viewTransition className="flex items-center gap-2">
+                                {isCollapsed ? (
+                                    <img
+                                        src="/src/assets/logo.svg"
+                                        alt="App Logo"
+                                        loading="lazy"
+                                        className="h-10 w-10"
+                                    />
+                                ) : (
+                                    <>
+                                        <img
+                                            src="/favicon.svg"
+                                            alt="App Logo"
+                                            loading="lazy"
+                                            className="h-20 w-20"
+                                        />
+                                        <div className="grid flex-1 text-left text-sm leading-tight">
+                                            <span className="truncate font-semibold">TechCorp</span>
+                                            <span className="truncate text-xs">Panel Entrenador</span>
+                                        </div>
+                                    </>
+                                )}
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
