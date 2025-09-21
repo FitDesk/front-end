@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
-} from '@/shared/components/ui/dialog';
+} from '@/shared/components/animated/dialog';
 
 export function MembersPage() {
   const navigate = useNavigate();
@@ -29,25 +29,25 @@ export function MembersPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isBulkDelete, setIsBulkDelete] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
-  
+
   const { updateMemberStatus, deleteMember } = useMemberStore();
   const { refreshMembers, updateFilters } = useMembers();
 
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       const filters: any = {};
-      
+
       if (searchTerm.trim() !== '') {
         filters.searchTerm = searchTerm.trim();
       }
-      
+
       if (statusFilter === 'inactive') {
         filters.status = ['INACTIVE'];
       } else if (statusFilter !== 'all') {
         filters.status = [statusFilter.toUpperCase()];
       }
-      
+
       updateFilters(filters);
     }, 500);
 
@@ -58,10 +58,10 @@ export function MembersPage() {
     setSearchTerm(e.target.value);
   };
 
-  
+
   const handleDelete = async () => {
     if (!memberToDelete) return;
-    
+
     try {
       await deleteMember(memberToDelete.id);
       toast({
@@ -80,34 +80,34 @@ export function MembersPage() {
     }
   };
 
-  
+
   const handleBulkDelete = async () => {
     if (selectedMembers.size === 0) return;
-    
+
     try {
-      const deletePromises = Array.from(selectedMembers).map((id: string) => 
+      const deletePromises = Array.from(selectedMembers).map((id: string) =>
         deleteMember(id).then(() => ({
           success: true as const,
           id
         })).catch((error: Error) => {
           console.error(`Error al eliminar miembro ${id}:`, error);
-          return { 
-            success: false as const, 
-            id 
+          return {
+            success: false as const,
+            id
           };
         })
       );
 
       const results = await Promise.all(deletePromises);
       const successCount = results.filter((r: { success: boolean }) => r.success).length;
-      
+
       if (successCount > 0) {
         toast({
           title: 'Eliminación completada',
           description: `Se eliminaron ${successCount} miembros correctamente.`,
         });
       }
-      
+
       if (successCount < selectedMembers.size) {
         toast({
           title: 'Atención',
@@ -115,7 +115,7 @@ export function MembersPage() {
           type: 'warning',
         });
       }
-      
+
       setSelectedMembers(new Set());
       setIsDeleteDialogOpen(false);
       refreshMembers();
@@ -128,7 +128,7 @@ export function MembersPage() {
     }
   };
 
-  
+
   const handleStatusChange = async (memberId: string, status: 'ACTIVE' | 'SUSPENDED' | 'DELETED') => {
     try {
       await updateMemberStatus(memberId, status);
@@ -137,7 +137,7 @@ export function MembersPage() {
         'SUSPENDED': 'Suspendido',
         'DELETED': 'Eliminado'
       }[status];
-      
+
       toast({
         title: 'Estado actualizado',
         description: `El estado del miembro ha sido actualizado a ${statusText}.`,
@@ -152,7 +152,7 @@ export function MembersPage() {
     }
   };
 
-  
+
   const confirmBulkDelete = () => {
     if (selectedMembers.size === 0) return;
     setMemberToDelete(null);
@@ -170,18 +170,18 @@ export function MembersPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="h-9"
             onClick={() => refreshMembers()}
             title="Actualizar lista de miembros"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="h-9"
           >
             <Download className="mr-2 h-4 w-4" />
@@ -210,7 +210,7 @@ export function MembersPage() {
               onChange={handleSearch}
             />
           </div>
-          
+
           <div className="w-full sm:w-48">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="bg-background">
@@ -233,14 +233,14 @@ export function MembersPage() {
             {searchTerm && (
               <span className="inline-flex items-center gap-1.5 rounded-full border bg-secondary/20 px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
                 Búsqueda: "{searchTerm}"
-                <button 
+                <button
                   onClick={() => setSearchTerm('')}
                   className="ml-1 rounded-full p-0.5 hover:bg-secondary/50"
                 >
                   <span className="sr-only">Eliminar filtro de búsqueda</span>
                   <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6 6 18"/>
-                    <path d="m6 6 12 12"/>
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
                   </svg>
                 </button>
               </span>
@@ -248,23 +248,23 @@ export function MembersPage() {
             {statusFilter !== 'all' && (
               <span className="inline-flex items-center gap-1.5 rounded-full border bg-secondary/20 px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
                 Estado: {
-                  statusFilter === 'active' ? 'Activos' : 
-                  statusFilter === 'suspended' ? 'Suspendidos' : 'Inactivos'
+                  statusFilter === 'active' ? 'Activos' :
+                    statusFilter === 'suspended' ? 'Suspendidos' : 'Inactivos'
                 }
-                <button 
+                <button
                   onClick={() => setStatusFilter('all')}
                   className="ml-1 rounded-full p-0.5 hover:bg-secondary/50"
                 >
                   <span className="sr-only">Eliminar filtro de estado</span>
                   <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6 6 18"/>
-                    <path d="m6 6 12 12"/>
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
                   </svg>
                 </button>
               </span>
             )}
             {(searchTerm || statusFilter !== 'all') && (
-              <button 
+              <button
                 onClick={() => {
                   setSearchTerm('');
                   setStatusFilter('all');
@@ -296,7 +296,7 @@ export function MembersPage() {
             )}
           </div>
         </div>
-        
+
         <MembersTable
           onEdit={(member) => navigate(`/admin/members/editar/${member.id}`)}
           onView={(member) => navigate(`/admin/members/${member.id}`)}

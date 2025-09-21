@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/animated/dialog';
 import type { Plan } from './plans-columns';
 import type { FormValues } from './plan-form';
 import { PlanForm } from './plan-form';

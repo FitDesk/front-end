@@ -1,4 +1,3 @@
-import { useTheme } from "@/core/providers/theme-provider";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from 'motion/react';
 import { Link } from "react-router";
@@ -6,6 +5,8 @@ import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import fitdeskLogo from '@/assets/logo.svg'
 import { Image } from "./ui/image";
+import { ThemeTogglerButton } from "./animated/theme-toggler";
+import { useTheme } from "@/core/providers/theme-provider";
 interface NavItem {
     name: string;
     href: string;
@@ -99,7 +100,7 @@ export const Header = () => {
                                 src={fitdeskLogo}
                                 className=" h-9 w-9"
                                 alt="Logo de Aplicacion"
-                                />
+                            />
                             {/* </div> */}
                             <span className="bg-gradient-to-r from-rose-500 to-rose-700 bg-clip-text text-xl font-bold text-transparent">
                                 FitDesk .
@@ -161,7 +162,7 @@ export const Header = () => {
                     </nav>
 
                     <div className="hidden items-center space-x-4 lg:flex">
-                        <ModeToggle />
+                        <ThemeTogglerButton direction="top-left" showLabel={false} variant={'ghost'} />
                         <Link prefetch="none" to="/auth" viewTransition
                             className="text-foreground font-medium transition-colors duration-200 hover:text-rose-500"
                         >
@@ -211,7 +212,7 @@ export const Header = () => {
                                     </Link>
                                 ))}
                                 <div className="space-y-2 px-4 py-2">
-                                    <ModeToggle />
+                                    <ThemeTogglerButton direction="top-left" showLabel={false} size='icon' />
                                     <Link prefetch="none" to="/auth"
                                         className="text-foreground hover:bg-muted block w-full rounded-lg py-2.5 text-center font-medium transition-colors duration-200"
                                         onClick={() => setIsMobileMenuOpen(false)}

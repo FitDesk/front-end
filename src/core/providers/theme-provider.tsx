@@ -1,74 +1,119 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-type Theme = "dark" | "light" | "system"
+type Theme = "dark" | "light" | "system";
 
 type ThemeProviderProps = {
-  children: React.ReactNode
-  defaultTheme?: Theme
-  storageKey?: string
-}
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+  storageKey?: string;
+  enableSystem?: boolean;
+};
 
 type ThemeProviderState = {
-  theme: Theme
-  setTheme: (theme: Theme) => void
-}
+  theme: Theme;
+  resolvedTheme: "dark" | "light";
+  setTheme: (theme: Theme) => void;
+};
 
-const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => null,
-}
+const DEFAULT_STORAGE_KEY = "vite-ui-theme";
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
+const ThemeProviderContext = createContext<ThemeProviderState | undefined>(
+  undefined
+);
 
 export function ThemeProvider({
   children,
   defaultTheme = "system",
-  storageKey = "vite-ui-theme",
-  ...props
+  storageKey = DEFAULT_STORAGE_KEY,
+  enableSystem = true,
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  )
+  // Inicializar desde localStorage (lazy init)
+  const [theme, setThemeState] = useState<Theme>(() => {
+    try {
+      const found = localStorage.getItem(storageKey);
+      return (found as Theme) || defaultTheme;
+    } catch {
+      return defaultTheme;
+    }
+  });
+
+  const [systemTheme, setSystemTheme] = useState<"dark" | "light">(() =>
+    window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light"
+  );
+
+  const resolvedTheme: "dark" | "light" =
+    theme === "system" ? systemTheme : (theme as "dark" | "light");
 
   useEffect(() => {
-    const root = window.document.documentElement
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
 
-    root.classList.remove("light", "dark")
+    const handler = (e: MediaQueryListEvent | MediaQueryList) => {
+      const matches = "matches" in e ? e.matches : (e as MediaQueryList).matches;
+      setSystemTheme(matches ? "dark" : "light");
+    };
 
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
 
-      root.classList.add(systemTheme)
-      return
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", handler as EventListener);
+      return () => mq.removeEventListener("change", handler as EventListener);
     }
 
-    root.classList.add(theme)
-  }, [theme])
+    // biome-ignore lint/suspicious/noExplicitAny: <>
+    const mqAny = mq as any;
+    if (typeof mqAny.addListener === "function") {
+      mqAny.addListener(handler);
+      return () => mqAny.removeListener(handler);
+    }
 
-  const value = {
-    theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+    return;
+  }, []);
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(resolvedTheme);
+  }, [resolvedTheme]);
+
+  const setTheme = useCallback(
+    (t: Theme) => {
+      try {
+        localStorage.setItem(storageKey, t);
+      } catch {
+        // ignore (p. ej. storage disabled)
+      }
+      setThemeState(t);
     },
-  }
+    [storageKey]
+  );
+
+  const value = useMemo(
+    (): ThemeProviderState => ({
+      theme: enableSystem ? theme : theme === "system" ? theme : theme,
+      resolvedTheme,
+      setTheme,
+    }),
+    [theme, resolvedTheme, setTheme, enableSystem]
+  );
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeProviderContext.Provider value={value}>
       {children}
     </ThemeProviderContext.Provider>
-  )
+  );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext)
-
-  if (context === undefined)
-    throw new Error("useTheme must be used within a ThemeProvider")
-
-  return context
+export function useTheme(): ThemeProviderState {
+  const ctx = useContext(ThemeProviderContext);
+  if (!ctx) throw new Error("useTheme must be used within a ThemeProvider");
+  return ctx;
 }
