@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create, type StateCreator } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { PlanState } from '../types';
 
@@ -12,21 +12,22 @@ const initialState: Omit<PlanState, 'setCurrentPlanId' | 'setIsDialogOpen' | 'se
   },
 };
 
+
+const planApi: StateCreator<PlanState> = (set) => ({
+  ...initialState,
+  setCurrentPlanId: (id) => set({ currentPlanId: id }),
+  setIsDialogOpen: (isOpen) => set({ isDialogOpen: isOpen }),
+  setFilters: (filters) =>
+    set((state) => ({
+      filters: { ...state.filters, ...filters },
+    })),
+  reset: () => set(initialState),
+})
+
+
 export const usePlanStore = create<PlanState>()(
   devtools(
-    (set) => ({
-      ...initialState,
-      setCurrentPlanId: (id) => set({ currentPlanId: id }),
-      setIsDialogOpen: (isOpen) => set({ isDialogOpen: isOpen }),
-      setFilters: (filters) => 
-        set((state) => ({
-          filters: { ...state.filters, ...filters },
-        })),
-      reset: () => set(initialState),
-    }),
-    {
-      name: 'plan-storage',
-    }
+    planApi
   )
 );
 

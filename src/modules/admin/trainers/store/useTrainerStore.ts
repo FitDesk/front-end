@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { create, type StateCreator } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
 import type { Trainer } from '../types';
 
 interface TrainerState {
@@ -8,15 +8,20 @@ interface TrainerState {
   resetCurrentTrainer: () => void;
 }
 
+
+
+
+const trainerApi: StateCreator<TrainerState> = (set) => ({
+  currentTrainer: null,
+  setCurrentTrainer: (trainer) => set({ currentTrainer: trainer }),
+  resetCurrentTrainer: () => set({ currentTrainer: null }),
+})
+
 export const useTrainerStore = create<TrainerState>()(
-  devtools(
-    (set) => ({
-      currentTrainer: null,
-      setCurrentTrainer: (trainer) => set({ currentTrainer: trainer }),
-      resetCurrentTrainer: () => set({ currentTrainer: null }),
-    }),
-    {
-      name: 'trainer-storage',
-    }
+  persist(
+    devtools(
+      trainerApi
+    ),
+    { name: 'trainer-storage'}
   )
 );
