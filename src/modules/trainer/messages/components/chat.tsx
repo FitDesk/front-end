@@ -1,4 +1,3 @@
-import ChatTopbar from "./chat-topbar";
 import { ChatList } from "./chat-list";
 import ChatBottombar from "./chat-bottombar";
 import type { Message, UserData } from "../data";
@@ -20,8 +19,6 @@ export function Chat({ selectedUser, isMobile }: ChatProps) {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <ChatTopbar selectedUser={selectedUser} />
-
       <div className="flex-1 overflow-hidden">
         <ChatList
           messages={messagesState}
@@ -30,7 +27,6 @@ export function Chat({ selectedUser, isMobile }: ChatProps) {
           isMobile={isMobile}
         />
       </div>
-
       <ChatBottombar />
     </div>
   );
