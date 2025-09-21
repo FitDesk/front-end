@@ -1,6 +1,7 @@
 
 import { ChatBotMessages, userData, Users, type Message, type UserData } from "@/modules/trainer/messages/data";
-import { create } from "zustand";
+import { create, type StateCreator } from "zustand";
+import { devtools } from "zustand/middleware";
 
 export interface Example {
     name: string;
@@ -47,7 +48,8 @@ interface Actions {
     setActiveTab: (tab: 'all' | 'favorites') => void;
 }
 
-const useChatStore = create<State & Actions>()((set, get) => ({
+
+const chatApi: StateCreator<State & Actions> = (set, get) => ({
     selectedUser: Users[4],
     favorites: [],
     activeTab: 'all',
@@ -108,7 +110,7 @@ const useChatStore = create<State & Actions>()((set, get) => ({
 
     searchConversations: async (query: string) => {
         const { setConversations, setIsSearching, setSearchError } = get();
-        
+
         if (!query.trim()) {
             setConversations(userData);
             setSearchError(null);
@@ -118,7 +120,7 @@ const useChatStore = create<State & Actions>()((set, get) => ({
         try {
             setIsSearching(true);
             setSearchError(null);
-            
+
             // Importar dinámicamente el servicio para evitar dependencias circulares
             const { chatService } = await import("@/modules/shared/chat/services/chatService");
             const results = await chatService.searchConversations(query);
@@ -134,7 +136,13 @@ const useChatStore = create<State & Actions>()((set, get) => ({
         } finally {
             setIsSearching(false);
         }
-    },
-}));
+    }
+})
+
+const useChatStore = create<State & Actions>()(
+    devtools(
+        chatApi
+    )
+)
 
 export default useChatStore;

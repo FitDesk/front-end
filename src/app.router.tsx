@@ -14,6 +14,7 @@ import { CreateMemberPage } from "./modules/admin/members/pages/CreateMemberPage
 import { MemberDetailsPage } from "./modules/admin/members/pages/MemberDetailsPage";
 import { EditMemberPage } from "./modules/admin/members/pages/EditMemberPage";
 import { MessagePage } from "./modules/trainer/messages/message-page";
+import { TrainerRoute } from "./shared/components/protected-routes";
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
@@ -143,9 +144,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/trainer",
         element: (
-            <Suspense fallback={<PageLoader />}>
-                <TrainerLayout />
-            </Suspense>
+            // <TrainerRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <TrainerLayout />
+                </Suspense>
+            // </TrainerRoute>
         ),
         children: [
             { index: true, element: <Navigate to="dashboard" replace /> },
@@ -180,7 +183,7 @@ export const appRouter = createBrowserRouter([
             },
             {
                 path: "messages",
-                element: <Suspense fallback={<PageLoader />}> <MessagePage  /></Suspense>
+                element: <Suspense fallback={<PageLoader />}> <MessagePage /></Suspense>
             },
             {
                 path: "reports",
