@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fitdeskApi } from '@/core/api/fitdeskApi';
-import type { Location, CreateLocationDTO, UpdateLocationDTO } from '../types/location';
+import type { CreateLocationDTO, UpdateLocationDTO } from '../types/location';
 
 export function useLocations() {
   const queryClient = useQueryClient();
@@ -9,26 +9,40 @@ export function useLocations() {
 
  
   const { 
-    data: locations = [], 
+    data: response, 
     isLoading, 
     error 
-  } = useQuery<Location[]>({
+  } = useQuery({
     queryKey: ['locations'],
     queryFn: async () => {
       try {
-        const response = await fitdeskApi.get<Location[]>(LOCATIONS_ENDPOINT);
-        return response.data || [];
+        console.log('Fetching locations from API...');
+        const response = await fitdeskApi.get(LOCATIONS_ENDPOINT);
+        console.log('API Response:', response);
+        
+        // Asegurarnos de que siempre devolvemos un array
+        if (Array.isArray(response?.data)) {
+          return response.data;
+        } else if (response?.data?.data && Array.isArray(response.data.data)) {
+          return response.data.data;
+        }
+        
+        console.warn('Unexpected API response format, returning empty array');
+        return [];
       } catch (error) {
         console.error('Error fetching locations:', error);
         return [];
       }
     }
   });
+  
+  // Aseguramos que locations siempre sea un array
+  const locations = Array.isArray(response) ? response : [];
 
  
-  const createMutation = useMutation<Location, Error, CreateLocationDTO>({
+  const createMutation = useMutation({
     mutationFn: async (data: CreateLocationDTO) => {
-      const response = await fitdeskApi.post<Location>(LOCATIONS_ENDPOINT, data);
+      const response = await fitdeskApi.post(LOCATIONS_ENDPOINT, data);
       if (!response.data) {
         throw new Error('Failed to create location');
       }
@@ -39,10 +53,9 @@ export function useLocations() {
     },
   });
 
-  
-  const updateMutation = useMutation<Location, Error, UpdateLocationDTO>({
+  const updateMutation = useMutation({
     mutationFn: async ({ id, ...data }: UpdateLocationDTO) => {
-      const response = await fitdeskApi.put<Location>(`${LOCATIONS_ENDPOINT}/${id}`, data);
+      const response = await fitdeskApi.put(`${LOCATIONS_ENDPOINT}/${id}`, data);
       if (!response.data) {
         throw new Error('Failed to update location');
       }
@@ -53,8 +66,7 @@ export function useLocations() {
     },
   });
 
-  
-  const deleteMutation = useMutation<boolean, Error, string>({
+  const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       await fitdeskApi.delete(`${LOCATIONS_ENDPOINT}/${id}`);
       return true;
@@ -64,10 +76,9 @@ export function useLocations() {
     },
   });
 
-  
-  const toggleStatusMutation = useMutation<Location, Error, { id: string; isActive: boolean }>({
-    mutationFn: async ({ id, isActive }) => {
-      const response = await fitdeskApi.put<Location>(`${LOCATIONS_ENDPOINT}/${id}`, { isActive });
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const response = await fitdeskApi.put(`${LOCATIONS_ENDPOINT}/${id}`, { isActive });
       if (!response.data) {
         throw new Error('Failed to update location status');
       }
@@ -81,7 +92,7 @@ export function useLocations() {
   return {
     locations,
     isLoading,
-    error: error as Error | null,
+    error,
     createLocation: createMutation.mutateAsync,
     updateLocation: updateMutation.mutateAsync,
     deleteLocation: deleteMutation.mutateAsync,

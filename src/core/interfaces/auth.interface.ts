@@ -29,7 +29,11 @@ export interface AuthRequestLogin {
 }
 
 export interface AuthRequestRegister {
-    email: string
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    username?: string; 
 }
 
 export interface AuthResponse {

@@ -22,6 +22,7 @@ const PlansPage = lazy(() => import("@/modules/admin/plans/plans-page"))
 const PromotionsPage = lazy(() => import("@/modules/admin/promotions/pages/promotions-page"))
 const ClassesPage = lazy(() => import("@/modules/admin/classes/pages/classes-page"))
 const LocationsPage = lazy(() => import("@/modules/admin/classes/pages/locations-page"))
+const BillingPage = lazy(() => import("@/modules/admin/billing/pages/BillingPage"))
 
 
 
@@ -99,6 +100,10 @@ export const appRouter = createBrowserRouter([
             {
                 path: "locations",
                 element: <Suspense fallback={<PageLoader />}><LocationsPage /></Suspense>
+            },
+            {
+                path: "billing",
+                element: <Suspense fallback={<PageLoader />}><BillingPage /></Suspense>
             },
             {
                 path: "trainers",
