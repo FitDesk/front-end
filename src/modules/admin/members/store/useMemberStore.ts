@@ -109,6 +109,12 @@ export const useMemberStore = create<MemberState>()(
         }));
       },
       
+
+
+
+
+      
+
       deleteMember: async (memberId: string) => {
         try {
           
