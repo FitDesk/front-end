@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Plus, Search, Loader2, MapPin, Users, Filter, Edit, Trash2, Check, XCircle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
+import { Dialog, DialogContent } from '@/shared/components/animated/dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
@@ -334,29 +335,28 @@ export default function LocationsPage() {
       </CardContent>
     </Card>
 
-    {isFormOpen && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <CardHeader className="border-b">
-            <CardTitle className="text-xl">
-              {selectedLocation ? 'Editar Ubicación' : 'Nueva Ubicación'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <LocationForm
-              key={selectedLocation?.id || 'new'}
-              initialData={selectedLocation}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setIsFormOpen(false);
-                setSelectedLocation(null);
-              }}
-              isSubmitting={isCreating || isUpdating}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    )}
+    <Dialog open={isFormOpen} onOpenChange={(open) => {
+      setIsFormOpen(open);
+      if (!open) setSelectedLocation(null);
+    }}>
+      <DialogContent className="sm:max-w-2xl">
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">
+            {selectedLocation ? 'Editar Ubicación' : 'Nueva Ubicación'}
+          </h2>
+          <LocationForm
+            key={selectedLocation?.id || 'new'}
+            initialData={selectedLocation}
+            onSubmit={handleSubmit}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setSelectedLocation(null);
+            }}
+            isSubmitting={isCreating || isUpdating}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 );
 }

@@ -4,6 +4,7 @@ import { format, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Dialog, DialogContent } from '@/shared/components/animated/dialog';
 
 const showToast = {
   success: (data: { title: string; description: string }) => {
@@ -264,23 +265,12 @@ export default function ClassesPage() {
         </CardContent>
       </Card>
 
-      {isFormOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">
-                {selectedClass ? 'Editar Clase' : 'Nueva Clase'}
-              </h2>
-              <button 
-                onClick={() => setIsFormOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">
+              {selectedClass ? 'Editar Clase' : 'Nueva Clase'}
+            </h2>
             <ClassForm
               initialData={selectedClass || undefined}
               onSubmit={handleSubmit}
@@ -288,8 +278,8 @@ export default function ClassesPage() {
               isSubmitting={createClass.isPending || updateClass.isPending}
             />
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

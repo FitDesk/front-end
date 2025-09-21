@@ -23,14 +23,10 @@ const ChatMessageList = React.forwardRef<HTMLDivElement, ChatMessageListProps>(
         return (
             <div className="relative w-full h-full bg-background">
                 <div
-                    className={`flex flex-col w-full h-full overflow-y-auto scroll-smooth ${className}`}
+                    className={`flex flex-col w-full h-full overflow-y-auto scroll-smooth chat-message-list ${className}`}
                     ref={scrollRef}
                     onWheel={disableAutoScroll}
                     onTouchMove={disableAutoScroll}
-                    style={{
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: 'hsl(var(--muted)) transparent'
-                    }}
                     {...props}
                 >
                     <div className="flex flex-col gap-1 py-4">{children}</div>

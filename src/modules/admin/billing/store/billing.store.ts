@@ -9,9 +9,6 @@ export const useBillingStore = create<BillingState>()(
   devtools(
     immer((...args) => ({
       ...createPaymentsSlice(...args),
-    })),
-    {
-      name: 'billing-store',
-    }
+    }))
   )
 );

@@ -16,9 +16,11 @@ interface State {
     hasInitialAIResponse: boolean;
     hasInitialResponse: boolean;
     conversations: UserData[];
+    favorites: string[];
     searchQuery: string;
     isSearching: boolean;
     searchError: string | null;
+    activeTab: 'all' | 'favorites';
 }
 
 interface Actions {
@@ -41,10 +43,14 @@ interface Actions {
     setSearchError: (error: string | null) => void;
     searchConversations: (query: string) => Promise<void>;
     setSelectedUser: (user: UserData) => void;
+    toggleFavorite: (userId: string) => void;
+    setActiveTab: (tab: 'all' | 'favorites') => void;
 }
 
 const useChatStore = create<State & Actions>()((set, get) => ({
     selectedUser: Users[4],
+    favorites: [],
+    activeTab: 'all',
 
     selectedExample: { name: "Messenger example", url: "/" },
 
@@ -93,6 +99,12 @@ const useChatStore = create<State & Actions>()((set, get) => ({
     setIsSearching: (isSearching) => set({ isSearching }),
     setSearchError: (searchError) => set({ searchError }),
     setSelectedUser: (selectedUser) => set({ selectedUser }),
+    toggleFavorite: (userId) => set((state) => ({
+        favorites: state.favorites.includes(userId)
+            ? state.favorites.filter(id => id !== userId)
+            : [...state.favorites, userId]
+    })),
+    setActiveTab: (tab) => set({ activeTab: tab }),
 
     searchConversations: async (query: string) => {
         const { setConversations, setIsSearching, setSearchError } = get();

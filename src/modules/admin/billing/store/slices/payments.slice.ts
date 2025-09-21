@@ -62,7 +62,7 @@ export const createPaymentsSlice: StateCreator<
           pageSize: number;
           total: number;
         };
-        // Añadir compatibilidad con diferentes formatos de respuesta
+        
         page?: number;
         limit?: number;
         total?: number;
@@ -77,7 +77,7 @@ export const createPaymentsSlice: StateCreator<
       
       const responseData = response.data;
       
-      // Manejar diferentes formatos de respuesta
+     
       const payments = responseData.data || [];
       const paginationData = responseData.pagination || {
         page: responseData.page || 1,

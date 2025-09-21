@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Plus, Trash2, Download, RefreshCw } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import { useToast } from '@/shared/components/ui/toast';
 import { MembersTable } from '../components/MembersTable';
 import { useMembers } from '../hooks/useMembers';
-import { useToast } from '@/shared/components/ui/toast';
-import { useMemberStore } from '../store/useMemberStore';
+import { useMemberMutations } from '../store/useMemberStore';
 import type { Member } from '../types';
 import {
   Dialog,
@@ -18,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
-} from '@/shared/components/animated/dialog';
+} from '@/shared/components/ui/dialog';
 
 export function MembersPage() {
   const navigate = useNavigate();
@@ -26,13 +25,12 @@ export function MembersPage() {
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isBulkDelete, setIsBulkDelete] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
 
-  const { updateMemberStatus, deleteMember } = useMemberStore();
   const { refreshMembers, updateFilters } = useMembers();
-
+  const { updateMemberStatus, deleteMember } = useMemberMutations();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,97 +56,43 @@ export function MembersPage() {
     setSearchTerm(e.target.value);
   };
 
-
   const handleDelete = async () => {
     if (!memberToDelete) return;
 
     try {
       await deleteMember(memberToDelete.id);
-      toast({
-        title: 'Miembro eliminado',
-        description: 'El miembro ha sido eliminado correctamente.',
-      });
-      refreshMembers();
-      setIsDeleteDialogOpen(false);
       setMemberToDelete(null);
+      setIsDeleteDialogOpen(false);
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo completar la acción. Por favor, inténtalo de nuevo.',
-        type: 'destructive',
-      });
+      console.error('Error deleting member:', error);
     }
   };
-
 
   const handleBulkDelete = async () => {
     if (selectedMembers.size === 0) return;
 
     try {
-      const deletePromises = Array.from(selectedMembers).map((id: string) =>
-        deleteMember(id).then(() => ({
-          success: true as const,
-          id
-        })).catch((error: Error) => {
-          console.error(`Error al eliminar miembro ${id}:`, error);
-          return {
-            success: false as const,
-            id
-          };
-        })
-      );
-
-      const results = await Promise.all(deletePromises);
-      const successCount = results.filter((r: { success: boolean }) => r.success).length;
-
-      if (successCount > 0) {
-        toast({
-          title: 'Eliminación completada',
-          description: `Se eliminaron ${successCount} miembros correctamente.`,
-        });
-      }
-
-      if (successCount < selectedMembers.size) {
-        toast({
-          title: 'Atención',
-          description: `No se pudieron eliminar ${selectedMembers.size - successCount} miembros.`,
-          type: 'warning',
-        });
-      }
-
+      const deletePromises = Array.from(selectedMembers).map(id => deleteMember(id));
+      await Promise.all(deletePromises);
       setSelectedMembers(new Set());
-      setIsDeleteDialogOpen(false);
-      refreshMembers();
-    } catch (error) {
       toast({
-        title: 'Error',
-        description: 'No se pudo completar la acción. Por favor, inténtalo de nuevo.',
-        type: 'destructive',
+        title: 'Miembros eliminados',
+        description: 'Los miembros seleccionados han sido eliminados correctamente',
       });
+    } catch (error) {
+      console.error('Error al eliminar miembros:', error);
+    } finally {
+      setIsBulkDelete(false);
+      setIsDeleteDialogOpen(false);
     }
   };
 
-
   const handleStatusChange = async (memberId: string, status: 'ACTIVE' | 'SUSPENDED' | 'DELETED') => {
     try {
-      await updateMemberStatus(memberId, status);
-      const statusText = {
-        'ACTIVE': 'Activo',
-        'SUSPENDED': 'Suspendido',
-        'DELETED': 'Eliminado'
-      }[status];
-
-      toast({
-        title: 'Estado actualizado',
-        description: `El estado del miembro ha sido actualizado a ${statusText}.`,
-      });
-      refreshMembers();
+      await updateMemberStatus({ memberId, status });
+      // No es necesario hacer nada más aquí, el toast se maneja en useMemberMutations
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el estado del miembro. Por favor, inténtalo de nuevo.',
-        type: 'destructive',
-      });
+      console.error('Error updating status:', error);
     }
   };
 
@@ -159,6 +103,7 @@ export function MembersPage() {
     setIsBulkDelete(true);
     setIsDeleteDialogOpen(true);
   };
+
 
   return (
     <div className="space-y-6 mx-4 sm:mx-6 lg:mx-8">
