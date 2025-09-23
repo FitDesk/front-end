@@ -335,28 +335,34 @@ export default function LocationsPage() {
       </CardContent>
     </Card>
 
-    <Dialog open={isFormOpen} onOpenChange={(open) => {
-      setIsFormOpen(open);
-      if (!open) setSelectedLocation(null);
-    }}>
-      <DialogContent className="sm:max-w-2xl">
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">
-            {selectedLocation ? 'Editar Ubicación' : 'Nueva Ubicación'}
-          </h2>
-          <LocationForm
-            key={selectedLocation?.id || 'new'}
-            initialData={selectedLocation}
-            onSubmit={handleSubmit}
-            onCancel={() => {
-              setIsFormOpen(false);
-              setSelectedLocation(null);
-            }}
-            isSubmitting={isCreating || isUpdating}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+    {isFormOpen && (
+      <Dialog 
+        open={isFormOpen} 
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) {
+            setSelectedLocation(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">
+              {selectedLocation ? 'Editar Ubicación' : 'Nueva Ubicación'}
+            </h2>
+            <LocationForm
+              initialData={selectedLocation}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setSelectedLocation(null);
+              }}
+              isSubmitting={isCreating || isUpdating}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )}
   </div>
 );
 }

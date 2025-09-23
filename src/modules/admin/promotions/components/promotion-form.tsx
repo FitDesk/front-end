@@ -38,10 +38,10 @@ interface PromotionFormProps {
   initialData?: CreatePromotionDTO | UpdatePromotionDTO;
   onSubmit: (data: CreatePromotionDTO | UpdatePromotionDTO) => void;
   isSubmitting: boolean;
-  setIsDialogOpen?: (open: boolean) => void;
+  onClose: () => void;
 }
 
-export function PromotionForm({ initialData, onSubmit, isSubmitting, setIsDialogOpen }: PromotionFormProps) {
+export function PromotionForm({ initialData, onSubmit, isSubmitting, onClose }: PromotionFormProps) {
   const defaultValues = initialData || {
     title: '',
     description: '',
@@ -322,7 +322,7 @@ export function PromotionForm({ initialData, onSubmit, isSubmitting, setIsDialog
         <Button 
           type="button" 
           variant="outline"
-          onClick={() => setIsDialogOpen?.(false)}
+          onClick={onClose}
           disabled={isSubmitting}
           className="min-w-[120px]"
         >

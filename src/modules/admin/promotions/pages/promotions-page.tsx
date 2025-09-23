@@ -116,23 +116,38 @@ function PromotionsPage() {
         isLoading={isLoading}
       />
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl">
-              {editingPromotion && 'id' in editingPromotion ? 'Editar Promoción' : 'Nueva Promoción'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <PromotionForm
-              initialData={editingPromotion}
-              onSubmit={handleSubmit}
-              isSubmitting={createMutation.isPending || updateMutation.isPending}
-              setIsDialogOpen={setIsDialogOpen}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {isDialogOpen && (
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setEditingPromotion(undefined);
+          }
+        }}>
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl">
+                {editingPromotion && 'id' in editingPromotion ? 'Editar Promoción' : 'Nueva Promoción'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <PromotionForm
+                key={editingPromotion && 'id' in editingPromotion ? editingPromotion.id : 'new'}
+                initialData={editingPromotion}
+                onSubmit={(data) => {
+                  handleSubmit(data);
+                  setIsDialogOpen(false);
+                  setEditingPromotion(undefined);
+                }}
+                isSubmitting={createMutation.isPending || updateMutation.isPending}
+                onClose={() => {
+                  setIsDialogOpen(false);
+                  setEditingPromotion(undefined);
+                }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

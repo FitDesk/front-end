@@ -265,21 +265,34 @@ export default function ClassesPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">
-              {selectedClass ? 'Editar Clase' : 'Nueva Clase'}
-            </h2>
-            <ClassForm
-              initialData={selectedClass || undefined}
-              onSubmit={handleSubmit}
-              onCancel={() => setIsFormOpen(false)}
-              isSubmitting={createClass.isPending || updateClass.isPending}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {isFormOpen && (
+        <Dialog 
+          open={isFormOpen} 
+          onOpenChange={(open) => {
+            setIsFormOpen(open);
+            if (!open) {
+              setSelectedClass(null);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-2xl">
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">
+                {selectedClass ? 'Editar Clase' : 'Nueva Clase'}
+              </h2>
+              <ClassForm
+                initialData={selectedClass}
+                onSubmit={handleSubmit}
+                onCancel={() => {
+                  setIsFormOpen(false);
+                  setSelectedClass(null);
+                }}
+                isSubmitting={createClass.isPending || updateClass.isPending}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
