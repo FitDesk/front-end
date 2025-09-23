@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/shared/components/ui/toast';
 import { MembersTable } from '../components/MembersTable';
 import { useMembers } from '../hooks/useMembers';
-import { useMemberMutations } from '../store/useMemberStore';
+import { useMemberStore } from '../store/useMemberStore';
 import type { Member } from '../types';
 import {
   Dialog,
@@ -30,7 +30,8 @@ export function MembersPage() {
   const [isBulkDelete, setIsBulkDelete] = useState(false);
 
   const { refreshMembers, updateFilters } = useMembers();
-  const { updateMemberStatus, deleteMember } = useMemberMutations();
+  const updateMemberStatus = useMemberStore(state => state.updateMemberStatus);
+  const deleteMember = useMemberStore(state => state.deleteMember);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -89,7 +90,7 @@ export function MembersPage() {
 
   const handleStatusChange = async (memberId: string, status: 'ACTIVE' | 'SUSPENDED' | 'DELETED') => {
     try {
-      await updateMemberStatus({ memberId, status });
+      await updateMemberStatus(memberId, status);
       // No es necesario hacer nada más aquí, el toast se maneja en useMemberMutations
     } catch (error) {
       console.error('Error updating status:', error);
