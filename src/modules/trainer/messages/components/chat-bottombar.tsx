@@ -106,7 +106,7 @@ export default function ChatBottombar() {
     };
 
     return (
-        <div className="px-4 py-4 flex justify-between w-full items-center gap-3 bg-card border-t border-border">
+        <div className="px-4 py-3 flex justify-between w-full items-end gap-3 bg-card border-t border-border">
             <div className="flex gap-2">
                 <Popover>
                     <PopoverTrigger asChild>
@@ -135,7 +135,7 @@ export default function ChatBottombar() {
             <AnimatePresence initial={false}>
                 <motion.div
                     key="input"
-                    className="flex-1 relative"
+                    className="flex-1 relative min-w-0 flex-grow"
                     layout
                     initial={{ opacity: 0, scale: 1 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -154,7 +154,7 @@ export default function ChatBottombar() {
                         onKeyDown={handleKeyPress}
                         onChange={handleInputChange}
                         placeholder="Escribe un mensaje..."
-                        className="rounded-full pr-12"
+                        className="rounded-2xl md:rounded-full pr-12"
                     />
                 </motion.div>
 

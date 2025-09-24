@@ -131,12 +131,14 @@ export const MessagePage = () => {
                             )}
                             onClick={() => handleSelectUser(user)}
                         >
-                            <Avatar className="h-12 w-12">
-                                <AvatarImage src={user.avatar} alt={user.name} />
-                                <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-semibold">
-                                    {user.name.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                            </Avatar>
+                            <div className="flex-shrink-0 mr-3">
+                                <Avatar className="h-12 w-12">
+                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                    <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-semibold">
+                                        {user.name.split(' ').map(n => n[0]).join('')}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                     <h3 className="font-medium truncate text-foreground">{user.name}</h3>
@@ -277,24 +279,34 @@ export const MessagePage = () => {
                 </div>
             </div>
             
-            {/* Bottom Navigation - Mobile */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2 z-50">
-                <button 
-                    onClick={() => setActiveTab('chat')}
-                    className={`flex flex-col items-center p-2 w-1/2 ${activeTab === 'chat' ? 'text-primary' : 'text-muted-foreground'}`}
-                >
-                    <MessageSquare className={`h-6 w-6 ${activeTab === 'chat' ? 'text-primary' : ''}`} />
-                    <span className="text-xs mt-1">Chat</span>
-                </button>
-                <div className="h-8 w-px bg-gray-200 my-2" />
-                <button 
-                    onClick={() => setActiveTab('favorites')}
-                    className={`flex flex-col items-center p-2 w-1/2 ${activeTab === 'favorites' ? 'text-primary' : 'text-muted-foreground'}`}
-                >
-                    <Star className={`h-6 w-6 ${activeTab === 'favorites' ? 'text-primary fill-primary' : ''}`} />
-                    <span className="text-xs mt-1">Favoritos</span>
-                </button>
-            </div>
+            {/* Bottom Navigation - Mobile - Only show when conversation list is visible */}
+            {showConversationList && (
+                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t flex justify-around py-2 z-50 dark:bg-card">
+                    <button 
+                        onClick={() => setActiveTab('chat')}
+                        className={`flex flex-col items-center p-2 w-1/2 ${
+                            activeTab === 'chat' 
+                                ? 'text-primary' 
+                                : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                        <MessageSquare className={`h-6 w-6 ${activeTab === 'chat' ? 'text-primary' : ''}`} />
+                        <span className="text-xs mt-1">Chat</span>
+                    </button>
+                    <div className="h-8 w-px bg-border my-2" />
+                    <button 
+                        onClick={() => setActiveTab('favorites')}
+                        className={`flex flex-col items-center p-2 w-1/2 ${
+                            activeTab === 'favorites' 
+                                ? 'text-primary' 
+                                : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                        <Star className={`h-6 w-6 ${activeTab === 'favorites' ? 'text-primary fill-primary' : ''}`} />
+                        <span className="text-xs mt-1">Favoritos</span>
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
