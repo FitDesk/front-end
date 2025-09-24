@@ -2,23 +2,23 @@ import { motion } from 'motion/react';
 const stats = [
     {
         value: "96%",
-        label: "Client Satisfaction",
-        description: "Our Members Love Their Results And Experience",
+        label: "Satisfacción del Cliente",
+        description: "Nuestros Miembros Aman Sus Resultados y Experiencia",
     },
     {
         value: "+5",
-        label: "Years Of Experience",
-        description: "Trust In Our Proven Track Record Of Transformations",
+        label: "Años de Experiencia",
+        description: "Confía en Nuestro Comprobado Historial de Transformaciones",
     },
     {
         value: "+800",
-        label: "Active Members",
-        description: "Join Our Thriving Fitness Community",
+        label: "Miembros Activos",
+        description: "Únete a Nuestra Próspera Comunidad Fitness",
     },
     {
         value: "24/7",
-        label: "Support Available",
-        description: "Expert Assistance Whenever You Need It",
+        label: "Soporte Disponible",
+        description: "Asistencia Experta Cuando La Necesites",
     },
 ]
 export const StatsSection = () => {

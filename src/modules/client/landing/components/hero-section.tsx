@@ -5,10 +5,10 @@ import imageTrainer from '@/assets/trainer.webp'
 import { Image } from '@/shared/components/ui/image';
 
 const stats = [
-    { value: "1300", label: "Positive Reviews", position: "top-right" },
-    { value: "80", label: "Coaches", position: "left" },
-    { value: "1000", label: "Workout Videos", position: "bottom-left" },
-    { value: "1500", label: "Trainers", position: "bottom-right" },
+    { value: "1300", label: "Reseñas Positivas", position: "top-right" },
+    { value: "80", label: "Entrenadores", position: "left" },
+    { value: "1000", label: "Videos de Ejercicios", position: "bottom-left" },
+    { value: "1500", label: "Instructores", position: "bottom-right" },
 ]
 
 export const HeroSection = () => {
@@ -34,10 +34,10 @@ export const HeroSection = () => {
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="text-5xl md:text-6xl lg:text-7xl font-bold text-balance mb-6"
                         >
-                            Achieve Your <br />
-                            <span className="text-primary">FITNESS GOALS</span>
+Alcanza Tus <br />
+                            <span className="text-primary">METAS DE FITNESS</span>
                             <br />
-                            With FitMaker
+                            Con FitDesk
                         </motion.h1>
 
                         <motion.p
@@ -46,9 +46,9 @@ export const HeroSection = () => {
                             transition={{ duration: 0.8, delay: 0.4 }}
                             className="text-base text-muted-foreground mb-8 max-w-lg text-pretty leading-relaxed"
                         >
-                            "Join The FitMaker Community And Transform Your Fitness Journey. Our Expert Coaches And Personalized
-                            Programs Are Designed To Help You Achieve Your Goals And Exceed Your Expectations. Ready To Make A
-                            Change?"
+"Únete a la comunidad de FitDesk y transforma tu viaje de fitness. Nuestros entrenadores expertos y programas
+                            personalizados están diseñados para ayudarte a alcanzar tus metas y superar tus expectativas. ¿Listo para
+                            hacer un cambio?"
                         </motion.p>
 
                         <motion.div
@@ -61,14 +61,14 @@ export const HeroSection = () => {
                                 size="lg"
                                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-base font-medium rounded-full"
                             >
-                                starts now
+Comienza ahora
                             </Button>
                             <Button
                                 size="lg"
                                 variant="outline"
                                 className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-3 text-base font-medium bg-transparent rounded-full"
                             >
-                                Explore Programs
+Explorar Programas
                             </Button>
                         </motion.div>
                     </motion.div>
@@ -82,7 +82,7 @@ export const HeroSection = () => {
                         <div className="relative w-80 h-96 md:w-96 md:h-[500px]">
                             <Image
                                 src={imageTrainer}
-                                alt="Professional Fitness Trainer"
+                                alt="Entrenador de Fitness Profesional"
                                 className="w-full h-full object-cover object-center"
                                 style={{
                                     clipPath: "polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%)",

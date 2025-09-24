@@ -87,7 +87,7 @@ export const Register = () => {
                                 className="absolute top-8 right-4 bg-black/80 dark:bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 1300</div>
-                                <div className="text-xs">Positive Reviews</div>
+                                <div className="text-xs">Reseñas Positivas</div>
                             </motion.div>
 
                             <motion.div
@@ -97,7 +97,7 @@ export const Register = () => {
                                 className="absolute top-1/3 left-4 bg-black/80 dark:bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 80</div>
-                                <div className="text-xs">Coaches</div>
+                                <div className="text-xs">Entrenadores</div>
                             </motion.div>
 
                             <motion.div
@@ -107,7 +107,7 @@ export const Register = () => {
                                 className="absolute bottom-32 left-4 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 1000</div>
-                                <div className="text-xs">Workout Videos</div>
+                                <div className="text-xs">Videos de Ejercicios</div>
                             </motion.div>
 
                             <motion.div
@@ -117,7 +117,7 @@ export const Register = () => {
                                 className="absolute bottom-16 right-4 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 1500</div>
-                                <div className="text-xs">Trainers</div>
+                                <div className="text-xs">Instructores</div>
                             </motion.div>
 
                             <motion.div
@@ -137,8 +137,8 @@ export const Register = () => {
                                             <Tabs defaultValue="account">
 
                                                 <TabsList>
-                                                    <TabsTrigger value="account">Account</TabsTrigger>
-                                                    <TabsTrigger value="password">Password</TabsTrigger>
+                                                    <TabsTrigger value="account">Cuenta</TabsTrigger>
+                                                    <TabsTrigger value="password">Contraseña</TabsTrigger>
                                                 </TabsList>
                                                 <TabsContents>
 

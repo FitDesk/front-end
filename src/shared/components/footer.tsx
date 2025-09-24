@@ -19,25 +19,25 @@ const data = {
   githubLink: 'https://github.com/fitdesk',
   dribbbleLink: 'https://dribbble.com/fitdesk',
   services: {
-    webdev: '/web-development',
-    webdesign: '/web-design',
-    marketing: '/marketing',
-    googleads: '/google-ads',
+    webdev: '/desarrollo-web',
+    webdesign: '/diseno-web',
+    marketing: '/marketing-digital',
+    googleads: '/anuncios-google',
   },
   about: {
-    history: '/company-history',
-    team: '/meet-the-team',
-    handbook: '/employee-handbook',
-    careers: '/careers',
+    history: '/historia-empresa',
+    team: '/nuestro-equipo',
+    handbook: '/manual-empleado',
+    careers: '/carreras',
   },
   help: {
-    faqs: '/faqs',
-    support: '/support',
-    livechat: '/live-chat',
+    faqs: '/preguntas-frecuentes',
+    support: '/soporte',
+    livechat: '/chat-en-vivo',
   },
   contact: {
     email: 'fitdeskdev@gmail.com',
-    phone: '+1 234 567 890',
+    phone: '+51 123 456 789',
     address: 'Trujillo, Perú',
   },
   company: {
@@ -57,23 +57,23 @@ const socialLinks = [
 ];
 
 const aboutLinks = [
-  { text: 'Company History', href: data.about.history },
-  { text: 'Meet the Team', href: data.about.team },
-  { text: 'Employee Handbook', href: data.about.handbook },
-  { text: 'Careers', href: data.about.careers },
+  { text: 'Nuestra Historia', href: data.about.history },
+  { text: 'Conoce al Equipo', href: data.about.team },
+  { text: 'Manual del Empleado', href: data.about.handbook },
+  { text: 'Carreras', href: data.about.careers },
 ];
 
 const serviceLinks = [
-  { text: 'Web Development', href: data.services.webdev },
-  { text: 'Web Design', href: data.services.webdesign },
-  { text: 'Marketing', href: data.services.marketing },
-  { text: 'Google Ads', href: data.services.googleads },
+  { text: 'Desarrollo Web', href: data.services.webdev },
+  { text: 'Diseño Web', href: data.services.webdesign },
+  { text: 'Marketing Digital', href: data.services.marketing },
+  { text: 'Anuncios de Google', href: data.services.googleads },
 ];
 
 const helpfulLinks = [
-  { text: 'FAQs', href: data.help.faqs },
-  { text: 'Support', href: data.help.support },
-  { text: 'Live Chat', href: data.help.livechat, hasIndicator: true },
+  { text: 'Preguntas Frecuentes', href: data.help.faqs },
+  { text: 'Soporte', href: data.help.support },
+  { text: 'Chat en Vivo', href: data.help.livechat, hasIndicator: true },
 ];
 
 const contactInfo = [
@@ -208,7 +208,7 @@ export const Footer = () => {
         <div className="mt-12 border-t pt-6">
           <div className="text-center sm:flex sm:justify-between sm:text-left">
             <p className="text-sm">
-              <span className="block sm:inline">All rights reserved.</span>
+              <span className="block sm:inline">Todos los derechos reservados.</span>
             </p>
 
             <p className="text-secondary-foreground/70 mt-4 text-sm transition sm:order-first sm:mt-0">

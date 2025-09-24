@@ -90,7 +90,7 @@ export const Login = () => {
                                 className="absolute top-8 right-4 bg-black/80 dark:bg-black/60  backdrop-blur-sm  rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 1300</div>
-                                <div className="text-xs">Positive Reviews</div>
+                                <div className="text-xs">Reseñas Positivas</div>
                             </motion.div>
 
                             <motion.div
@@ -101,7 +101,7 @@ export const Login = () => {
                                 className="absolute top-1/3 left-4 bg-black/80 dark:bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 80</div>
-                                <div className="text-xs">Coaches</div>
+                                <div className="text-xs">Entrenadores</div>
                             </motion.div>
 
                             <motion.div
@@ -111,7 +111,7 @@ export const Login = () => {
                                 className="absolute bottom-32 left-4 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 1000</div>
-                                <div className="text-xs">Workout Videos</div>
+                                <div className="text-xs">Videos de Ejercicios</div>
                             </motion.div>
 
                             <motion.div
@@ -121,18 +121,16 @@ export const Login = () => {
                                 className="absolute bottom-16 right-4 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 1500</div>
-                                <div className="text-xs">Trainers</div>
+                                <div className="text-xs">Instructores</div>
                             </motion.div>
 
                             <motion.div
                                 initial={{ opacity: 0, x: 50 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3, duration: 0.8 }}
+                                transition={{ duration: 0.8 }}
                                 className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
                                     bg-background/80 dark:bg-background/60 backdrop-blur-lg shadow-2xl rounded-2xl p-8 w-80 border-1 border-orange-700"
                             >
-                                {/* className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                                bg-white/20 backdrop-blur-xs border border-white/30 shadow-2xl rounded-2xl p-8 w-80"> */}
                                 <div className="space-y-6">
                                     <div className="text-center">
                                         <h2 className="text-2xl font-bold text-foreground mb-2">Ingresa a FitDesk</h2>
@@ -169,7 +167,7 @@ export const Login = () => {
                                                                     type={showPassword ? "text" : "password"}
                                                                     required
                                                                     className="w-full bg-background border-border text-foreground pr-10"
-                                                                    placeholder="Contraseña"
+                                                                    placeholder="••••••••"
                                                                     {...field}
                                                                 />
                                                                 <button
@@ -196,7 +194,7 @@ export const Login = () => {
                                                         onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                                                     />
                                                     <Label htmlFor="remember" className="text-sm text-muted-foreground">
-                                                        Recordarme
+                                                        Recordar mi cuenta
                                                     </Label>
                                                 </div>
                                                 <Link to="/auth/forgot-password" viewTransition className=" flex text-sm text-end text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300">
@@ -208,7 +206,7 @@ export const Login = () => {
                                                 type="submit"
                                                 className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
                                             >
-                                                Login
+                                                Iniciar Sesión
                                             </Button>
 
                                             <div className="text-center">
