@@ -47,40 +47,7 @@ const ClientSidebar = memo(() => {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link
-                to="/client"
-                prefetch='none'
-                viewTransition
-                className="flex items-center gap-2"
-              >
-                {isCollapsed ? (
-                  <img
-                    src="/src/assets/logo.svg"
-                    alt="FitDesk Logo"
-                    loading="lazy"
-                    className="h-10 w-10"
-                  />
-                ) : (
-                  <>
-                    <img
-                      src="/favicon.svg"
-                      alt="FitDesk Logo"
-                      loading="lazy"
-                      className="h-20 w-20"
-                    />
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">FitDesk</span>
-                      <span className="truncate text-xs">Panel de Cliente</span>
-                    </div>
-                  </>
-                )}
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        {/* Logo removed as requested */}
       </SidebarHeader>
 
       <SidebarContent>
