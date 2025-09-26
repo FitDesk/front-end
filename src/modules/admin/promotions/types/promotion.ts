@@ -2,6 +2,7 @@ export interface Promotion {
   id: string;
   title: string;
   description: string;
+  price: number;
   discount: number;
   startDate: Date | string;
   endDate: Date | string;

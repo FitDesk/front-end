@@ -60,33 +60,35 @@
     ],
     "promotions": [
       {
-        "id": "1",
-        "title": "Descuento de Bienvenida",
-        "description": "20% de descuento en tu primer mes",
-        "discount": 20,
-        "startDate": "2024-01-01T00:00:00Z",
-        "endDate": "2024-12-31T23:59:59Z",
-        "isActive": true,
-        "target": "all",
-        "code": "WELCOME20",
-        "imageUrl": "/images/promotions/welcome.jpg",
-        "createdAt": "2024-01-01T00:00:00Z",
-        "updatedAt": "2024-01-01T00:00:00Z"
-      },
-      {
-        "id": "2",
-        "title": "Promoción Estudiantes",
-        "description": "15% de descuento para estudiantes",
-        "discount": 15,
-        "startDate": "2024-01-01T00:00:00Z",
-        "endDate": "2024-12-31T23:59:59Z",
-        "isActive": true,
-        "target": "members",
-        "code": "STUDENT15",
-        "imageUrl": "/images/promotions/student.jpg",
-        "createdAt": "2024-01-01T00:00:00Z",
-        "updatedAt": "2024-01-01T00:00:00Z"
-      }
+      "id": "1",
+      "title": "Verano Fit 2024",
+      "description": "Prepárate para el verano con un 30% de descuento en tu membresía",
+      "discount": 30,
+      "originalPrice": 59.99,
+      "startDate": "2024-09-01T00:00:00Z",
+      "endDate": "2024-10-31T23:59:59Z",
+      "isActive": true,
+      "target": "all",
+      "code": "VERANOFIT30",
+      "imageUrl": "/images/promotions/summer-sale.jpg",
+      "createdAt": "2024-09-01T00:00:00Z",
+      "updatedAt": "2024-09-01T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "title": "Estudiantes Activos",
+      "description": "25% de descuento exclusivo para estudiantes con carné vigente",
+      "discount": 25,
+      "originalPrice": 49.99,
+      "startDate": "2024-09-01T00:00:00Z",
+      "endDate": "2025-01-31T23:59:59Z",
+      "isActive": true,
+      "target": "members",
+      "code": "STUDENT25",
+      "imageUrl": "/images/promotions/student-discount.jpg",
+      "createdAt": "2024-09-01T00:00:00Z",
+      "updatedAt": "2024-09-01T00:00:00Z"
+    }
     ],
     "users": [
       {
