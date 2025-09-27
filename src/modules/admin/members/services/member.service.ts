@@ -199,4 +199,23 @@ export const memberService = {
     
     return data;
   },
+
+  async exportMembers(format: 'pdf' | 'excel' | 'csv' | 'xml' = 'pdf'): Promise<Blob> {
+    const mimeTypes = {
+      pdf: 'application/pdf',
+      excel: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      csv: 'text/csv',
+      xml: 'application/xml'
+    };
+
+    const response = await fitdeskApi.get(`${BASE_URL}/export`, {
+      params: { format },
+      responseType: 'blob',
+      headers: {
+        'Accept': mimeTypes[format],
+      },
+    });
+    
+    return response.data;
+  },
 };

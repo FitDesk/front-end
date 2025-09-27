@@ -2,7 +2,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fitdeskApi } from '@/core/api/fitdeskApi';
 import type { CreateLocationDTO, UpdateLocationDTO } from '../types/location';
 
-export function useLocations() {
+interface LocationFilters {
+  searchTerm?: string;
+  status?: 'active' | 'inactive';
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export function useLocations(filters: LocationFilters = {}) {
   const queryClient = useQueryClient();
  
   const LOCATIONS_ENDPOINT = '/admin/locations';
@@ -13,31 +22,40 @@ export function useLocations() {
     isLoading, 
     error 
   } = useQuery({
-    queryKey: ['locations'],
+    queryKey: ['locations', filters],
     queryFn: async () => {
       try {
-        console.log('Fetching locations from API...');
-        const response = await fitdeskApi.get(LOCATIONS_ENDPOINT);
+        console.log('Fetching locations from API with filters:', filters);
+        const response = await fitdeskApi.get(LOCATIONS_ENDPOINT, {
+          params: {
+            ...filters,
+            page: filters.page || 1,
+            limit: filters.limit || 10,
+          },
+        });
         console.log('API Response:', response);
         
-        // Asegurarnos de que siempre devolvemos un array
-        if (Array.isArray(response?.data)) {
+       
+        if (response?.data?.data && Array.isArray(response.data.data)) {
           return response.data;
-        } else if (response?.data?.data && Array.isArray(response.data.data)) {
-          return response.data.data;
         }
         
-        console.warn('Unexpected API response format, returning empty array');
-        return [];
+        else if (Array.isArray(response?.data)) {
+          return { data: response.data, pagination: { page: 1, limit: 10, total: response.data.length, totalPages: 1 } };
+        }
+        
+        console.warn('Unexpected API response format, returning empty response');
+        return { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
       } catch (error) {
         console.error('Error fetching locations:', error);
-        return [];
+        return { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
       }
     }
   });
   
-  // Aseguramos que locations siempre sea un array
-  const locations = Array.isArray(response) ? response : [];
+  
+  const locations = Array.isArray(response?.data) ? response.data : [];
+  const pagination = response?.pagination || { page: 1, limit: 10, total: 0, totalPages: 0 };
 
  
   const createMutation = useMutation({
@@ -91,6 +109,7 @@ export function useLocations() {
 
   return {
     locations,
+    pagination,
     isLoading,
     error,
     createLocation: createMutation.mutateAsync,

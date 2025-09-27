@@ -3,7 +3,16 @@ import { toast } from 'sonner';
 import type { Trainer, TrainerFormData } from '../types';
 import { trainerService } from '../services/trainer.service';
 
-export const useTrainers = () => {
+interface TrainerFilters {
+  searchTerm?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export const useTrainers = (filters: TrainerFilters = {}) => {
   const queryClient = useQueryClient();
 
   
@@ -11,14 +20,15 @@ export const useTrainers = () => {
     data, 
     isLoading, 
     error 
-  } = useQuery<Trainer[]>({
-    queryKey: ['trainers'],
-    queryFn: trainerService.getAll,
-    initialData: []
+  } = useQuery({
+    queryKey: ['trainers', filters],
+    queryFn: () => trainerService.getAll(filters),
+    initialData: { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } }
   });
 
   
-  const trainers = Array.isArray(data) ? data : [];
+  const trainers = Array.isArray(data.data) ? data.data : [];
+  const pagination = data.pagination;
 
   
   const createTrainerMutation = useMutation<Trainer, Error, FormData>({
@@ -62,6 +72,7 @@ export const useTrainers = () => {
 
   return {
     trainers,
+    pagination,
     isLoading,
     error,
     createTrainer: createTrainerMutation.mutateAsync,
