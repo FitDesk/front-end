@@ -5,11 +5,7 @@ import {
     DollarSign,
     Shield,
     Zap,
-    Bell,
     Settings,
-    Moon,
-    Sun,
-    Dumbbell,
     Calendar,
     MapPin,
     LogOut,
@@ -39,24 +35,23 @@ const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
     { title: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
     { title: 'Miembros', icon: Users, href: '/admin/members' },
-    { title: 'Entrenadores', icon: Dumbbell, href: '/admin/trainers' },
+    { title: 'Entrenadores', icon: Users, href: '/admin/trainers' },
+    { title: 'Roles', icon: Shield, href: '/admin/roles' },
     { title: 'Clases', icon: Calendar, href: '/admin/classes' },
     { title: 'Ubicaciones', icon: MapPin, href: '/admin/locations' },
     { title: 'Facturación', icon: DollarSign, href: '/admin/billing' },
     { title: 'Planes', icon: Shield, href: '/admin/plans' },
     { title: 'Promociones', icon: Zap, href: '/admin/promotions' },
-    { title: 'Notificaciones', icon: Bell, href: '/admin/notifications' },
     { title: 'Configuración', icon: Settings, href: '/admin/settings' },
 ];
 
 export const AdminSidebar = memo(() => {
-    const { state, } = useSidebar()
-    const isCollapsed = state === 'collapsed'
+    const { state } = useSidebar();
+    const isCollapsed = state === 'collapsed';
     const togglerWrapperClass = cn(
         "p-0",
-        // when collapsed center the item; when expanded keep it at start and add small padding
         isCollapsed ? "flex justify-center" : "flex justify-start pl-2"
-    )
+    );
     return (
         <Sidebar collapsible="icon">
             <SidebarHeader>

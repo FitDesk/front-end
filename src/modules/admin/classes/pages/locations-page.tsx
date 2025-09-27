@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Search, Loader2, MapPin, Users, Filter, Edit, Trash2, Check, XCircle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
@@ -10,6 +10,22 @@ import { useLocations } from '../hooks/use-locations';
 import { LocationForm } from '../components/location-form';
 import type { Location } from '../types/location';
 
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 const useToast = () => ({
   toast: (data: { title: string; description: string; variant?: 'default' | 'destructive' }) => {
@@ -31,9 +47,21 @@ export default function LocationsPage() {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  
+  const filters = useMemo(() => ({
+    searchTerm: debouncedSearchQuery || undefined,
+    status: statusFilter !== 'ALL' ? statusFilter.toLowerCase() as 'active' | 'inactive' : undefined,
+    page: currentPage,
+    limit: 12, 
+  }), [debouncedSearchQuery, statusFilter, currentPage]);
   
   const {
     locations,
+    pagination,
     isLoading,
     error,
     createLocation,
@@ -44,20 +72,17 @@ export default function LocationsPage() {
     isUpdating,
     isDeleting,
     isToggling
-  } = useLocations();
+  } = useLocations(filters);
 
-  const filteredLocations = useMemo(() => {
-    return locations.filter(location => {
-      const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (location.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-      
-      const matchesStatus = statusFilter === 'ALL' || 
-                          (statusFilter === 'ACTIVE' && location.isActive) ||
-                          (statusFilter === 'INACTIVE' && !location.isActive);
-      
-      return matchesSearch && matchesStatus;
-    });
-  }, [locations, searchQuery, statusFilter]);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); 
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value.toUpperCase() as StatusFilterType);
+    setCurrentPage(1); 
+  };
 
   const handleSubmit = async (data: any) => {
     try {
@@ -202,7 +227,7 @@ export default function LocationsPage() {
                 placeholder="Buscar ubicaciones..."
                 className="pl-9"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -210,7 +235,7 @@ export default function LocationsPage() {
               <Tabs 
                 defaultValue="all" 
                 className="w-full"
-                onValueChange={(value) => setStatusFilter(value.toUpperCase() as StatusFilterType)}
+                onValueChange={handleStatusFilterChange}
               >
                 <TabsList>
                   <TabsTrigger value="all">Todas</TabsTrigger>
@@ -222,7 +247,7 @@ export default function LocationsPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {filteredLocations.length === 0 ? (
+          {locations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium">No se encontraron ubicaciones</h3>
@@ -245,7 +270,7 @@ export default function LocationsPage() {
             </div>
           ) : (
             <div className="grid gap-4 p-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {filteredLocations.map((location) => (
+              {locations.map((location: Location) => (
                 <Card 
                   key={location.id} 
                   className="overflow-hidden hover:shadow-md transition-shadow"
@@ -331,15 +356,25 @@ export default function LocationsPage() {
               </Card>
             ))}
           </div>
+          )}
+        </CardContent>
+        
+        {/* Información de paginación */}
+        {pagination && pagination.total > 0 && (
+          <div className="p-4 border-t">
+            <div className="text-sm text-muted-foreground text-center">
+              <p>
+                Mostrando {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-{Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} ubicaciones
+              </p>
+            </div>
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </Card>
 
     {isFormOpen && (
       <Dialog 
         open={isFormOpen} 
         onOpenChange={(open) => {
-          setIsFormOpen(open);
           if (!open) {
             setSelectedLocation(null);
           }

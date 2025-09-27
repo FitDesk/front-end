@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus, Trash2, Download, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Download, RefreshCw, ChevronDown } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 import { useToast } from '@/shared/components/ui/toast';
 import { MembersTable } from '../components/MembersTable';
 import { useMembers } from '../hooks/useMembers';
@@ -29,7 +35,7 @@ export function MembersPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isBulkDelete, setIsBulkDelete] = useState(false);
 
-  const { refreshMembers, updateFilters } = useMembers();
+  const { refreshMembers, updateFilters, exportMembers, isExporting } = useMembers();
   const updateMemberStatus = useMemberStore(state => state.updateMemberStatus);
   const deleteMember = useMemberStore(state => state.deleteMember);
 
@@ -105,6 +111,14 @@ export function MembersPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleExportMembers = async (format: 'pdf' | 'excel' | 'csv' | 'xml') => {
+    try {
+      await exportMembers(format);
+    } catch (error) {
+      console.error('Error al exportar miembros:', error);
+    }
+  };
+
 
   return (
     <div className="space-y-6 mx-4 sm:mx-6 lg:mx-8">
@@ -125,14 +139,38 @@ export function MembersPage() {
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9"
+                disabled={isExporting}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {isExporting ? 'Exportando...' : 'Exportar'}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExportMembers('pdf')}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportMembers('excel')}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportMembers('csv')}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportMembers('xml')}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar XML
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             onClick={() => navigate('/admin/members/nuevo')}
             className="whitespace-nowrap"
