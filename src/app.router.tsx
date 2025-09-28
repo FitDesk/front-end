@@ -228,10 +228,6 @@ export const appRouter = createBrowserRouter([
                 element: <div className="p-6">Workouts Page</div>
             },
             {
-                path: "nutrition",
-                element: <div className="p-6">Nutrition Page</div>
-            },
-            {
                 path: "stats",
                 element: <div className="p-6">Stats Page</div>
             },
