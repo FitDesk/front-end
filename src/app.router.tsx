@@ -24,6 +24,7 @@ const PromotionsPage = lazy(() => import("@/modules/admin/promotions/pages/promo
 const ClassesPage = lazy(() => import("@/modules/admin/classes/pages/classes-page"))
 const LocationsPage = lazy(() => import("@/modules/admin/classes/pages/locations-page"))
 const BillingPage = lazy(() => import("@/modules/admin/billing/pages/BillingPage"))
+const UserRolesPage = lazy(() => import("@/modules/admin/roles/pages/UserRolesPage"))
 
 
 
@@ -186,6 +187,10 @@ export const appRouter = createBrowserRouter([
             {
                 path: "trainers/:id",
                 element: <Suspense fallback={<PageLoader />}><TrainerDetailsPage /></Suspense>,
+            },
+            {
+                path: "roles",
+                element: <Suspense fallback={<PageLoader />}><UserRolesPage /></Suspense>,
             }
         ]
     },

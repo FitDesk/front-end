@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Plus, Search, Loader2 } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
@@ -8,10 +8,38 @@ import { PageHeader } from '@/shared/components/page-header';
 import { useTrainers } from '../hooks/use-trainers';
 import type { Trainer } from '../types';
 
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 export function TrainersPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const { trainers, isLoading, error, deleteTrainer } = useTrainers();
+  const [currentPage, setCurrentPage] = useState(1);
+  
+ 
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  
+  const filters = useMemo(() => ({
+    searchTerm: debouncedSearchQuery || undefined,
+    page: currentPage,
+    limit: 10,
+  }), [debouncedSearchQuery, currentPage]);
+  
+  const { trainers, pagination, isLoading, error, deleteTrainer } = useTrainers(filters);
 
   const handleCreate = () => {
     navigate('nuevo');
@@ -29,15 +57,10 @@ export function TrainersPage() {
     }
   };
 
-  const filteredTrainers = trainers.filter((trainer) => {
-    const search = searchQuery.toLowerCase();
-    return (
-      trainer.firstName.toLowerCase().includes(search) ||
-      trainer.lastName.toLowerCase().includes(search) ||
-      trainer.documentNumber.toLowerCase().includes(search) ||
-      trainer.email.toLowerCase().includes(search)
-    );
-  });
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
 
   if (isLoading) {
     return (
@@ -74,15 +97,24 @@ export function TrainersPage() {
               placeholder="Buscar entrenadores..."
               className="pl-9"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
         </div>
         <TrainersTable
-          trainers={filteredTrainers}
+          trainers={trainers}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
+        
+        {/* Información de paginación */}
+        {pagination && pagination.total > 0 && (
+          <div className="mt-4 text-sm text-muted-foreground">
+            <p>
+              Mostrando {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-{Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} entrenadores
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

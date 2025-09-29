@@ -3,10 +3,35 @@ import type { Trainer, TrainerFormData } from '../types';
 
 const API_URL = '/api/trainers';
 
+interface TrainerFilters {
+  searchTerm?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export const trainerService = {
 
-  async getAll(): Promise<Trainer[]> {
-    const response = await axios.get(API_URL);
+  async getAll(filters: TrainerFilters = {}): Promise<PaginatedResponse<Trainer>> {
+    const response = await axios.get(API_URL, {
+      params: {
+        ...filters,
+        page: filters.page || 1,
+        limit: filters.limit || 10,
+      },
+    });
     return response.data;
   },
 
