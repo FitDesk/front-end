@@ -34,7 +34,7 @@ const TrainerLayout = lazy(() => import("@/shared/layouts/TrainerLayout"))
 const DashboardTrainer = lazy(() => import("@/modules/trainer/dashboard/DashboardTrainer"))
 // Add other trainer pages as needed
 const TrainerCalendarPage = lazy(() => import("@/modules/trainer/calendar/pages/calendar-page"))
-const TrainerAttendancePage = lazy(() => import("@/modules/trainer/attendance/attendance-page"))
+const TrainerAttendancePage = lazy(() => import("@/modules/trainer/attendance").then(m => ({ default: m.AttendancePage })))
 const TrainerStudentsPage = lazy(() => import("@/modules/trainer/students/students-page"))
 
 
