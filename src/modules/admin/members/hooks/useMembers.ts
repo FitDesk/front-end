@@ -70,7 +70,6 @@ export function useMembers() {
       toast.success('Miembro actualizado exitosamente');
     },
     onError: (error: Error) => {
-      console.error('Error al actualizar miembro:', error);
       toast.error(error.message || 'Error al actualizar el miembro');
     },
   });
@@ -86,8 +85,7 @@ export function useMembers() {
       queryClient.invalidateQueries({ queryKey: ['members'] });
       toast.success('Miembro eliminado exitosamente');
     },
-    onError: (error: Error) => {
-      console.error('Error al eliminar miembro:', error);
+    onError: () => {
       toast.error('Error al eliminar el miembro');
     },
   });
@@ -133,8 +131,6 @@ export function useMembers() {
       toast.success('Miembro creado exitosamente');
     },
     onError: (error: Error) => {
-      console.error('Error al crear miembro:', error);
-     
       const errorMessage = error?.message || 'Error al crear el miembro';
       toast.error(typeof errorMessage === 'string' ? errorMessage : 'Error al crear el miembro');
     },
@@ -189,10 +185,6 @@ export function useMembers() {
 export function useMember(memberId?: string) {
   const queryClient = useQueryClient();
   
- 
-  console.log('=== useMember ejecutado ===');
-  console.log('memberId recibido:', memberId);
-  
   const { 
     data: member, 
     isLoading, 
@@ -201,27 +193,19 @@ export function useMember(memberId?: string) {
   } = useQuery<Member | null, Error>({
     queryKey: ['member', memberId],
     queryFn: async () => {
-      console.log('=== Ejecutando queryFn en useMember ===');
-      console.log('memberId en queryFn:', memberId);
-      
       if (!memberId) {
-        console.warn('No se proporcionó un ID de miembro');
         return null;
       }
       
       try {
-        console.log(`Buscando miembro con ID: ${memberId}`);
         const data = await memberService.getMemberById(memberId);
-        console.log('Datos del miembro recibidos:', data);
         
         if (!data) {
-          console.warn('No se encontró ningún miembro con el ID proporcionado');
           throw new Error('No se encontró ningún miembro con el ID proporcionado');
         }
         
         return data;
       } catch (err) {
-        console.error('Error al cargar el miembro:', err);
         throw new Error(
           err instanceof Error 
             ? err.message 
@@ -232,9 +216,9 @@ export function useMember(memberId?: string) {
     enabled: !!memberId,
     retry: 1,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
-    // Manejamos los errores en el bloque catch dentro de queryFn
+    staleTime: 5 * 60 * 1000, 
+    gcTime: 10 * 60 * 1000, 
+    
   });
   
   
@@ -261,8 +245,7 @@ export function useMember(memberId?: string) {
       }
       toast.success('Miembro eliminado exitosamente');
     },
-    onError: (error: Error) => {
-      console.error('Error al eliminar miembro:', error);
+    onError: () => {
       toast.error('Error al eliminar el miembro');
     },
   });
@@ -275,8 +258,7 @@ export function useMember(memberId?: string) {
       queryClient.setQueryData(['member', updatedMember.id], updatedMember);
       toast.success('Estado del miembro actualizado exitosamente');
     },
-    onError: (error: Error) => {
-      console.error('Error al actualizar estado del miembro:', error);
+    onError: () => {
       toast.error('Error al actualizar el estado del miembro');
     },
   });
@@ -289,8 +271,7 @@ export function useMember(memberId?: string) {
       queryClient.setQueryData(['member', updatedMember.id], updatedMember);
       toast.success('Membresía renovada exitosamente');
     },
-    onError: (error: Error) => {
-      console.error('Error al renovar membresía:', error);
+    onError: () => {
       toast.error('Error al renovar la membresía');
     },
   });

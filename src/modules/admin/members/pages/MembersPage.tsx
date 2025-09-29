@@ -65,7 +65,6 @@ export function MembersPage() {
       setMemberToDelete(null);
       setIsDeleteDialogOpen(false);
     } catch (error) {
-      console.error('Error deleting member:', error);
     }
   };
 
@@ -81,7 +80,7 @@ export function MembersPage() {
         description: 'Los miembros seleccionados han sido eliminados correctamente',
       });
     } catch (error) {
-      console.error('Error al eliminar miembros:', error);
+     
     } finally {
       setIsBulkDelete(false);
       setIsDeleteDialogOpen(false);
@@ -91,9 +90,9 @@ export function MembersPage() {
   const handleStatusChange = async (memberId: string, status: 'ACTIVE' | 'SUSPENDED' | 'DELETED') => {
     try {
       await updateMemberStatus(memberId, status);
-      // No es necesario hacer nada más aquí, el toast se maneja en useMemberMutations
+      
     } catch (error) {
-      console.error('Error updating status:', error);
+      
     }
   };
 

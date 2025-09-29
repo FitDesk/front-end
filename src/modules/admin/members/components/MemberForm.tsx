@@ -228,7 +228,6 @@ export function MemberForm({ member, onSuccess, onCancel }: MemberFormProps) {
       form.setValue('profileImage', url);
       toast.success('Imagen subida exitosamente');
     } catch (error) {
-      console.error('Error al subir la imagen:', error);
       toast.error('Error al subir la imagen');
     } finally {
       setIsUploading(false);
@@ -278,8 +277,6 @@ export function MemberForm({ member, onSuccess, onCancel }: MemberFormProps) {
         }
       }
     } catch (error: any) {
-    
-      console.error('Error al guardar el miembro:', error);
       const errorMessage = error?.message || 'Ocurrió un error al guardar el miembro';
       toast.error(typeof errorMessage === 'string' ? errorMessage : 'Error desconocido');
     } finally {
