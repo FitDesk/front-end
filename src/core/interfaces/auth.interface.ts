@@ -1,27 +1,7 @@
-export interface AuthResponse {
-    success: boolean;
-    message: string;
-    timestamp: Date;
-    expiresAt: Date;
-    user: UserLogin;
-}
-
 export interface UserLogin {
-    roles: Role[];
+    roles: string[];
     email: string;
-    username: string;
-    id: string;
-    firstName: string;
-    lastName: string;
 }
-
-export interface Role {
-    id: string;
-    name: string;
-    description: string;
-}
-
-
 
 export interface AuthRequestLogin {
     email: string
@@ -33,12 +13,22 @@ export interface AuthRequestRegister {
     password: string;
     firstName: string;
     lastName: string;
-    username?: string; 
+    username?: string;
 }
 
 export interface AuthResponse {
     timestamp: Date;
-    success:   boolean;
-    message:   string;
+    success: boolean;
+    message: string;
 }
 
+
+export interface AuthAccess {
+    authorities: Authority[];
+    email: string;
+    authenticated: boolean;
+}
+
+export interface Authority {
+    authority: string;
+}
