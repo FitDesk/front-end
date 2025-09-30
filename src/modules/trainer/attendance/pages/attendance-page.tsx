@@ -181,7 +181,7 @@ export default function AttendanceMainPage() {
 
       {/* Pestañas principales */}
       <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 bg-transparent border border-border rounded-lg">
           <TabsTrigger value="calendar" className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4" />
             Calendario

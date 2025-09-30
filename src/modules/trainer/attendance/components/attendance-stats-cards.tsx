@@ -43,12 +43,15 @@ export function AttendanceStatsCards({ dateRange, classId }: AttendanceStatsCard
     <div className="space-y-6">
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
+          <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
             <CardTitle className="text-sm font-medium">Sesiones Hoy</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <Calendar className="h-4 w-4 text-blue-400" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative">
             <div className="text-2xl font-bold">{quickStats?.todaySessions || 0}</div>
             <p className="text-xs text-muted-foreground">
               {(calendarStats.todayStats?.inProgressSessions || 0) > 0 && (
@@ -60,12 +63,15 @@ export function AttendanceStatsCards({ dateRange, classId }: AttendanceStatsCard
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
+          <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
             <CardTitle className="text-sm font-medium">Asistencia Hoy</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <div className="p-2 bg-green-500/20 rounded-lg">
+              <CheckCircle2 className="h-4 w-4 text-green-400" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative">
             <div className="text-2xl font-bold text-green-600">
               {(calendarStats.todayStats?.attendanceRate || 0).toFixed(0)}%
             </div>
@@ -75,12 +81,15 @@ export function AttendanceStatsCards({ dateRange, classId }: AttendanceStatsCard
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
+          <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
             <CardTitle className="text-sm font-medium">Promedio Semanal</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-600" />
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <TrendingUp className="h-4 w-4 text-blue-400" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative">
             <div className="text-2xl font-bold text-blue-600">
               {quickStats?.weeklyAverage.toFixed(0)}%
             </div>
@@ -90,12 +99,15 @@ export function AttendanceStatsCards({ dateRange, classId }: AttendanceStatsCard
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
+          <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
             <CardTitle className="text-sm font-medium">Total Mensual</CardTitle>
-            <Target className="h-4 w-4 text-purple-600" />
+            <div className="p-2 bg-purple-500/20 rounded-lg">
+              <Target className="h-4 w-4 text-purple-400" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative">
             <div className="text-2xl font-bold text-purple-600">
               {quickStats?.monthlyTotal || 0}
             </div>
@@ -109,14 +121,17 @@ export function AttendanceStatsCards({ dateRange, classId }: AttendanceStatsCard
       {/* Resumen detallado */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
+          <Card className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
+            <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <CardHeader className="relative">
               <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
+                <div className="p-2 bg-blue-500/20 rounded-lg">
+                  <Users className="h-5 w-5 text-blue-400" />
+                </div>
                 Resumen de Asistencia
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 relative">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -181,14 +196,17 @@ export function AttendanceStatsCards({ dateRange, classId }: AttendanceStatsCard
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
+          <Card className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
+            <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <CardHeader className="relative">
               <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+                <div className="p-2 bg-green-500/20 rounded-lg">
+                  <Calendar className="h-5 w-5 text-green-400" />
+                </div>
                 Estadísticas Generales
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 relative">
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="text-2xl font-bold text-primary">{summary.totalSessions}</div>

@@ -35,7 +35,7 @@ const DashboardTrainer = lazy(() => import("@/modules/trainer/dashboard/Dashboar
 // Add other trainer pages as needed
 const TrainerCalendarPage = lazy(() => import("@/modules/trainer/calendar/pages/calendar-page"))
 const TrainerAttendancePage = lazy(() => import("@/modules/trainer/attendance").then(m => ({ default: m.AttendancePage })))
-const TrainerStudentsPage = lazy(() => import("@/modules/trainer/students/students-page"))
+const TrainerStudentsPage = lazy(() => import("@/modules/trainer/students/pages/students-page"))
 
 
 
