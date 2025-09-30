@@ -42,7 +42,9 @@ export default function StudentsPage() {
     refreshStudents,
     updateFilters,
     updatePagination,
-    updateStatus
+    updateStatus,
+    deleteStudent,
+    isDeleting
   } = useStudents();
 
   const {
@@ -55,10 +57,10 @@ export default function StudentsPage() {
     setIsLoadingClasses(true);
     try {
       const response = await studentService.getClasses();
-      console.log('Datos recibidos en página:', response.data.map(c => ({ name: c.name, trainer: c.trainer.name })));
-      setClasses(response.data);
+      setClasses(response.data || []);
     } catch (error) {
       console.error('Error loading classes:', error);
+      setClasses([]); 
     } finally {
       setIsLoadingClasses(false);
     }
@@ -99,18 +101,30 @@ export default function StudentsPage() {
     updatePagination({ page });
   };
 
-  const handleStudentDelete = (_student: Student) => {
+  const handleStudentDelete = async (student: Student) => {
  
+    const confirmed = window.confirm(
+      `¿Estás seguro de que quieres eliminar al estudiante ${student.firstName} ${student.lastName}?\n\nEsta acción no se puede deshacer.`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      await deleteStudent(student.id);
+    } catch {
+    }
   };
 
   const handleStudentStatusUpdate = async (studentId: string, status: StudentStatus) => {
     try {
       await updateStatus({ id: studentId, status });
-    } catch (error) {
+    } catch {
     }
   };
 
   const handleStudentMessage = (_student: Student) => {
+    // Implementar lógica de mensajería 
+    
   };
 
   const handleStudentHistory = (student: Student) => {
@@ -161,7 +175,7 @@ export default function StudentsPage() {
             <div>
               <h1 className="text-3xl font-bold">{selectedClass.name}</h1>
               <p className="text-muted-foreground">
-                {selectedClass.currentEnrollment} de {selectedClass.maxCapacity} estudiantes inscritos
+                {selectedClass.currentEnrollment || 0} de {selectedClass.maxCapacity || 0} estudiantes inscritos
               </p>
             </div>
           </div>
@@ -197,7 +211,7 @@ export default function StudentsPage() {
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground">Horarios</h4>
                 <div className="mt-1 space-y-1">
-                  {selectedClass.schedule.map((schedule, index) => (
+                  {(selectedClass.schedule || []).map((schedule, index) => (
                     <div key={index} className="text-sm">
                       {getDayName(schedule.dayOfWeek)} {schedule.startTime} - {schedule.endTime}
                     </div>
@@ -213,7 +227,7 @@ export default function StudentsPage() {
               </div>
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground">Trainer</h4>
-                <div className="mt-1 text-sm">{selectedClass.trainer.name}</div>
+                <div className="mt-1 text-sm">{selectedClass.trainer?.name || 'Sin asignar'}</div>
               </div>
             </div>
           </CardContent>
@@ -233,6 +247,7 @@ export default function StudentsPage() {
               students={students}
               pagination={{...pagination, data: students}}
               isLoading={isLoadingStudents}
+              isDeleting={isDeleting}
               onStudentDelete={handleStudentDelete}
               onStudentStatusUpdate={handleStudentStatusUpdate}
               onStudentMessage={handleStudentMessage}
@@ -303,7 +318,7 @@ export default function StudentsPage() {
                 </Card>
               ))
             ) : (
-              classes.map((classItem) => (
+              (classes || []).map((classItem) => (
                 <Card 
                   key={classItem.id} 
                   className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer"
@@ -325,26 +340,26 @@ export default function StudentsPage() {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Estudiantes:</span>
                         <span className="font-medium">
-                          {classItem.currentEnrollment}/{classItem.maxCapacity}
+                          {classItem.currentEnrollment || 0}/{classItem.maxCapacity || 0}
                         </span>
                       </div>
                       
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Trainer:</span>
-                        <span className="font-medium">{classItem.trainer.name}</span>
+                        <span className="font-medium">{classItem.trainer?.name || 'Sin asignar'}</span>
                       </div>
                       
                       <div className="text-sm">
                         <span className="text-muted-foreground">Horarios:</span>
                         <div className="mt-1 space-y-1">
-                          {classItem.schedule.slice(0, 2).map((schedule, index) => (
+                          {(classItem.schedule || []).slice(0, 2).map((schedule, index) => (
                             <div key={index} className="text-xs">
                               {getDayName(schedule.dayOfWeek)} {schedule.startTime} - {schedule.endTime}
                             </div>
                           ))}
-                          {classItem.schedule.length > 2 && (
+                          {(classItem.schedule || []).length > 2 && (
                             <div className="text-xs text-muted-foreground">
-                              +{classItem.schedule.length - 2} más
+                              +{(classItem.schedule || []).length - 2} más
                             </div>
                           )}
                         </div>
@@ -353,7 +368,7 @@ export default function StudentsPage() {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Asistencia promedio:</span>
                         <span className="font-medium text-green-600">
-                          {classItem.stats.averageAttendance.toFixed(1)}%
+                          {(classItem.stats?.averageAttendance || 0).toFixed(1)}%
                         </span>
                       </div>
                     </div>

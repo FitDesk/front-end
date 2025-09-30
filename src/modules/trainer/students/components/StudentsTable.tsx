@@ -25,6 +25,7 @@ interface StudentsTableProps {
   students: Student[];
   pagination: PaginatedResponse<Student>;
   isLoading: boolean;
+  isDeleting?: boolean;
   onStudentDelete: (student: Student) => void;
   onStudentStatusUpdate: (studentId: string, status: StudentStatus) => void;
   onStudentMessage: (student: Student) => void;
@@ -36,6 +37,7 @@ export function StudentsTable({
   students,
   pagination,
   isLoading,
+  isDeleting = false,
   onStudentDelete,
   onStudentStatusUpdate,
   onStudentMessage,
@@ -230,9 +232,10 @@ export function StudentsTable({
                       <DropdownMenuItem 
                         onClick={() => onStudentDelete(student)}
                         className="text-red-600"
+                        disabled={isDeleting}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar
+                        {isDeleting ? 'Eliminando...' : 'Eliminar'}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

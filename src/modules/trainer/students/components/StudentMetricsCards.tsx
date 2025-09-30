@@ -131,7 +131,7 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
   }
 
 
-  // Determinar tendencias basadas en métricas reales
+  
   const attendanceTrend = (metrics.averageAttendanceRate || 0) >= 80 ? 'up' : 'down';
   const classesTrend = (metrics.totalClassesThisMonth || 0) > 0 ? 'up' : 'neutral';
 
@@ -192,8 +192,7 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
                   "text-xs font-medium",
                   attendanceTrend === 'up' ? "text-green-400" : "text-red-400"
                 )}>
-                  {attendanceTrend === 'up' ? '+' : '-'}
-                  {Math.abs((metrics.averageAttendanceRate || 0) - 75).toFixed(1)}%
+                  {attendanceTrend === 'up' ? 'Excelente' : 'Mejorar'}
                 </span>
               </div>
             </div>

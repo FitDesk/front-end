@@ -2,7 +2,8 @@ export type StudentStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 export type MembershipType = 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' | 'PREMIUM';
 export type ClassStatus = 'ACTIVE' | 'INACTIVE' | 'FULL';
-export type ClassType = 'YOGA' | 'CROSSFIT' | 'PILATES' | 'SPINNING' | 'ZUMBA' | 'CARDIO' | 'STRENGTH';
+
+export type ClassType = string;
 export interface Student {
   id: string;
   firstName: string;
@@ -92,7 +93,7 @@ export interface AttendanceRecord {
   };
 }
 
-// Métricas y estadísticas
+
 export interface StudentMetrics {
   totalStudents: number;
   activeStudents: number;
@@ -156,7 +157,7 @@ export interface ClassFilters {
 export interface PaginationOptions {
   page: number;
   limit: number;
-  sortBy?: 'firstName' | 'lastName' | 'joinDate' | 'attendanceRate' | 'totalClasses';
+  sortBy?: 'firstName' | 'lastName' | 'joinDate' | 'attendanceRate' | 'totalClasses' | 'date';
   sortOrder?: 'asc' | 'desc';
 }
 
@@ -197,13 +198,11 @@ export interface UpdateStudentDTO extends Partial<CreateStudentDTO> {
 
 
 export interface StudentsState {
-  
   students: Student[];
   selectedStudent: Student | null;
   metrics: StudentMetrics | null;
   attendanceHistory: AttendanceRecord[];
-  
- 
+
   filters: StudentFilters;
   pagination: {
     page: number;
@@ -214,18 +213,21 @@ export interface StudentsState {
   viewMode: 'list' | 'grid' | 'metrics';
   selectedTab: 'students' | 'history' | 'metrics';
   
-  
+
   setStudents: (students: Student[]) => void;
   setSelectedStudent: (student: Student | null) => void;
-  setMetrics: (metrics: StudentMetrics) => void;
+  setMetrics: (metrics: StudentMetrics | null) => void;
   setAttendanceHistory: (history: AttendanceRecord[]) => void;
+
   setFilters: (filters: Partial<StudentFilters>) => void;
   setPagination: (pagination: Partial<StudentsState['pagination']>) => void;
   setViewMode: (mode: StudentsState['viewMode']) => void;
   setSelectedTab: (tab: StudentsState['selectedTab']) => void;
   
- 
+  
   updateStudentStatus: (studentId: string, status: StudentStatus) => void;
   addAttendanceRecord: (record: AttendanceRecord) => void;
+ 
   reset: () => void;
+  resetFilters: () => void;
 }
