@@ -94,16 +94,17 @@ export function TrainerStats({ stats, isLoading, className }: TrainerStatsProps)
         const Icon = stat.icon;
         
         return (
-          <Card key={index} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
+          <Card key={index} className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
+            <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <CardHeader className="pb-2 relative">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
                 <span>{stat.title}</span>
-                <div className={cn("p-2 rounded-full", stat.bgColor)}>
-                  <Icon className={cn("h-4 w-4", stat.color)} />
+                <div className={cn("p-2 rounded-lg", stat.bgColor.replace('bg-', 'bg-').replace('-100', '-500/20'))}>
+                  <Icon className={cn("h-4 w-4", stat.color.replace('text-', 'text-').replace('-600', '-400'))} />
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative">
               <div className="space-y-2">
                 <div className="text-2xl font-bold">{stat.value}</div>
                 
@@ -126,6 +127,7 @@ export function TrainerStats({ stats, isLoading, className }: TrainerStatsProps)
                     </Badge>
                   )}
                 </div>
+                
               </div>
             </CardContent>
           </Card>
