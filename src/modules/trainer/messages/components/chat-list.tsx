@@ -1,19 +1,18 @@
 import { AnimatePresence, motion } from "framer-motion";
-
 import { Forward, Heart, Plus } from "lucide-react";
-import type { Message, UserData } from "../data";
+import type { Message, User } from "../data";
 import { ChatMessageList } from "./chat-message-list";
 import { ChatBubble, ChatBubbleAction, ChatBubbleActionWrapper, ChatBubbleAvatar, ChatBubbleMessage, ChatBubbleTimestamp } from "./chat-bubble";
 
 interface ChatListProps {
     messages: Message[];
-    selectedUser: UserData;
+    selectedUser: User;
     sendMessage?: (newMessage: Message) => void;
     isMobile?: boolean;
 }
 
-const getMessageVariant = (messageName: string, selectedUserName: string) =>
-    messageName !== selectedUserName ? "sent" : "received";
+const getMessageVariant = (fromId: string, selectedUserId: string) =>
+    fromId !== selectedUserId ? "sent" : "received";
 
 export function ChatList({
     messages,
@@ -30,11 +29,10 @@ export function ChatList({
             <ChatMessageList smooth={true}>
                 <AnimatePresence>
                     {messages.map((message, index) => {
-                        const variant = getMessageVariant(message.name, selectedUser.name);
+                        const variant = getMessageVariant(message.fromId, selectedUser.id);
                         return (
                             <motion.div
-                                // biome-ignore lint/suspicious/noArrayIndexKey: <>
-                                key={index}
+                                key={`${message.id}-${index}`}
                                 layout
                                 initial={{ opacity: 0, scale: 1, y: 20, x: 0 }}
                                 animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
@@ -51,11 +49,11 @@ export function ChatList({
                                 className="flex flex-col gap-2 px-4 py-2"
                             >
                                 <ChatBubble variant={variant}>
-                                    <ChatBubbleAvatar src={message.avatar} />
-                                    <ChatBubbleMessage isLoading={message.isLoading}>
-                                        {message.message}
-                                        {message.timestamp && (
-                                            <ChatBubbleTimestamp timestamp={message.timestamp} />
+                                    <ChatBubbleAvatar src={selectedUser.avatar} />
+                                    <ChatBubbleMessage>
+                                        {message.text}
+                                        {message.createdAt && (
+                                            <ChatBubbleTimestamp timestamp={new Date(message.createdAt).toLocaleTimeString()} />
                                         )}
                                     </ChatBubbleMessage>
                                     <ChatBubbleActionWrapper>
