@@ -14,7 +14,7 @@ import { CreateMemberPage } from "./modules/admin/members/pages/CreateMemberPage
 import { MemberDetailsPage } from "./modules/admin/members/pages/MemberDetailsPage";
 import { EditMemberPage } from "./modules/admin/members/pages/EditMemberPage";
 import { MessagePage } from "./modules/trainer/messages/message-page";
-import { TrainerRoute } from "./shared/components/protected-routes";
+import {TrainerRoute, AdminRoute, NotAuthenticatedRoute} from './shared/components/protected-routes';
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
@@ -83,41 +83,41 @@ export const appRouter = createBrowserRouter([
         ),
         children: [
             { index: true, element: <Navigate to="/client/dashboard" replace /> },
-            { 
-                path: "dashboard", 
-                element: <Suspense><ClientDashboard /></Suspense> 
+            {
+                path: "dashboard",
+                element: <Suspense><ClientDashboard /></Suspense>
             },
-            { 
-                path: "profile", 
-                element: <Suspense><ClientProfilePage /></Suspense> 
+            {
+                path: "profile",
+                element: <Suspense><ClientProfilePage /></Suspense>
             },
-            { 
-                path: "classes", 
-                element: <Suspense><ClientClassesPage /></Suspense> 
+            {
+                path: "classes",
+                element: <Suspense><ClientClassesPage /></Suspense>
             },
-            { 
-                path: "history", 
-                element: <Suspense><ClientHistoryPage /></Suspense> 
+            {
+                path: "history",
+                element: <Suspense><ClientHistoryPage /></Suspense>
             },
-            { 
-                path: "payments", 
-                element: <Suspense><ClientPaymentsPage /></Suspense> 
+            {
+                path: "payments",
+                element: <Suspense><ClientPaymentsPage /></Suspense>
             },
-            { 
-                path: "notifications", 
-                element: <Suspense><ClientNotificationsPage /></Suspense> 
+            {
+                path: "notifications",
+                element: <Suspense><ClientNotificationsPage /></Suspense>
             },
         ]
     },
- 
+
     {
         path: "/auth",
         element: (
-            // <NotAuthenticatedRoute>
-            <Suspense fallback={<PageLoader />}>
-                <AuthLayout />
-            </Suspense>
-            // </NotAuthenticatedRoute>
+            <NotAuthenticatedRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <AuthLayout />
+                </Suspense>
+            </NotAuthenticatedRoute>
         ),
         children: [
             { index: true, element: <Suspense><Login /></Suspense> },
@@ -128,11 +128,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/admin",
         element: (
-            // <AdminRoute>
-            <Suspense fallback={<PageLoader />}>
-                <AdminLayout />
-            </Suspense>
-            // </AdminRoute>
+            <AdminRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <AdminLayout />
+                </Suspense>
+            </AdminRoute>
         ),
         children: [
             { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
@@ -198,11 +198,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/trainer",
         element: (
-            // <TrainerRoute>
+            <TrainerRoute>
                 <Suspense fallback={<PageLoader />}>
                     <TrainerLayout />
                 </Suspense>
-            // </TrainerRoute>
+            </TrainerRoute>
         ),
         children: [
             { index: true, element: <Navigate to="dashboard" replace /> },
