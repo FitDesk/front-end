@@ -14,7 +14,7 @@ import { CreateMemberPage } from "./modules/admin/members/pages/CreateMemberPage
 import { MemberDetailsPage } from "./modules/admin/members/pages/MemberDetailsPage";
 import { EditMemberPage } from "./modules/admin/members/pages/EditMemberPage";
 import { MessagePage } from "./modules/trainer/messages/message-page";
-import { TrainerRoute } from "./shared/components/protected-routes";
+import {TrainerRoute, AdminRoute, NotAuthenticatedRoute} from './shared/components/protected-routes';
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
@@ -24,6 +24,7 @@ const PromotionsPage = lazy(() => import("@/modules/admin/promotions/pages/promo
 const ClassesPage = lazy(() => import("@/modules/admin/classes/pages/classes-page"))
 const LocationsPage = lazy(() => import("@/modules/admin/classes/pages/locations-page"))
 const BillingPage = lazy(() => import("@/modules/admin/billing/pages/BillingPage"))
+const UserRolesPage = lazy(() => import("@/modules/admin/roles/pages/UserRolesPage"))
 
 
 
@@ -41,33 +42,82 @@ const TrainerStudentsPage = lazy(() => import("@/modules/trainer/students/studen
 
 
 
-//Client
+// Client
 const ClientLayout = lazy(() => import("@/shared/layouts/ClientLayout"))
+const ClientDashboardLayout = lazy(() => import("@/shared/layouts/ClientDashboardLayout"))
 const LandingPage = lazy(() => import("@/modules/client/landing/landing-page"))
+const ClientDashboard = lazy(() => import("@/modules/client/dashboard/ClientDashboard"))
+const ClientProfilePage = lazy(() => import("@/modules/client/profile/profile-page"))
+const ClientClassesPage = lazy(() => import("@/modules/client/classes/client-classes-page"))
+const ClientHistoryPage = lazy(() => import("@/modules/client/history/history-page"))
+const ClientPaymentsPage = lazy(() => import("@/modules/client/payments/payments-page"))
+const ClientNotificationsPage = lazy(() => import("@/modules/client/notifications/notifications-page"))
 
-//Auth
+// Auth
 const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
 export const appRouter = createBrowserRouter([
-    //Main
+    // Redirect from /dashboard to /client/dashboard
+    {
+        path: "/dashboard",
+        element: <Navigate to="/client/dashboard" replace />
+    },
+    // Landing Page Route
     {
         path: "/",
         element: (
-            <Suspense fallback={<PageLoader />} >
+            <Suspense fallback={<PageLoader />}>
                 <ClientLayout />
             </Suspense>
         ),
         children: [
-            { index: true, element: <Suspense><LandingPage /></Suspense> }
+            { index: true, element: <Suspense><LandingPage /></Suspense> },
         ]
     },
+    // Client Routes
+    {
+        path: "/client",
+        element: (
+            <Suspense fallback={<PageLoader />}>
+                <ClientDashboardLayout />
+            </Suspense>
+        ),
+        children: [
+            { index: true, element: <Navigate to="/client/dashboard" replace /> },
+            {
+                path: "dashboard",
+                element: <Suspense><ClientDashboard /></Suspense>
+            },
+            {
+                path: "profile",
+                element: <Suspense><ClientProfilePage /></Suspense>
+            },
+            {
+                path: "classes",
+                element: <Suspense><ClientClassesPage /></Suspense>
+            },
+            {
+                path: "history",
+                element: <Suspense><ClientHistoryPage /></Suspense>
+            },
+            {
+                path: "payments",
+                element: <Suspense><ClientPaymentsPage /></Suspense>
+            },
+            {
+                path: "notifications",
+                element: <Suspense><ClientNotificationsPage /></Suspense>
+            },
+        ]
+    },
+
     {
         path: "/auth",
         element: (
-            // <NotAuthenticatedRoute>
-            <Suspense fallback={<PageLoader />}>
-                <AuthLayout />
-            </Suspense>
-            // </NotAuthenticatedRoute>
+            <NotAuthenticatedRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <AuthLayout />
+                </Suspense>
+            </NotAuthenticatedRoute>
         ),
         children: [
             { index: true, element: <Suspense><Login /></Suspense> },
@@ -78,11 +128,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/admin",
         element: (
-            // <AdminRoute>
-            <Suspense fallback={<PageLoader />}>
-                <AdminLayout />
-            </Suspense>
-            // </AdminRoute>
+            <AdminRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <AdminLayout />
+                </Suspense>
+            </AdminRoute>
         ),
         children: [
             { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
@@ -137,6 +187,10 @@ export const appRouter = createBrowserRouter([
             {
                 path: "trainers/:id",
                 element: <Suspense fallback={<PageLoader />}><TrainerDetailsPage /></Suspense>,
+            },
+            {
+                path: "roles",
+                element: <Suspense fallback={<PageLoader />}><UserRolesPage /></Suspense>,
             }
         ]
     },
@@ -144,11 +198,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/trainer",
         element: (
-            // <TrainerRoute>
+            <TrainerRoute>
                 <Suspense fallback={<PageLoader />}>
                     <TrainerLayout />
                 </Suspense>
-            // </TrainerRoute>
+            </TrainerRoute>
         ),
         children: [
             { index: true, element: <Navigate to="dashboard" replace /> },

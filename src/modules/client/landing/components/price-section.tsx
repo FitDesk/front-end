@@ -12,59 +12,59 @@ import { AnimatedNumber } from '@/shared/components/animated-number';
 const plans = [
     {
         id: 'hobby',
-        name: 'Hobby',
+        name: 'Básico',
         icon: Star,
         price: {
-            monthly: 'Free forever',
-            yearly: 'Free forever',
+            monthly: 'Gratis',
+            yearly: 'Gratis',
         },
         description:
-            'The perfect starting place for your web app or personal project.',
+            'El lugar perfecto para comenzar tu viaje de fitness.',
         features: [
-            '50 API calls / month',
-            '60 second checks',
-            'Single-user account',
-            '5 monitors',
-            'Basic email support',
+            '50 sesiones al mes',
+            'Acceso básico a entrenamientos',
+            'Cuenta individual',
+            '5 planes de entrenamiento',
+            'Soporte por correo básico',
         ],
-        cta: 'Get started for free',
+        cta: 'Comenzar gratis',
     },
     {
         id: 'pro',
-        name: 'Pro',
+        name: 'Premium',
         icon: Zap,
         price: {
             monthly: 90,
             yearly: 75,
         },
-        description: 'Everything you need to build and scale your business.',
+        description: 'Todo lo que necesitas para alcanzar tus metas de fitness.',
         features: [
-            'Unlimited API calls',
-            '30 second checks',
-            'Multi-user account',
-            '10 monitors',
-            'Priority email support',
+            'Sesiones ilimitadas',
+            'Entrenamientos personalizados',
+            'Cuenta familiar',
+            'Planes de entrenamiento ilimitados',
+            'Soporte prioritario',
         ],
-        cta: 'Subscribe to Pro',
+        cta: 'Suscríbete a Premium',
         popular: true,
     },
     {
         id: 'enterprise',
-        name: 'Enterprise',
+        name: 'Empresarial',
         icon: Shield,
         price: {
-            monthly: 'Get in touch for pricing',
-            yearly: 'Get in touch for pricing',
+            monthly: 'Contáctanos',
+            yearly: 'Contáctanos',
         },
-        description: 'Critical security, performance, observability and support.',
+        description: 'Soporte y características premium para tu negocio de fitness.',
         features: [
-            'You can DDOS our API.',
-            'Nano-second checks.',
-            'Invite your extended family.',
-            'Unlimited monitors.',
-            "We'll sit on your desk.",
+            'Soporte 24/7',
+            'Entrenadores certificados',
+            'Cuentas para todo tu equipo',
+            'Planes personalizados',
+            'Análisis avanzados',
         ],
-        cta: 'Contact us',
+        cta: 'Contáctanos',
     },
 ];
 
@@ -92,7 +92,7 @@ export const PriceSection = () => {
                         className="border-primary/20 bg-primary/5 mb-4 rounded-full px-4 py-1 text-sm font-medium"
                     >
                         <Sparkles className="text-primary mr-1 h-3.5 w-3.5 animate-pulse" />
-                        Pricing Plans
+                        Planes de Precios
                     </Badge>
                     <motion.h1
                         initial={{ opacity: 0, y: 10 }}
@@ -100,7 +100,7 @@ export const PriceSection = () => {
                         transition={{ duration: 0.5 }}
                         className="from-foreground to-foreground/30 bg-gradient-to-b bg-clip-text text-4xl font-bold text-transparent sm:text-5xl"
                     >
-                        Pick the perfect plan for your needs
+                        Elige el plan perfecto para ti
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0, y: 10 }}
@@ -108,8 +108,8 @@ export const PriceSection = () => {
                         transition={{ duration: 0.5, delay: 0.1 }}
                         className="text-muted-foreground max-w-md pt-2 text-lg"
                     >
-                        Simple, transparent pricing that scales with your business. No
-                        hidden fees, no surprises.
+                        Precios simples y transparentes que se adaptan a ti. Sin
+                        tarifas ocultas, sin sorpresas.
                     </motion.p>
                 </div>
 
@@ -128,18 +128,18 @@ export const PriceSection = () => {
                                 value="monthly"
                                 className="data-[state=active]:bg-background rounded-full transition-all duration-300 data-[state=active]:shadow-sm"
                             >
-                                Monthly
+                                Mensual
                             </TabsTrigger>
                             <TabsTrigger
                                 value="yearly"
                                 className="data-[state=active]:bg-background rounded-full transition-all duration-300 data-[state=active]:shadow-sm"
                             >
-                                Yearly
+                                Anual
                                 <Badge
                                     variant="secondary"
                                     className="bg-primary/10 text-primary hover:bg-primary/15 ml-2"
                                 >
-                                    20% off
+                                    20% de descuento
                                 </Badge>
                             </TabsTrigger>
                         </TabsList>
@@ -215,7 +215,7 @@ export const PriceSection = () => {
                                                         }}
                                                     />
                                                     <span className="text-muted-foreground ml-1 text-sm">
-                                                        /mes, facturado {frequency === "monthly" ? "mensual" : "anual"}
+                                                        /mes, facturado {frequency === "monthly" ? "mensualmente" : "anualmente"}
                                                     </span>
                                                 </div>
                                             ) : (

@@ -3,14 +3,39 @@ import type { Location, CreateLocationDTO, UpdateLocationDTO } from '../types/lo
 
 const BASE_URL = '/api/locations';
 
+interface LocationFilters {
+  searchTerm?: string;
+  status?: 'active' | 'inactive';
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export const locationService = {
-  async getAll(): Promise<Location[]> {
+  async getAll(filters: LocationFilters = {}): Promise<PaginatedResponse<Location>> {
     try {
-      const response = await fitdeskApi.get<Location[]>(BASE_URL);
+      const response = await fitdeskApi.get<PaginatedResponse<Location>>(BASE_URL, {
+        params: {
+          ...filters,
+          page: filters.page || 1,
+          limit: filters.limit || 10,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error('Failed to fetch locations:', error);
-      return [];
+      return { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
     }
   },
 

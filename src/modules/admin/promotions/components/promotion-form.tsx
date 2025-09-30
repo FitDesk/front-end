@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -7,7 +8,9 @@ import { Switch } from '@/shared/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { format, addMonths, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2, Save, PlusCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2, Save, PlusCircle, Upload, X } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { useToast } from '@/shared/components/ui/toast';
 import { DayPicker } from 'react-day-picker';
 
 
@@ -42,25 +45,225 @@ interface PromotionFormProps {
 }
 
 export function PromotionForm({ initialData, onSubmit, isSubmitting, onClose }: PromotionFormProps) {
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+  
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: 'Formato no soportado',
+        description: 'Por favor, sube una imagen en formato JPG, PNG o WebP',
+        type: 'destructive',
+      });
+      return;
+    }
+
+  
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Archivo demasiado grande',
+        description: 'La imagen no debe superar los 5MB',
+        type: 'destructive',
+      });
+      return;
+    }
+
+   
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      
+     
+      if (img.width < 400 || img.height < 200) {
+        toast({
+          title: 'Imagen muy pequeña',
+          description: 'La imagen debe tener al menos 400x200 píxeles',
+          type: 'destructive',
+        });
+        return;
+      }
+
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+       
+        setValue('imageUrl', '');
+      };
+      reader.readAsDataURL(file);
+    };
+    
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      toast({
+        title: 'Error al procesar la imagen',
+        description: 'No se pudo cargar la imagen. Intenta con otro archivo.',
+        type: 'destructive',
+      });
+    };
+    
+    img.src = objectUrl;
+  };
+
+  const removeImage = () => {
+    setPreviewImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const defaultValues = initialData || {
     title: '',
     description: '',
+    price: 0,
     discount: 0,
     startDate: format(new Date(), 'yyyy-MM-dd'),
     endDate: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+    imageUrl: '',
     isActive: true,
     target: 'all' as const,
     code: '',
   };
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<CreatePromotionDTO | UpdatePromotionDTO>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch, setError } = useForm<CreatePromotionDTO | UpdatePromotionDTO>({
     defaultValues,
   });
 
   const target = watch('target');
+ 
+  
+  
+  React.useEffect(() => {
+    if (initialData?.imageUrl) {
+      
+      if (initialData.imageUrl.startsWith('data:image') || initialData.imageUrl.startsWith('http')) {
+        setPreviewImage(initialData.imageUrl);
+      } else if (initialData.imageUrl) {
+       
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        setPreviewImage(`${baseUrl}${initialData.imageUrl}`);
+      }
+    }
+  }, [initialData]);
+
+  const handleFormSubmit = (formData: CreatePromotionDTO | UpdatePromotionDTO) => {
+  
+    if (previewImage) {
+    
+      if (previewImage.startsWith('data:image')) {
+        formData.imageUrl = previewImage;
+      } 
+      
+      else if (!initialData || initialData.imageUrl !== previewImage) {
+        formData.imageUrl = previewImage;
+      }
+    } 
+    
+    else if (!formData.imageUrl) {
+      setError('imageUrl', { 
+        type: 'manual', 
+        message: 'Por favor, selecciona una imagen para la promoción' 
+      });
+      
+      document.getElementById('image-section')?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center' 
+      });
+      return;
+    }
+
+    
+    if ('id' in formData && initialData && 'id' in initialData) {
+      (formData as UpdatePromotionDTO).id = initialData.id;
+    }
+    
+    
+    const start = formData.startDate ? new Date(formData.startDate) : null;
+    const end = formData.endDate ? new Date(formData.endDate) : null;
+    
+    if (start && end && start > end) {
+      setError('endDate', {
+        type: 'manual',
+        message: 'La fecha de fin debe ser posterior a la de inicio',
+      });
+      return;
+    }
+
+    onSubmit(formData);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+      {/* Image Section */}
+      <div className="bg-card p-6 rounded-lg border shadow-sm">
+        <h3 className="text-lg font-semibold mb-4">Imagen de la promoción</h3>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-6">
+            {/* Image Preview */}
+            <div className="flex-shrink-0">
+              <div className="w-48 h-48 rounded-md border border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                {previewImage ? (
+                  <>
+                    <img 
+                      src={previewImage} 
+                      alt="Vista previa" 
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="text-center p-4">
+                    <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-xs text-muted-foreground">Subir imagen</p>
+                  </div>
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+              />
+            </div>
+            <div className="flex-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="mb-2"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {previewImage ? 'Cambiar imagen' : 'Seleccionar imagen'}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Formatos: JPG, PNG, WEBP. Máx. 5MB
+              </p>
+              {errors.imageUrl && !previewImage && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.imageUrl.message}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Sección de información básica */}
       <div className="bg-card p-6 rounded-lg border shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Información Básica</h3>
@@ -91,7 +294,25 @@ export function PromotionForm({ initialData, onSubmit, isSubmitting, onClose }: 
         {/* Descuento y Destinatarios */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="discount">Porcentaje de descuento</Label>
+            <Label htmlFor="price">Precio ($)</Label>
+            <Input
+              id="price"
+              type="number"
+              min={0}
+              step="0.01"
+              {...register('price', {
+                required: 'El precio es requerido',
+                min: { value: 0, message: 'El precio no puede ser negativo' },
+                valueAsNumber: true,
+              })}
+              className="w-full"
+              placeholder="0.00"
+            />
+            {errors.price && <p className="text-sm text-red-500 mt-1">{errors.price.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="discount">Porcentaje de descuento (%)</Label>
             <Input
               id="discount"
               type="number"
@@ -101,8 +322,10 @@ export function PromotionForm({ initialData, onSubmit, isSubmitting, onClose }: 
                 required: 'El descuento es requerido',
                 min: { value: 0, message: 'El descuento no puede ser negativo' },
                 max: { value: 100, message: 'El descuento no puede ser mayor a 100%' },
+                valueAsNumber: true,
               })}
               className="w-full"
+              placeholder="0"
             />
             {errors.discount && <p className="text-sm text-red-500 mt-1">{errors.discount.message}</p>}
           </div>

@@ -12,7 +12,7 @@ const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(
             ref={ref}
             name="message"
             className={cn(
-                "min-h-[44px] max-h-32 px-4 py-3 bg-background text-foreground text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full rounded-full border border-input resize-none shadow-sm",
+                "min-h-[44px] max-h-32 px-4 py-3 bg-background text-foreground text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full rounded-2xl md:rounded-full border border-input resize-y overflow-y-auto",
                 className,
             )}
             {...props}

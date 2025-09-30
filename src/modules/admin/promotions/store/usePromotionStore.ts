@@ -10,7 +10,7 @@ interface PromotionFilters {
 }
 
 interface PromotionState {
-  // Estado
+
   promotions: Promotion[];
   currentPromotion: Promotion | null;
   isDialogOpen: boolean;
@@ -18,7 +18,7 @@ interface PromotionState {
   error: string | null;
   filters: PromotionFilters;
 
-  // Acciones
+
   setPromotions: (promotions: Promotion[]) => void;
   setCurrentPromotion: (promotion: Promotion | null) => void;
   setIsDialogOpen: (isOpen: boolean) => void;
@@ -41,61 +41,54 @@ const initialState: Omit<PromotionState,
     searchTerm: '',
     isActive: null,
     target: 'all',
-  } as const, // Asegura que 'all' sea literal y no string
+  } as const, 
 };
 
 export const usePromotionStore = create<PromotionState>()(
   devtools(
     immer((set) => ({
       ...initialState,
-
-      setPromotions: (promotions) =>
+      setPromotions: (promotions) => 
         set((state) => {
           state.promotions = promotions;
-          state.isLoading = false;
-          state.error = null;
         }),
-
-      setCurrentPromotion: (promotion) =>
+      
+      setCurrentPromotion: (promotion) => 
         set((state) => {
           state.currentPromotion = promotion;
-          state.isDialogOpen = true;
         }),
-
-      setIsDialogOpen: (isOpen) =>
+      
+      setIsDialogOpen: (isOpen) => 
         set((state) => {
           state.isDialogOpen = isOpen;
-          if (!isOpen) {
-            state.currentPromotion = null;
-          }
+          if (!isOpen) state.currentPromotion = null;
         }),
-
-      setLoading: (isLoading) =>
+      
+      setLoading: (isLoading) => 
         set((state) => {
           state.isLoading = isLoading;
         }),
-
-      setError: (error) =>
+      
+      setError: (error) => 
         set((state) => {
           state.error = error;
-          state.isLoading = false;
         }),
-
-      setFilters: (filters) =>
+      
+      setFilters: (filters) => 
         set((state) => {
-          Object.assign(state.filters, filters);
+          state.filters = { ...state.filters, ...filters };
         }),
-
-      reset: () =>
-        set((state) => {
-          Object.assign(state, initialState);
-        }),
+      
+      reset: () => set(() => ({
+        ...initialState,
+        filters: { ...initialState.filters }
+      })),
     })),
     { name: 'promotion-store' }
   )
 );
 
-// Selectores útiles
+
 export const usePromotionFilters = () => 
   usePromotionStore((state) => state.filters);
 
