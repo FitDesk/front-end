@@ -10,13 +10,13 @@ import type {
   StudentStatus 
 } from '../types';
 
+
 const initialState = {
   students: [],
   selectedStudent: null,
   metrics: null,
   attendanceHistory: [],
-  
-  filters: {},
+  filters: {} as StudentFilters,
   pagination: {
     page: 1,
     limit: 12,
@@ -27,30 +27,37 @@ const initialState = {
   selectedTab: 'students' as const,
 };
 
+
 const studentsStore: StateCreator<StudentsState, [["zustand/immer", never]], []> = (set) => ({
   ...initialState,
+
 
   setStudents: (students: Student[]) => set({ students }),
   
   setSelectedStudent: (student: Student | null) => set({ selectedStudent: student }),
   
+
   setMetrics: (metrics: StudentMetrics | null) => set({ metrics }),
   
+ 
   setAttendanceHistory: (history: AttendanceRecord[]) => set({ attendanceHistory: history }),
   
+
   setFilters: (filters: Partial<StudentFilters>) => set((state) => {
     state.filters = { ...state.filters, ...filters };
-    state.pagination.page = 1;
+    state.pagination.page = 1; 
   }),
   
+ 
   setPagination: (pagination: Partial<StudentsState['pagination']>) => set((state) => {
     Object.assign(state.pagination, pagination);
   }),
   
-  setViewMode: (mode: StudentsState['viewMode']) => set({ viewMode: mode }),
   
+  setViewMode: (mode: StudentsState['viewMode']) => set({ viewMode: mode }),
   setSelectedTab: (tab: StudentsState['selectedTab']) => set({ selectedTab: tab }),
 
+  
   updateStudentStatus: (studentId: string, status: StudentStatus) => set((state) => {
     const student = state.students.find(s => s.id === studentId);
     if (student) {
@@ -62,6 +69,7 @@ const studentsStore: StateCreator<StudentsState, [["zustand/immer", never]], []>
     }
   }),
   
+
   addAttendanceRecord: (record: AttendanceRecord) => set((state) => {
     state.attendanceHistory.unshift(record);
     
@@ -76,7 +84,14 @@ const studentsStore: StateCreator<StudentsState, [["zustand/immer", never]], []>
     }
   }),
   
+
   reset: () => set(initialState),
+  
+
+  resetFilters: () => set((state) => {
+    state.filters = {};
+    state.pagination = { ...initialState.pagination };
+  }),
 });
 
 export const useStudentsStore = create<StudentsState>()(

@@ -1,41 +1,53 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { studentService } from '../services/student.service';
+import { useStudentsStore } from '../store/students-store';
 
 export function useStudentMetrics() {
   const queryClient = useQueryClient();
+  const { 
+    metrics, 
+    attendanceHistory, 
+    setMetrics, 
+    setAttendanceHistory,
+    addAttendanceRecord 
+  } = useStudentsStore();
   
   
   const { 
-    data: metrics, 
     isLoading: isLoadingMetrics, 
     error: metricsError,
     refetch: refreshMetrics
   } = useQuery({
     queryKey: ['student-metrics'],
-    queryFn: () => studentService.getMetrics(),
+    queryFn: async () => {
+      const result = await studentService.getMetrics();
+      setMetrics(result);
+      return result;
+    },
     staleTime: 2 * 60 * 1000, 
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
- 
+  
   const { 
-    data: attendanceData, 
     isLoading: isLoadingAttendance,
     error: attendanceError,
     refetch: refreshAttendance
   } = useQuery({
     queryKey: ['attendance-history'],
-    queryFn: () => studentService.getAttendanceHistory(),
+    queryFn: async () => {
+      const result = await studentService.getAttendanceHistory();
+      setAttendanceHistory(result.data);
+      return result;
+    },
     staleTime: 1 * 60 * 1000, 
     gcTime: 3 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  const attendanceHistory = attendanceData?.data || [];
-
-  
+ 
   const useAttendanceStats = (period: 'week' | 'month' | 'quarter' | 'year' = 'month', studentId?: string) => {
     return useQuery({
       queryKey: ['attendance-stats', period, studentId],
@@ -46,7 +58,7 @@ export function useStudentMetrics() {
     });
   };
 
-
+  
   const markAttendanceMutation = useMutation({
     mutationFn: async ({ 
       studentId, 
@@ -62,20 +74,14 @@ export function useStudentMetrics() {
       return await studentService.markAttendance(studentId, classId, status, notes);
     },
     onSuccess: (newRecord) => {
-  
+    
+      addAttendanceRecord(newRecord);
+      
+     
       queryClient.invalidateQueries({ queryKey: ['student-metrics'] });
       queryClient.invalidateQueries({ queryKey: ['attendance-history'] });
       queryClient.invalidateQueries({ queryKey: ['attendance-stats'] });
       queryClient.invalidateQueries({ queryKey: ['students'] });
-    
-      queryClient.setQueryData(['attendance-history'], (old: any) => {
-        if (!old) return { data: [newRecord], total: 1, page: 1, limit: 20, totalPages: 1 };
-        return {
-          ...old,
-          data: [newRecord, ...old.data],
-          total: old.total + 1
-        };
-      });
       
       toast.success('Asistencia registrada exitosamente');
     },
@@ -84,7 +90,7 @@ export function useStudentMetrics() {
     },
   });
 
-
+ 
   const sendMessageMutation = useMutation({
     mutationFn: async ({ 
       studentId, 
@@ -108,16 +114,17 @@ export function useStudentMetrics() {
   });
 
   return {
-  
+    
     metrics,
     attendanceHistory,
     
-
+   
     isLoadingMetrics,
     isLoadingAttendance,
     isLoading: isLoadingMetrics || isLoadingAttendance,
     metricsError,
     attendanceError,
+    
     
     refreshMetrics,
     refreshAttendance,

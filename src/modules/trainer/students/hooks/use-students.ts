@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { studentService } from '../services/student.service';
+import { useStudentsStore } from '../store/students-store';
 import type { 
   StudentFilters,
   PaginationOptions,
@@ -12,31 +12,32 @@ import type {
 
 export function useStudents() {
   const queryClient = useQueryClient();
-  const [filters, setFilters] = useState<StudentFilters>({});
-  const [pagination, setPagination] = useState<PaginationOptions>({ 
-    page: 1, 
-    limit: 12,
-    sortBy: 'firstName',
-    sortOrder: 'asc' 
-  });
-  
+  const { 
+    filters, 
+    pagination, 
+    setFilters, 
+    setPagination, 
+    setStudents, 
+    updateStudentStatus 
+  } = useStudentsStore();
+
   const { 
     data: studentsData, 
     isLoading, 
     isError,
-    error,
     refetch: refreshStudents
   } = useQuery({
     queryKey: ['students', filters, pagination],
     queryFn: async () => {
-      try {
-        return await studentService.getStudents(filters, pagination);
-      } catch (error: any) {
-        if (error.message === 'No response received from server. Please check your connection.') {
-          throw new Error('CONNECTION_ERROR');
-        }
-        throw error;
-      }
+      const result = await studentService.getStudents(filters, pagination);
+      setStudents(result.data);
+      setPagination({
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+        totalPages: result.totalPages
+      });
+      return result;
     },
     staleTime: 5 * 60 * 1000, 
     gcTime: 10 * 60 * 1000,
@@ -44,16 +45,9 @@ export function useStudents() {
     refetchOnWindowFocus: false,
   });
   
-  const students = Array.isArray(studentsData?.data) ? studentsData.data : [];
-  const paginationData = studentsData ? {
-    page: studentsData.page || 1,
-    limit: studentsData.limit || pagination.limit,
-    total: studentsData.total || 0,
-    totalPages: studentsData.totalPages || 1,
-    sortBy: pagination.sortBy,
-    sortOrder: pagination.sortOrder
-  } : { ...pagination, total: 0, totalPages: 1 };
+  const students = studentsData?.data || [];
   
+
   const createStudentMutation = useMutation({
     mutationFn: async (studentData: CreateStudentDTO) => {
       return await studentService.createStudent(studentData);
@@ -82,13 +76,15 @@ export function useStudents() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: StudentStatus }) => {
+      updateStudentStatus(id, status);
       return await studentService.updateStudentStatus(id, status);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       toast.success('Estado actualizado exitosamente');
     },
-    onError: () => {
+    onError: (_, { id, status }) => {
+      updateStudentStatus(id, status);
       toast.error('Error al actualizar estado');
     },
   });
@@ -107,34 +103,21 @@ export function useStudents() {
     },
   });
 
-  
   const updateFilters = (newFilters: Partial<StudentFilters>) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters,
-    }));
-    
-    setPagination(prev => ({
-      ...prev,
-      page: 1,
-    }));
+    setFilters(newFilters);
   };
 
   const updatePagination = (updates: Partial<PaginationOptions>) => {
-    setPagination(prev => ({
-      ...prev,
-      ...updates
-    }));
+    setPagination(updates);
   };
 
   return {
     students,
-    pagination: paginationData,
+    pagination,
     filters,
     
     isLoading,
     isError,
-    error,
     
     refreshStudents,
     createStudent: createStudentMutation.mutateAsync,
@@ -151,9 +134,7 @@ export function useStudents() {
     updateError: updateStudentMutation.error,
     deleteError: deleteStudentMutation.error,
     
-    setFilters,
     updateFilters,
-    setPagination,
     updatePagination,
   };
 }
