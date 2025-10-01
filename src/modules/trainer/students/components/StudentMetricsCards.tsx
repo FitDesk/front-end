@@ -26,74 +26,28 @@ interface StudentMetricsCardsProps {
   isLoading?: boolean;
 }
 
-const getCurrentMonthWeeks = () => {
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  
-  const weeks = [];
-  let currentDate = new Date(firstDay);
-  let weekNumber = 1;
-  
-  while (currentDate <= lastDay) {
-    const weekStart = new Date(currentDate);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-    
-    if (weekEnd > lastDay) {
-      weekEnd.setDate(lastDay.getDate());
-    }
-    
-    weeks.push({
-      name: `Sem ${weekNumber}`,
-      startDate: weekStart,
-      endDate: weekEnd
-    });
-    
-    currentDate.setDate(weekEnd.getDate() + 1);
-    weekNumber++;
+// Función para generar datos del gráfico back
+const getChartData = (weeklyStats?: Array<{week: string; totalClasses: number; averageAttendance: number}>) => {
+  if (!weeklyStats || weeklyStats.length === 0) {
+    // Sin datos del backend, retornar estructura vacía
+    return [
+      { name: 'Semana actual', positive: 0, negative: 0 },
+      { name: 'Sem 1', positive: 0, negative: 0 },
+      { name: 'Sem 2', positive: 0, negative: 0 },
+      { name: 'Sem 3', positive: 0, negative: 0 },
+      { name: 'Sem 4', positive: 0, negative: 0 },
+      { name: 'Sem 5', positive: 0, negative: 0 },
+      { name: 'Sem 6', positive: 0, negative: 0 }
+    ];
   }
   
-  return weeks;
-};
-
-const getWeeklyTrendsData = (weeklyTrends?: Array<{name: string; positive: number; negative: number}>) => {
-  const currentWeeks = getCurrentMonthWeeks();
-  const today = new Date();
   
-  return currentWeeks.map(week => {
-    const isFutureWeek = week.startDate > today;
-    const weekData = weeklyTrends?.find(w => w.name === week.name) || { 
-      positive: 0, 
-      negative: 0 
-    };
-    
-    if (isFutureWeek) {
-      return {
-        name: week.name,
-        positive: 0,
-        negative: 0,
-        opacity: 0.3
-      };
-    }
-    
-    const isCurrentWeek = today >= week.startDate && today <= week.endDate;
-    if (isCurrentWeek) {
-      const daysInWeek = 7;
-      const daysPassed = Math.floor((today.getTime() - week.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      const progressRatio = daysPassed / daysInWeek;
-      
-      return {
-        ...weekData,
-        name: 'Esta semana',
-        positive: Math.round(weekData.positive * progressRatio),
-        negative: Math.round(weekData.negative * progressRatio)
-      };
-    }
-    
+  return weeklyStats.map((week) => {
+    const value = week.averageAttendance || 0;
     return {
-      ...weekData,
-      name: week.name
+      name: week.week,
+      positive: value >= 0 ? value : 0,
+      negative: value < 0 ? value : 0
     };
   });
 };
@@ -137,7 +91,7 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
 
   return (
     <div className="space-y-6">
-      {/* Métricas principales - Diseño minimalista */}
+      {/* Métricas principales - Solo datos del backend */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Total Estudiantes */}
         <Card className="border-border bg-card/40 rounded-xl border text-gray-900 dark:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
@@ -149,16 +103,16 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
               </div>
               <div className="flex items-center space-x-1">
                 <TrendingUp className="h-4 w-4 text-green-400" />
-                {metrics.newStudentsThisMonth > 0 && (
+                {(metrics?.newStudentsThisMonth || 0) > 0 && (
                   <span className="text-xs text-green-400 font-medium">
-                    +{metrics.newStudentsThisMonth} este mes
+                    +{metrics?.newStudentsThisMonth}
                   </span>
                 )}
               </div>
             </div>
             <div>
               <p className="text-2xl font-bold text-white mb-1">
-                {(metrics.totalStudents || 0).toLocaleString()}
+                {(metrics?.totalStudents || 0).toLocaleString()}
               </p>
               <p className="text-sm text-slate-400">Total Estudiantes</p>
             </div>
@@ -166,14 +120,12 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-blue-400 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, (metrics.totalStudents || 0) / 100 * 100)}%` }}
+                  style={{ width: `${Math.min(100, (metrics?.totalStudents || 0) / 200 * 100)}%` }}
                 />
               </div>
             </div>
           </CardContent>
         </Card>
-
-
         {/* Promedio Asistencia */}
         <Card className="border-border bg-card/40 rounded-xl border text-gray-900 dark:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
           <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -255,7 +207,7 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
       </div>
 
 
-      {/* Gráfico de Tendencias - AreaChartFillByValue */}
+      
       <Card className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg group relative cursor-pointer">
         <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <CardHeader className="pb-4 relative">
@@ -280,7 +232,7 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                data={getWeeklyTrendsData(metrics?.weeklyTrends)}
+                data={getChartData(metrics?.weeklyStats)}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
                 <defs>
@@ -288,9 +240,9 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
                     <stop offset="0%" stopColor="#10B981" stopOpacity={0.8}/>
                     <stop offset="100%" stopColor="#10B981" stopOpacity={0.1}/>
                   </linearGradient>
-                  <linearGradient id="negativeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#EF4444" stopOpacity={0.1}/>
-                    <stop offset="100%" stopColor="#EF4444" stopOpacity={0.8}/>
+                  <linearGradient id="negativeGradient" x1="0" y1="1" x2="0" y2="0">
+                    <stop offset="0%" stopColor="#EF4444" stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor="#EF4444" stopOpacity={0.1}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
@@ -304,7 +256,7 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: '#94A3B8', fontSize: 12 }}
-                  domain={[0, 'dataMax + 10']}
+                  domain={[-30, 160]}
                   tickCount={6}
                 />
                 <Tooltip
@@ -319,42 +271,38 @@ export function StudentMetricsCards({ metrics, isLoading }: StudentMetricsCardsP
                     name === 'positive' ? 'Estudiantes Activos' : 'Estudiantes Inactivos'
                   ]}
                 />
-                <ReferenceLine y={0} stroke="#64748B" strokeWidth={1} />
+                <ReferenceLine y={0} stroke="#64748B" strokeWidth={2} />
+                
                 <Area
                   type="monotone"
                   dataKey="positive"
                   stroke="#10B981"
                   strokeWidth={2}
                   fill="url(#positiveGradient)"
-                  connectNulls={true}
-                  baseValue={0}
-                  isAnimationActive={false}
                 />
+              
                 <Area
                   type="monotone"
                   dataKey="negative"
                   stroke="#EF4444"
                   strokeWidth={2}
                   fill="url(#negativeGradient)"
-                  connectNulls={true}
-                  baseValue={0}
-                  isAnimationActive={false}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
           
-          {/* Estadísticas actuales */}
+       
           <div className="mt-6 grid grid-cols-2 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-400">
-                {(metrics.activeStudents || 0).toLocaleString()}
+                {(metrics?.activeStudents || 0).toLocaleString()}
               </div>
               <div className="text-sm text-slate-400">Estudiantes Activos</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-red-400">
-                {(metrics.inactiveStudents || 0).toLocaleString()}
+                {(metrics?.inactiveStudents || 0).toLocaleString()}
               </div>
               <div className="text-sm text-slate-400">Estudiantes Inactivos</div>
             </div>

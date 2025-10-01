@@ -3,8 +3,6 @@ import { toast } from 'sonner';
 import { studentService } from '../services/student.service';
 import { useStudentsStore } from '../store/students-store';
 import type { 
-  StudentFilters,
-  PaginationOptions,
   CreateStudentDTO,
   UpdateStudentDTO,
   StudentStatus
@@ -29,15 +27,27 @@ export function useStudents() {
   } = useQuery({
     queryKey: ['students', filters, pagination],
     queryFn: async () => {
-      const result = await studentService.getStudents(filters, pagination);
-      setStudents(result.data);
-      setPagination({
-        page: result.page,
-        limit: result.limit,
-        total: result.total,
-        totalPages: result.totalPages
-      });
-      return result;
+      try {
+        const result = await studentService.getStudents(filters, pagination);
+        setStudents(result.data || []);
+        setPagination({
+          page: result.page || 1,
+          limit: result.limit || 12,
+          total: result.total || 0,
+          totalPages: result.totalPages || 1
+        });
+        return result;
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        setStudents([]);
+        setPagination({
+          page: 1,
+          limit: 12,
+          total: 0,
+          totalPages: 1
+        });
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000, 
     gcTime: 10 * 60 * 1000,
@@ -103,11 +113,11 @@ export function useStudents() {
     },
   });
 
-  const updateFilters = (newFilters: Partial<StudentFilters>) => {
+  const updateFilters = (newFilters: any) => {
     setFilters(newFilters);
   };
 
-  const updatePagination = (updates: Partial<PaginationOptions>) => {
+  const updatePagination = (updates: any) => {
     setPagination(updates);
   };
 
