@@ -21,9 +21,15 @@ export function useStudentMetrics() {
   } = useQuery({
     queryKey: ['student-metrics'],
     queryFn: async () => {
-      const result = await studentService.getMetrics();
-      setMetrics(result);
-      return result;
+      try {
+        const result = await studentService.getMetrics();
+        setMetrics(result);
+        return result;
+      } catch (error) {
+        console.error('Error fetching metrics:', error);
+        setMetrics(null);
+        throw error;
+      }
     },
     staleTime: 2 * 60 * 1000, 
     gcTime: 5 * 60 * 1000,
@@ -38,9 +44,15 @@ export function useStudentMetrics() {
   } = useQuery({
     queryKey: ['attendance-history'],
     queryFn: async () => {
-      const result = await studentService.getAttendanceHistory();
-      setAttendanceHistory(result.data);
-      return result;
+      try {
+        const result = await studentService.getAttendanceHistory();
+        setAttendanceHistory(result.data || []);
+        return result;
+      } catch (error) {
+        console.error('Error fetching attendance history:', error);
+        setAttendanceHistory([]);
+        throw error;
+      }
     },
     staleTime: 1 * 60 * 1000, 
     gcTime: 3 * 60 * 1000,
@@ -51,7 +63,15 @@ export function useStudentMetrics() {
   const useAttendanceStats = (period: 'week' | 'month' | 'quarter' | 'year' = 'month', studentId?: string) => {
     return useQuery({
       queryKey: ['attendance-stats', period, studentId],
-      queryFn: () => studentService.getAttendanceStats(period, studentId),
+      queryFn: async () => {
+        //  datosvacíos hasta que se implemente en el backend
+        return {
+          totalClasses: 0,
+          attendedClasses: 0,
+          attendanceRate: 0,
+          period
+        };
+      },
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,

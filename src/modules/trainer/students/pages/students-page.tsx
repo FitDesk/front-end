@@ -60,7 +60,8 @@ export default function StudentsPage() {
       setClasses(response.data || []);
     } catch (error) {
       console.error('Error loading classes:', error);
-      setClasses([]); 
+      setClasses([]);
+     
     } finally {
       setIsLoadingClasses(false);
     }
@@ -245,7 +246,10 @@ export default function StudentsPage() {
           <div className="flex-1">
             <StudentsTable
               students={students}
-              pagination={{...pagination, data: students}}
+              pagination={{
+                ...pagination,
+                data: students
+              }}
               isLoading={isLoadingStudents}
               isDeleting={isDeleting}
               onStudentDelete={handleStudentDelete}
