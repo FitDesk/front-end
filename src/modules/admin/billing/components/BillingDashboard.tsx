@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export interface BillingMetrics {
   monthlyIncome: {
@@ -111,36 +112,47 @@ export function BillingDashboard({ metrics, loading = false }: BillingDashboardP
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {dashboardCards.map((card, index) => {
         const TrendIcon = getTrendIcon(card.trend);
         const trendColor = getTrendColor(card.trend);
         const IconComponent = card.icon;
 
         return (
-          <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {card.title}
-                  </p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {card.value}
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <TrendIcon className={`h-3 w-3 ${trendColor}`} />
-                    <span className={`text-xs font-medium ${trendColor}`}>
-                      {card.change > 0 ? '+' : ''}{card.change}% vs mes anterior
-                    </span>
-                  </div>
-                </div>
-                <div className={`p-3 rounded-lg ${card.iconBg}`}>
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            whileHover={{ scale: 1.02 }}
+            className="group relative bg-card/40 border rounded-xl p-6 transition-all duration-300 hover:shadow-lg"
+          >
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent to-primary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            
+            <div className="relative">
+              <div className="mb-4 flex items-center justify-between">
+                <div className={`rounded-lg p-3 ${card.iconBg.replace('bg-', 'bg-').replace('-100', '-500/10')}`}>
                   <IconComponent className={`h-6 w-6 ${card.iconColor.replace('bg-', 'text-')}`} />
                 </div>
+                
+                <div className="flex items-center gap-1 text-sm font-medium">
+                  <TrendIcon className={`h-4 w-4 ${trendColor}`} />
+                  <span className={trendColor}>
+                    {card.change > 0 ? '+' : ''}{card.change}%
+                  </span>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+              
+              <div>
+                <h3 className="text-foreground mb-1 text-3xl font-bold">
+                  {card.value}
+                </h3>
+                <p className="text-muted-foreground text-sm font-medium">
+                  {card.title}
+                </p>
+              </div>
+            </div>
+          </motion.div>
         );
       })}
     </div>

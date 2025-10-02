@@ -269,17 +269,26 @@ toast({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="resumen" className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded-sm bg-gradient-to-br from-blue-500 to-blue-600"></div>
+        <TabsList className="grid w-full grid-cols-3 bg-black/90 backdrop-blur-sm border border-white/10 rounded-xl p-1 h-12">
+          <TabsTrigger 
+            value="resumen" 
+            className="flex items-center gap-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10 rounded-lg transition-all duration-200 font-medium"
+          >
+            <div className="h-2 w-2 rounded-full bg-blue-400"></div>
             Resumen
           </TabsTrigger>
-          <TabsTrigger value="pagos" className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded-sm bg-gradient-to-br from-green-500 to-green-600"></div>
+          <TabsTrigger 
+            value="pagos" 
+            className="flex items-center gap-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10 rounded-lg transition-all duration-200 font-medium"
+          >
+            <div className="h-2 w-2 rounded-full bg-green-400"></div>
             Pagos
           </TabsTrigger>
-          <TabsTrigger value="vencidos" className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded-sm bg-gradient-to-br from-red-500 to-red-600"></div>
+          <TabsTrigger 
+            value="vencidos" 
+            className="flex items-center gap-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10 rounded-lg transition-all duration-200 font-medium"
+          >
+            <div className="h-2 w-2 rounded-full bg-red-400"></div>
             Vencidos
           </TabsTrigger>
         </TabsList>

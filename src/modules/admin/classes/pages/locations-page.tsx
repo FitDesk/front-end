@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/sha
 import { Dialog, DialogContent } from '@/shared/components/animated/dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from '@/shared/components/ui/dropdown-menu';
 import { useLocations } from '../hooks/use-locations';
 import { LocationForm } from '../components/location-form';
 import type { Location } from '../types/location';
@@ -79,10 +79,6 @@ export default function LocationsPage() {
     setCurrentPage(1); 
   };
 
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value.toUpperCase() as StatusFilterType);
-    setCurrentPage(1); 
-  };
 
   const handleSubmit = async (data: any) => {
     try {
@@ -206,69 +202,71 @@ export default function LocationsPage() {
             Gestiona las ubicaciones disponibles para tus clases
           </p>
         </div>
-        <Button 
-          onClick={() => {
-            setSelectedLocation(null);
-            setIsFormOpen(true);
-          }}
-          className="w-full md:w-auto"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Nueva Ubicación
-        </Button>
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar ubicaciones..."
+              className="pl-9 w-64"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className={statusFilter !== 'ALL' ? 'bg-primary/10 border-primary/20' : ''}
+              >
+                <Filter className={`h-4 w-4 ${statusFilter !== 'ALL' ? 'text-primary' : ''}`} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === 'ALL'}
+                onCheckedChange={() => {
+                  setStatusFilter('ALL');
+                  setCurrentPage(1);
+                }}
+              >
+                Todas
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === 'ACTIVE'}
+                onCheckedChange={() => {
+                  setStatusFilter('ACTIVE');
+                  setCurrentPage(1);
+                }}
+              >
+                Activas
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === 'INACTIVE'}
+                onCheckedChange={() => {
+                  setStatusFilter('INACTIVE');
+                  setCurrentPage(1);
+                }}
+              >
+                Inactivas
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button 
+            onClick={() => {
+              setSelectedLocation(null);
+              setIsFormOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nueva Ubicación
+          </Button>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader className="border-b">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="relative w-full md:max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar ubicaciones..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Tabs 
-                defaultValue="all" 
-                className="w-full"
-                onValueChange={handleStatusFilterChange}
-              >
-                <TabsList>
-                  <TabsTrigger value="all">Todas</TabsTrigger>
-                  <TabsTrigger value="active">Activas</TabsTrigger>
-                  <TabsTrigger value="inactive">Inactivas</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {locations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No se encontraron ubicaciones</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {searchQuery || statusFilter !== 'ALL' 
-                  ? "Intenta con otros términos de búsqueda o filtros" 
-                  : "Comienza creando una nueva ubicación"}
-              </p>
-              {!searchQuery && statusFilter === 'ALL' && (
-                <Button
-                  onClick={() => {
-                    setSelectedLocation(null);
-                    setIsFormOpen(true);
-                  }}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Crear Ubicación
-                </Button>
-              )}
-            </div>
-          ) : (
+      {locations.length > 0 ? (
+        <Card>
+          <CardContent className="p-0">
             <div className="grid gap-4 p-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {locations.map((location: Location) => (
                 <Card 
@@ -356,25 +354,53 @@ export default function LocationsPage() {
               </Card>
             ))}
           </div>
-          )}
-        </CardContent>
-        
-        {/* Información de paginación */}
-        {pagination && pagination.total > 0 && (
-          <div className="p-4 border-t">
-            <div className="text-sm text-muted-foreground text-center">
-              <p>
-                Mostrando {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-{Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} ubicaciones
-              </p>
+          </CardContent>
+          
+          {/* Información de paginación */}
+          {pagination && pagination.total > 0 && (
+            <div className="p-4 border-t">
+              <div className="text-sm text-muted-foreground text-center">
+                <p>
+                  Mostrando {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-{Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} ubicaciones
+                </p>
+              </div>
             </div>
+          )}
+        </Card>
+      ) : null}
+
+      {locations.length === 0 && (
+        <div className="rounded-lg border-2 border-dashed p-12 text-center">
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <MapPin className="h-14 w-14 text-muted-foreground" />
+            <h3 className="text-xl font-medium">No se encontraron ubicaciones</h3>
+            <p className="text-muted-foreground max-w-md">
+              {searchQuery || statusFilter !== 'ALL' 
+                ? "Intenta con otros términos de búsqueda o filtros" 
+                : "Comienza creando una nueva ubicación"}
+            </p>
+            {!searchQuery && statusFilter === 'ALL' && (
+              <div className="mt-6">
+                <Button
+                  onClick={() => {
+                    setSelectedLocation(null);
+                    setIsFormOpen(true);
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Crear Ubicación
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </Card>
+        </div>
+      )}
 
     {isFormOpen && (
       <Dialog 
         open={isFormOpen} 
         onOpenChange={(open) => {
+          setIsFormOpen(open);
           if (!open) {
             setSelectedLocation(null);
           }
