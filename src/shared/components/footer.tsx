@@ -119,7 +119,7 @@ export const Footer = () => {
 
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4 lg:col-span-2">
             <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">About Us</p>
+              <p className="text-lg font-medium">Acerca de Nosotros</p>
               <ul className="mt-8 space-y-4 text-sm">
                 {aboutLinks.map(({ text, href }) => (
                   <li key={text}>
@@ -135,7 +135,7 @@ export const Footer = () => {
             </div>
 
             <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">Our Services</p>
+              <p className="text-lg font-medium">Nuestros Servicios</p>
               <ul className="mt-8 space-y-4 text-sm">
                 {serviceLinks.map(({ text, href }) => (
                   <li key={text}>
@@ -151,7 +151,7 @@ export const Footer = () => {
             </div>
 
             <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">Helpful Links</p>
+              <p className="text-lg font-medium">Enlaces Útiles</p>
               <ul className="mt-8 space-y-4 text-sm">
                 {helpfulLinks.map(({ text, href, hasIndicator }) => (
                   <li key={text}>
@@ -179,7 +179,7 @@ export const Footer = () => {
             </div>
 
             <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">Contact Us</p>
+              <p className="text-lg font-medium">Contáctanos</p>
               <ul className="mt-8 space-y-4 text-sm">
                 {contactInfo.map(({ icon: Icon, text, isAddress }) => (
                   <li key={text}>
