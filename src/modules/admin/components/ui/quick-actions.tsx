@@ -13,7 +13,7 @@ const actions = [
     icon: Users,
     label: 'Add New User',
     color: 'blue',
-    shortcut: 'Ctrl+N',
+    shortcut: 'Ctrl+M',
     action: 'addUser',
   },
   {
