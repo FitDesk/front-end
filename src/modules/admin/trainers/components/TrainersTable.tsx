@@ -23,12 +23,13 @@ import {
   CheckCircle2, 
   XCircle, 
   AlertCircle,
-  Clock
+  Clock,
+  Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Trainer } from '../types';
 
-// Utility function to merge class names
+
 const cn = (...classes: (string | undefined)[]) => {
   return classes.filter(Boolean).join(' ');
 };
@@ -64,12 +65,12 @@ interface TrainersTableProps {
   trainers: Trainer[];
   onEdit: (trainer: Trainer) => void;
   onDelete: (id: string) => Promise<void>;
+  onViewDetails: (trainer: Trainer) => void;
 }
 
-export function TrainersTable({ trainers, onEdit, onDelete }: TrainersTableProps) {
+export function TrainersTable({ trainers, onEdit, onDelete, onViewDetails }: TrainersTableProps) {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  
-  // Remove unused StatusIcon warning by using it in the status display
+ 
   const renderStatusBadge = (status: string | undefined) => {
     const { icon: StatusIcon, label, color, iconColor } = getStatusConfig(status);
     
@@ -99,7 +100,7 @@ export function TrainersTable({ trainers, onEdit, onDelete }: TrainersTableProps
     }
   };
 
-  // Obtener configuración de estado con seguridad de tipos
+ 
   const getStatusConfig = (status: string | undefined) => {
     if (!status) {
       return TRAINER_STATUS.INACTIVE;
@@ -109,28 +110,12 @@ export function TrainersTable({ trainers, onEdit, onDelete }: TrainersTableProps
     return TRAINER_STATUS[statusKey] || TRAINER_STATUS.INACTIVE;
   };
 
-  const trainerList: Trainer[] = Array.isArray(trainers) ? trainers : [];
-
-  if (trainerList.length === 0) {
-    return (
-      <div className="text-center py-10">
-        <User className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-          No hay entrenadores registrados
-        </h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Comienza creando un nuevo entrenador.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="rounded-lg border bg-card shadow-sm">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="w-[200px]">Entrenador</TableHead>
+            <TableHead className="w-[250px]">Entrenador</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Documento</TableHead>
             <TableHead className="w-[140px]">Estado</TableHead>
@@ -153,12 +138,26 @@ export function TrainersTable({ trainers, onEdit, onDelete }: TrainersTableProps
                 >
                   <TableCell className="py-3">
                     <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-5 w-5 text-primary" />
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+                        {trainer.profileImage ? (
+                          <img
+                            src={trainer.profileImage}
+                            alt={`${trainer.firstName} ${trainer.lastName}`}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <User className="h-5 w-5 text-primary" />
+                        )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-medium truncate">
+                        <button
+                          onClick={() => onViewDetails(trainer)}
+                          className="font-medium truncate text-left hover:text-primary transition-colors cursor-pointer"
+                        >
                           {trainer.firstName} {trainer.lastName}
+                        </button>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {trainer.specialties}
                         </div>
                       </div>
                     </div>
@@ -185,9 +184,6 @@ export function TrainersTable({ trainers, onEdit, onDelete }: TrainersTableProps
                         {trainer.yearsOfExperience === 1 ? 'año' : 'años'}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {trainer.specialties}
-                    </div>
                   </TableCell>
                   
                   <TableCell className="text-right">
@@ -203,6 +199,13 @@ export function TrainersTable({ trainers, onEdit, onDelete }: TrainersTableProps
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem
+                          onClick={() => onViewDetails(trainer)}
+                          className="cursor-pointer"
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          <span>Ver detalles</span>
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => onEdit(trainer)}
                           className="cursor-pointer"

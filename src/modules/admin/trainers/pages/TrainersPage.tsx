@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus, Search, Loader2 } from 'lucide-react';
+import { Plus, Search, Loader2, User } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { TrainersTable } from '../components/TrainersTable';
+import { TrainerDetailView } from '../components/TrainerDetailView';
 import { PageHeader } from '@/shared/components/page-header';
 import { useTrainers } from '../hooks/use-trainers';
 import type { Trainer } from '../types';
@@ -29,6 +30,8 @@ export function TrainersPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
+  const [showDetailView, setShowDetailView] = useState(false);
   
  
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -62,6 +65,16 @@ export function TrainersPage() {
     setCurrentPage(1);
   };
 
+  const handleViewDetails = (trainer: Trainer) => {
+    setSelectedTrainer(trainer);
+    setShowDetailView(true);
+  };
+
+  const handleBackToList = () => {
+    setShowDetailView(false);
+    setSelectedTrainer(null);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -78,44 +91,68 @@ export function TrainersPage() {
     );
   }
 
+  if (showDetailView && selectedTrainer) {
+    return (
+      <div className="space-y-6 p-4 sm:p-6">
+        <TrainerDetailView
+          trainer={selectedTrainer}
+          onBack={handleBackToList}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-4 sm:p-6">
       <div className="flex flex-col justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
         <PageHeader title="Gestión de Entrenadores" />
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo Entrenador
-        </Button>
-      </div>
-
-      <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <div className="mb-6">
-          <div className="relative max-w-md">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Buscar entrenadores..."
-              className="pl-9"
+              className="pl-9 w-64"
               value={searchQuery}
               onChange={handleSearchChange}
             />
           </div>
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Entrenador
+          </Button>
         </div>
-        <TrainersTable
-          trainers={trainers}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-        
-        {/* Información de paginación */}
-        {pagination && pagination.total > 0 && (
-          <div className="mt-4 text-sm text-muted-foreground">
-            <p>
-              Mostrando {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-{Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} entrenadores
+      </div>
+
+      {trainers.length === 0 ? (
+        <div className="rounded-lg border-2 border-dashed p-12 text-center">
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <User className="h-14 w-14 text-muted-foreground" />
+            <h3 className="text-xl font-medium">No hay entrenadores registrados</h3>
+            <p className="text-muted-foreground max-w-md">
+              Comienza creando un nuevo entrenador.
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <TrainersTable
+            trainers={trainers}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onViewDetails={handleViewDetails}
+          />
+          
+          {/* Información de paginación */}
+          {pagination && pagination.total > 0 && (
+            <div className="mt-4 text-sm text-muted-foreground">
+              <p>
+                Mostrando {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-{Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} entrenadores
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

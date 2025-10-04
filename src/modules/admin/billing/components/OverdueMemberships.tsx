@@ -6,19 +6,7 @@ import { RefreshCw, Info, CreditCard } from 'lucide-react';
 import { useToast } from '@/shared/components/ui/toast';
 import { MemberDetailsModal } from './MemberDetailsModal';
 import { useState } from 'react';
-
-export interface OverdueMember {
-  id: string;
-  memberId: string;
-  memberName: string;
-  planName: string;
-  planPrice: number;
-  daysOverdue: number;
-  lastPaymentDate: string;
-  nextBillingDate: string;
-  email: string;
-  phone?: string;
-}
+import type { OverdueMember } from '../types/billing.types';
 
 interface OverdueMembershipsProps {
   members: OverdueMember[];

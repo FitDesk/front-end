@@ -14,6 +14,7 @@ export const TrainerSchema = z.object({
   specialties: z.string().min(5, 'Especifica al menos una especialidad'),
   yearsOfExperience: z.number().min(0, 'La experiencia no puede ser negativa'),
   certifications: z.string().optional(),
+  certificationImages: z.array(z.string()).optional(),
   availability: z.record(z.string(), z.boolean()),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
