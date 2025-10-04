@@ -2,12 +2,12 @@ import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } fro
 import axios from 'axios';
 
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data?: T;
   error?: {
     message: string;
     code?: string | number;
-    details?: any;
+    details?: unknown;
   };
   status?: number;
 }
@@ -78,7 +78,7 @@ class FitdeskApiClient {
     );
   }
 
-  private handleError(error: any): Error {
+  private handleError(error: unknown): Error {
     if (axios.isAxiosError(error)) {
       if (error.response) {
         const { data, status } = error.response;
@@ -88,48 +88,49 @@ class FitdeskApiClient {
           return new Error('NO_MEMBERS_FOUND');
         }
         
-        const message = (data as any)?.message || error.message || 'An error occurred';
+        const message = (data && typeof data === 'object' && 'message' in data ? (data as { message: string }).message : null) || error.message || 'An error occurred';
         return new Error(`[${status}] ${message}`);
       } else if (error.request) {
-        return new Error('No response received from server. Please check your connection.');
+        // Error de red - no se recibió respuesta
+        return new Error('Network error: No response received');
       }
     }
     return error instanceof Error ? error : new Error('An unknown error occurred');
   }
 
-  public async get<T = any>(
+  public async get<T = unknown>(
     url: string,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.instance.get<T>(url, config);
   }
 
-  public async post<T = any>(
+  public async post<T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.instance.post<T>(url, data, config);
   }
 
-  public async put<T = any>(
+  public async put<T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.instance.put<T>(url, data, config);
   }
 
-  public async delete<T = any>(
+  public async delete<T = unknown>(
     url: string,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.instance.delete<T>(url, config);
   }
 
-  public async patch<T = any>(
+  public async patch<T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.instance.patch<T>(url, data, config);
