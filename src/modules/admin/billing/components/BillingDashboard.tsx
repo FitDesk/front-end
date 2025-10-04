@@ -1,36 +1,30 @@
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
-
-export interface BillingMetrics {
-  monthlyIncome: {
-    amount: number;
-    change: number;
-    trend: 'up' | 'down';
-  };
-  pendingPayments: {
-    amount: number;
-    change: number;
-    trend: 'up' | 'down';
-  };
-  membersUpToDate: {
-    count: number;
-    change: number;
-    trend: 'up' | 'down';
-  };
-  overduePayments: {
-    count: number;
-    change: number;
-    trend: 'up' | 'down';
-  };
-}
+import type { BillingMetrics } from '../types/billing.types';
 
 interface BillingDashboardProps {
-  metrics: BillingMetrics;
+  metrics: BillingMetrics | null;
   loading?: boolean;
 }
 
 export function BillingDashboard({ metrics, loading = false }: BillingDashboardProps) {
+
+  if (!metrics || !metrics.monthlyIncome || !metrics.pendingPayments || !metrics.membersUpToDate || !metrics.overduePayments) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-6">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -54,36 +48,36 @@ export function BillingDashboard({ metrics, loading = false }: BillingDashboardP
   const dashboardCards = [
     {
       title: 'Ingresos del Mes',
-      value: formatCurrency(metrics.monthlyIncome.amount),
-      change: metrics.monthlyIncome.change,
-      trend: metrics.monthlyIncome.trend,
+      value: formatCurrency(metrics.monthlyIncome?.amount || 0),
+      change: metrics.monthlyIncome?.change || 0,
+      trend: metrics.monthlyIncome?.trend || 'up',
       icon: DollarSign,
       iconColor: 'bg-green-500',
       iconBg: 'bg-green-100',
     },
     {
       title: 'Pagos Pendientes',
-      value: formatCurrency(metrics.pendingPayments.amount),
-      change: metrics.pendingPayments.change,
-      trend: metrics.pendingPayments.trend,
+      value: formatCurrency(metrics.pendingPayments?.amount || 0),
+      change: metrics.pendingPayments?.change || 0,
+      trend: metrics.pendingPayments?.trend || 'up',
       icon: Clock,
       iconColor: 'bg-yellow-500',
       iconBg: 'bg-yellow-100',
     },
     {
       title: 'Miembros al Día',
-      value: formatNumber(metrics.membersUpToDate.count),
-      change: metrics.membersUpToDate.change,
-      trend: metrics.membersUpToDate.trend,
+      value: formatNumber(metrics.membersUpToDate?.count || 0),
+      change: metrics.membersUpToDate?.change || 0,
+      trend: metrics.membersUpToDate?.trend || 'up',
       icon: CheckCircle,
       iconColor: 'bg-green-500',
       iconBg: 'bg-green-100',
     },
     {
       title: 'Pagos Vencidos',
-      value: formatNumber(metrics.overduePayments.count),
-      change: metrics.overduePayments.change,
-      trend: metrics.overduePayments.trend,
+      value: formatNumber(metrics.overduePayments?.count || 0),
+      change: metrics.overduePayments?.change || 0,
+      trend: metrics.overduePayments?.trend || 'up',
       icon: AlertCircle,
       iconColor: 'bg-red-500',
       iconBg: 'bg-red-100',

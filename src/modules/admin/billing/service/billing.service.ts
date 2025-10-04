@@ -1,5 +1,5 @@
 import { fitdeskApi } from '@/core/api/fitdeskApi';
-import type { BillingFilter, BillingPagination, Payment } from '../types/billing.types';
+import type { BillingFilter, Payment, BillingMetrics, OverdueMember } from '../types/billing.types';
 
 interface GetPaymentsParams extends BillingFilter {
   page?: number;
@@ -10,35 +10,112 @@ interface GetPaymentsParams extends BillingFilter {
 
 export const billingService = {
   async getPayments(params: GetPaymentsParams = {}) {
-    const response = await fitdeskApi.get<{ data: Payment[]; pagination: BillingPagination }>('/admin/payments', { params });
+    const { page = 1, ...filters } = params;
     
-    const responseData = response.data as any; 
+    const response = await fitdeskApi.get<{
+      data: Payment[];
+      pagination?: {
+        page: number;
+        pageSize: number;
+        total: number;
+      };
+      page?: number;
+      limit?: number;
+      total?: number;
+      totalPages?: number;
+    }>('/payments', {
+      params: {
+        page,
+        pageSize: 10,
+        ...filters,
+      },
+    });
+    
+    const responseData = response.data;
+    const payments = Array.isArray(responseData.data) ? responseData.data : [];
+    
+    const paginationData = responseData.pagination || {
+      page: responseData.page || page,
+      pageSize: responseData.limit || 10,
+      total: responseData.total || payments.length,
+    };
+    
     return {
-      data: Array.isArray(responseData?.data) ? responseData.data : [],
+      payments,
       pagination: {
-        page: responseData?.pagination?.page || 1,
-        pageSize: responseData?.pagination?.pageSize || 10,
-        totalItems: responseData?.pagination?.totalItems || 0,
-        totalPages: responseData?.pagination?.totalPages || 1,
+        page: paginationData.page,
+        pageSize: paginationData.pageSize,
+        totalItems: paginationData.total,
+        totalPages: responseData.totalPages || Math.ceil((paginationData.total || 0) / (paginationData.pageSize || 10)),
       }
     };
   },
 
+  async getBillingMetrics(): Promise<BillingMetrics> {
+    const response = await fitdeskApi.get('/admin/billing/metrics');
+    return response.data;
+  },
+
+  async getOverdueMembers(): Promise<OverdueMember[]> {
+    const response = await fitdeskApi.get('/admin/billing/overdue-members');
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
   async forceRenewal(paymentId: string) {
-    const response = await fitdeskApi.post(`/admin/payments/${paymentId}/force-renewal`, {});
+    const response = await fitdeskApi.post(`/payments/${paymentId}/renew`);
     return response.data;
   },
 
   async processRefund(paymentId: string, amount?: number) {
-    const response = await fitdeskApi.post(`/admin/payments/${paymentId}/refund`, { amount });
+    const response = await fitdeskApi.post(`/payments/${paymentId}/refund`, { amount });
     return response.data;
   },
 
-  async exportPayments(params: GetPaymentsParams = {}): Promise<Blob> {
-    const response = await fitdeskApi.get<Blob>('/admin/payments/export', {
-      params,
+  async exportPayments(): Promise<void> {
+    const response = await fitdeskApi.get('/payments/export', {
+      responseType: 'blob',
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const contentDisposition = response.headers['content-disposition'];
+    let fileName = `payments-${new Date().toISOString().split('T')[0]}.csv`;
+    
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="?(.+)"/);
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = fileNameMatch[1];
+      }
+    }
+    
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
+
+  async getMemberDetails(memberId: string) {
+    const response = await fitdeskApi.get(`/admin/members/${memberId}/billing-details`);
+    return response.data;
+  },
+
+  async getInvoice(paymentId: string): Promise<Blob> {
+    const response = await fitdeskApi.get<Blob>(`/admin/payments/${paymentId}/invoice`, {
       responseType: 'blob',
     } as any);
+    return response.data;
+  },
+
+  async sendPaymentReminder(memberId: string) {
+    const response = await fitdeskApi.post(`/admin/members/${memberId}/payment-reminder`, {});
+    return response.data;
+  },
+
+  async sendBulkReminders(memberIds: string[]) {
+    const response = await fitdeskApi.post('/admin/members/bulk-payment-reminders', { memberIds });
     return response.data;
   },
 };

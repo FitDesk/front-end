@@ -4,6 +4,7 @@ import { Plus, Search, Loader2, User } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { TrainersTable } from '../components/TrainersTable';
+import { TrainerDetailView } from '../components/TrainerDetailView';
 import { PageHeader } from '@/shared/components/page-header';
 import { useTrainers } from '../hooks/use-trainers';
 import type { Trainer } from '../types';
@@ -29,6 +30,8 @@ export function TrainersPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
+  const [showDetailView, setShowDetailView] = useState(false);
   
  
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -62,6 +65,16 @@ export function TrainersPage() {
     setCurrentPage(1);
   };
 
+  const handleViewDetails = (trainer: Trainer) => {
+    setSelectedTrainer(trainer);
+    setShowDetailView(true);
+  };
+
+  const handleBackToList = () => {
+    setShowDetailView(false);
+    setSelectedTrainer(null);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -74,6 +87,17 @@ export function TrainersPage() {
     return (
       <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
         Error al cargar los entrenadores. Por favor, inténtalo de nuevo.
+      </div>
+    );
+  }
+
+  if (showDetailView && selectedTrainer) {
+    return (
+      <div className="space-y-6 p-4 sm:p-6">
+        <TrainerDetailView
+          trainer={selectedTrainer}
+          onBack={handleBackToList}
+        />
       </div>
     );
   }
@@ -116,6 +140,7 @@ export function TrainersPage() {
             trainers={trainers}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onViewDetails={handleViewDetails}
           />
           
           {/* Información de paginación */}
