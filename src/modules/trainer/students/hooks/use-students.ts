@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { studentService } from '../services/student.service';
 import { useStudentsStore } from '../store/students-store';
+import { MemberSchema, PaginatedApiResponseSchema } from '@/core/zod';
 import type { 
   CreateStudentDTO,
   UpdateStudentDTO,
@@ -28,15 +29,43 @@ export function useStudents() {
     queryKey: ['students', filters, pagination],
     queryFn: async () => {
       try {
-        const result = await studentService.getStudents(filters, pagination);
-        setStudents(result.data || []);
-        setPagination({
-          page: result.page || 1,
-          limit: result.limit || 12,
-          total: result.total || 0,
-          totalPages: result.totalPages || 1
-        });
-        return result;
+        const response = await studentService.getStudents(filters, pagination);
+        
+      
+        const validatedResponse = PaginatedApiResponseSchema(MemberSchema).parse(response);
+        
+        
+        const adaptedStudents = validatedResponse.data.map(member => ({
+          id: member.id,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          email: member.email,
+          phone: member.phone,
+          profileImage: member.profileImage,
+          status: member.status as StudentStatus,
+          joinDate: member.joinDate,
+          lastActivity: member.lastActivity,
+          membership: {
+            type: member.membershipType,
+            startDate: member.membershipStartDate,
+            endDate: member.membershipEndDate,
+            status: member.status === 'ACTIVE' ? 'ACTIVE' as const : 'EXPIRED' as const,
+          },
+          stats: {
+            totalClasses: 0, // TODO: Obtener del backend
+            attendedClasses: 0, // TODO: Obtener del backend
+            attendanceRate: 0, // TODO: Calcular del backend
+            currentStreak: 0, // TODO: Obtener del backend
+            longestStreak: 0, // TODO: Obtener del backend
+          },
+          createdAt: member.joinDate, // Usar joinDate como createdAt
+          updatedAt: member.lastActivity || member.joinDate, // Usar lastActivity o joinDate
+        }));
+        
+        setStudents(adaptedStudents);
+        setPagination(validatedResponse.pagination);
+        
+        return validatedResponse;
       } catch (error) {
         console.error('Error fetching students:', error);
         setStudents([]);
