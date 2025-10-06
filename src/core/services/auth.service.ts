@@ -27,14 +27,17 @@ export const AuthService = {
         }
     },
 
-    async refresh(): Promise<AuthResponse> {
+       async refresh(): Promise<AuthResponse> {
         try {
             const { data } = await fitdeskApi.post<AuthResponse>("/security/auth/refresh")
             console.log("Data for refresh token", data)
             return data;
-
-        } catch (error) {
-            throw new Error(`Error al refrescar el token ${error}`)
+        } catch (error: any) {
+            // ✅ Propagar error 401 sin loggear (es normal cuando no hay sesión)
+            if (error.response?.status === 401) {
+                throw new Error("[401] No ha iniciado sesión, intente iniciar sesión");
+            }
+            throw new Error(`Error al refrescar el token: ${error}`);
         }
     },
     async register(registrationData: AuthRequestRegister): Promise<AuthResponse> {

@@ -14,7 +14,8 @@ import { CreateMemberPage } from "./modules/admin/members/pages/CreateMemberPage
 import { MemberDetailsPage } from "./modules/admin/members/pages/MemberDetailsPage";
 import { EditMemberPage } from "./modules/admin/members/pages/EditMemberPage";
 import { MessagePage } from "./modules/trainer/messages/message-page";
-import {TrainerRoute, AdminRoute, NotAuthenticatedRoute} from './shared/components/protected-routes';
+import { TrainerRoute, AdminRoute, NotAuthenticatedRoute } from './shared/components/protected-routes';
+import { OAuthCallback } from "./modules/shared/auth/oauth-callback";
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
@@ -122,7 +123,8 @@ export const appRouter = createBrowserRouter([
         children: [
             { index: true, element: <Suspense><Login /></Suspense> },
             { path: "register", element: <Suspense><Register /></Suspense> },
-            { path: "forgot-password", element: <Suspense><ForgotPassword /></Suspense> }
+            { path: "forgot-password", element: <Suspense><ForgotPassword /></Suspense> },
+            { path: "callback", element: <OAuthCallback /> }
         ]
     },
     {

@@ -1,30 +1,32 @@
-import {useEffect, useState} from "react"
-import {motion} from 'motion/react';
-import {Eye, EyeOff} from "lucide-react";
-import {Input} from "@/shared/components/ui/input";
-import {Link} from "react-router";
-import {Button} from "@/shared/components/ui/button";
+import { useEffect, useState } from "react"
+import { motion } from 'motion/react';
+import { Eye, EyeOff } from "lucide-react";
+import { Input } from "@/shared/components/ui/input";
+import { Link } from "react-router";
+import { Button } from "@/shared/components/ui/button";
 import imageTrainer from '@/assets/trainer.webp'
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/shared/components/ui/form";
-import {useForm} from "react-hook-form";
-import {z} from "zod"
-import {zodResolver} from "@hookform/resolvers/zod"
-import {Image} from "@/shared/components/ui/image";
-import {Checkbox} from "@/shared/components/ui/checkbox";
-import {Label} from "@/shared/components/ui/label";
-import {AuthService} from "@/core/services/auth.service";
-import {useAuthStore} from "@core/store/auth.store.ts";
-import {useRoleRedirec} from "@core/hooks/useRoleRedirec.tsx";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
+import { useForm } from "react-hook-form";
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Image } from "@/shared/components/ui/image";
+import { Checkbox } from "@/shared/components/ui/checkbox";
+import { Label } from "@/shared/components/ui/label";
+import { AuthService } from "@/core/services/auth.service";
+import { useAuthStore } from "@core/store/auth.store.ts";
+import { useRoleRedirec } from "@core/hooks/useRoleRedirec.tsx";
+import { GoogleIcon } from "@/shared/components/icons/google";
+import { fitdeskApi } from "@/core/api/fitdeskApi";
 
 
 const formSchema = z.object({
-    email: z.string().min(2, {message: "El dni debe tener al menos 7 caracteres"}),
+    email: z.string().min(2, { message: "El dni debe tener al menos 7 caracteres" }),
     password: z.string()
 })
 
 export const Login = () => {
     const loginStore = useAuthStore();
-    const {redirectByRole} = useRoleRedirec();
+    const { redirectByRole } = useRoleRedirec();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -37,7 +39,7 @@ export const Login = () => {
     const [rememberMe, setRememberMe] = useState(false)
 
     const handleLogin = async (values: z.infer<typeof formSchema>) => {
-        const {success} = await AuthService.login(values)
+        const { success } = await AuthService.login(values)
         if (success) {
             await loginStore.login(values);
             console.log("User despues de login", loginStore.user)
@@ -49,6 +51,11 @@ export const Login = () => {
             redirectByRole();
         }
     }, [loginStore.user, redirectByRole]);
+
+    const handleGoogleLogin = () => {
+        window.location.href = "http://localhost:9091/oauth2/authorization/google";
+    }
+
     return (
         <div
             className="min-h-screen relative overflow-hidden bg-background transition-colors">
@@ -61,9 +68,9 @@ export const Login = () => {
             <div className="flex min-h-screen">
                 <div className="flex-1 flex flex-col justify-center items-start pl-20">
                     <motion.div
-                        initial={{opacity: 0, x: -50}}
-                        animate={{opacity: 1, x: 0}}
-                        transition={{duration: 0.8}}
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8 }}
                         className="space-y-6"
                     >
                         <div className="flex items-center space-x-3">
@@ -81,9 +88,9 @@ export const Login = () => {
 
                 <div className="flex-1 relative">
                     <motion.div
-                        initial={{opacity: 0, scale: 0.9}}
-                        animate={{opacity: 1, scale: 1}}
-                        transition={{duration: 1}}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 1 }}
                         className="relative w-full h-full flex items-center justify-center"
                     >
                         <div className="relative">
@@ -94,9 +101,9 @@ export const Login = () => {
                             />
 
                             <motion.div
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                transition={{delay: 0.5, duration: 0.6}}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5, duration: 0.6 }}
                                 className="absolute top-8 right-4 bg-black/80 dark:bg-black/60  backdrop-blur-sm  rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 1300</div>
@@ -104,9 +111,9 @@ export const Login = () => {
                             </motion.div>
 
                             <motion.div
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                transition={{delay: 0.7, duration: 0.6}}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.7, duration: 0.6 }}
                                 className="absolute top-1/3 left-4 bg-black/80 dark:bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 80</div>
@@ -114,9 +121,9 @@ export const Login = () => {
                             </motion.div>
 
                             <motion.div
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                transition={{delay: 0.9, duration: 0.6}}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.9, duration: 0.6 }}
                                 className="absolute bottom-32 left-4 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 1000</div>
@@ -124,9 +131,9 @@ export const Login = () => {
                             </motion.div>
 
                             <motion.div
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                transition={{delay: 1.1, duration: 0.6}}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 1.1, duration: 0.6 }}
                                 className="absolute bottom-16 right-4 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm border-1 border-orange-700"
                             >
                                 <div className="text-orange-400 font-bold">+ 1500</div>
@@ -134,9 +141,9 @@ export const Login = () => {
                             </motion.div>
 
                             <motion.div
-                                initial={{opacity: 0, x: 50}}
-                                animate={{opacity: 1, x: 0}}
-                                transition={{duration: 0.8}}
+                                initial={{ opacity: 0, x: 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.8 }}
                                 className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
                                     bg-background/80 dark:bg-background/60 backdrop-blur-lg shadow-2xl rounded-2xl p-8 w-80 border-1 border-orange-700"
                             >
@@ -149,7 +156,7 @@ export const Login = () => {
                                             <FormField
                                                 control={form.control}
                                                 name="email"
-                                                render={({field}) => (
+                                                render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel
                                                             className="block text-sm font-medium text-foreground mb-2">Correo
@@ -162,14 +169,14 @@ export const Login = () => {
                                                                 {...field}
                                                             />
                                                         </FormControl>
-                                                        <FormMessage/>
+                                                        <FormMessage />
                                                     </FormItem>
                                                 )}
                                             />
                                             <FormField
                                                 control={form.control}
                                                 name="password"
-                                                render={({field}) => (
+                                                render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel
                                                             className="block text-sm font-medium text-foreground mb-2">Contraseña</FormLabel>
@@ -188,12 +195,12 @@ export const Login = () => {
                                                                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                                                                     tabIndex={-1}
                                                                 >
-                                                                    {showPassword ? <EyeOff className="w-5 h-5"/> :
-                                                                        <Eye className="w-5 h-5"/>}
+                                                                    {showPassword ? <EyeOff className="w-5 h-5" /> :
+                                                                        <Eye className="w-5 h-5" />}
                                                                 </button>
                                                             </div>
                                                         </FormControl>
-                                                        <FormMessage/>
+                                                        <FormMessage />
                                                     </FormItem>
                                                 )}
                                             />
@@ -211,7 +218,7 @@ export const Login = () => {
                                                     </Label>
                                                 </div>
                                                 <Link to="/auth/forgot-password" viewTransition
-                                                      className=" flex text-sm text-end text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300">
+                                                    className=" flex text-sm text-end text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300">
                                                     ¿Olvidaste tu contraseña?
                                                 </Link>
                                             </div>
@@ -222,12 +229,22 @@ export const Login = () => {
                                             >
                                                 Iniciar Sesión
                                             </Button>
-
+                                            <div className="flex flex-col items-center gap-3">
+                                                <Button
+                                                    onClick={handleGoogleLogin}
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="w-full flex items-center justify-center gap-2 border border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors"
+                                                >
+                                                    <GoogleIcon className="w-5 h-5" />
+                                                    <span className="font-medium text-foreground">Inicia sesión con Google</span>
+                                                </Button>
+                                            </div>
                                             <div className="text-center">
                                                 <span
                                                     className="text-sm text-muted-foreground">¿No tienes una cuenta? </span>
                                                 <Link to="/auth/register" viewTransition
-                                                      className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold">
+                                                    className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold">
                                                     Regístrate
                                                 </Link>
                                             </div>
