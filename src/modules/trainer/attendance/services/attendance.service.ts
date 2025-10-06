@@ -184,7 +184,7 @@ class AttendanceService {
       `${this.baseUrl}/export?${searchParams.toString()}`,
       { responseType: 'blob' }
     );
-    return response.data;
+    return response.data as Blob;
   }
 
   async getQuickStats(): Promise<{

@@ -71,7 +71,7 @@ export function SessionList({ onSessionClick, onStartSession, onCompleteSession 
     }, 300);
   };
 
-  const handleFilterChange = (key: keyof AttendanceFilters, value: any) => {
+  const handleFilterChange = (key: keyof AttendanceFilters, value: unknown) => {
     setFilters({ [key]: value });
   };
 

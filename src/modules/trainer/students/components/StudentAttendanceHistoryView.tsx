@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Filter, MoreHorizontal, Edit, X, Check, User, Calendar } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { useStudentMetrics } from '../hooks/use-student-metrics';
 import { Button } from '@/shared/components/ui/button';
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
 import {
@@ -40,33 +40,28 @@ export function StudentAttendanceHistoryView({
 }: StudentAttendanceHistoryViewProps) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
-  const queryClient = useQueryClient();
 
   const { data: attendanceData } = useQuery({
-    queryKey: ['student-attendance', student.id, statusFilter],
-    queryFn: () => studentService.getAttendanceHistory(
-      student.id, 
-      { status: statusFilter !== 'all' ? [statusFilter] : undefined }
-    )
+    queryKey: ['student-attendance', student.id],
+    queryFn: () => studentService.getAttendanceHistory()
   });
 
-  const updateAttendanceMutation = useMutation({
-    mutationFn: ({ recordId, status }: { recordId: string; status: string }) =>
-      studentService.updateAttendanceRecord(recordId, { status }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['student-attendance', student.id] });
-      toast.success('Asistencia actualizada correctamente');
-      setEditingRecordId(null);
-    },
-    onError: () => {
-      toast.error('Error al actualizar la asistencia');
-    }
-  });
+  const { markAttendance } = useStudentMetrics();
 
   const attendanceRecords = attendanceData?.data || [];
 
-  const handleUpdateAttendance = (recordId: string, newStatus: 'present' | 'absent' | 'late' | 'excused') => {
-    updateAttendanceMutation.mutate({ recordId, status: newStatus });
+  const handleUpdateAttendance = async (recordId: string, newStatus: 'present' | 'absent' | 'late' | 'excused') => {
+    try {
+      await markAttendance({
+        studentId: student.id,
+        classId: recordId, 
+        status: newStatus,
+        notes: `Asistencia actualizada desde historial`
+      });
+      setEditingRecordId(null);
+    } catch (error) {
+      console.error('Error updating attendance:', error);
+    }
   };
 
   const handleEditRecord = (recordId: string) => {
