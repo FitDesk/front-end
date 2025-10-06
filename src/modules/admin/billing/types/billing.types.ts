@@ -86,5 +86,5 @@ export interface OverdueMember {
   lastPaymentDate: string;
   nextBillingDate: string;
   email: string;
-  phone: string;
+  phone?: string;
 }

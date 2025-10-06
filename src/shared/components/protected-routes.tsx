@@ -12,6 +12,7 @@ export const AuthenticatedRoute = ({ children }: PropsWithChildren) => {
     return children;
 
 }
+
 export const NotAuthenticatedRoute = ({ children }: PropsWithChildren) => {
     const { authStatus } = useAuthStore();
     if (authStatus === 'checking') return null;
@@ -23,7 +24,8 @@ export const NotAuthenticatedRoute = ({ children }: PropsWithChildren) => {
 
 export const AdminRoute = ({ children }: PropsWithChildren) => {
     const { authStatus, isAdmin } = useAuthStore();
-
+    console.log("Auth status: ", authStatus)
+    console.log("Es admin ", isAdmin())
     if (authStatus === 'checking') return null;
 
     if (authStatus === 'not-authenticated') return <Navigate to="/auth/login" />;

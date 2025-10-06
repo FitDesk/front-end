@@ -58,7 +58,8 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
 
   const form = useForm<TrainerFormData>({
     resolver: zodResolver(TrainerSchema) as any, 
-    defaultValues,
+    defaultValues: defaultValues,
+    mode: 'onChange',
   });
 
   const {
@@ -515,20 +516,6 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
                   </div>
                 )}
               />
-              {form.watch(`availability.${day.toLowerCase()}`) && (
-                <div className="flex-1 grid grid-cols-2 gap-2">
-                  <Input
-                    type="time"
-                    {...form.register(`startTime`)}
-                    placeholder="Hora de inicio"
-                  />
-                  <Input
-                    type="time"
-                    {...form.register(`endTime`)}
-                    placeholder="Hora de fin"
-                  />
-                </div>
-              )}
             </div>
           ))}
         </div>

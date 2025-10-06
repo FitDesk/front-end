@@ -6,14 +6,11 @@ import { fitdeskApi } from '@/core/api/fitdeskApi';
 
 export interface PaymentsSlice {
   payments: Payment[];
-  loading: boolean;
-  error: string | null;
   pagination: BillingPagination;
   filters: BillingFilter;
   selectedPayments: string[];
   billingMetrics: BillingMetrics | null;
   overdueMembers: OverdueMember[];
-  
 
   fetchPayments: (params?: BillingFilter & { page?: number }) => Promise<void>;
   setFilters: (filters: BillingFilter) => void;
@@ -22,10 +19,10 @@ export interface PaymentsSlice {
   forceRenewal: (paymentId: string) => Promise<void>;
   processRefund: (paymentId: string, amount?: number) => Promise<void>;
   exportPayments: () => Promise<void>;
+  fetchBillingMetrics: () => Promise<void>;
+  fetchOverdueMembers: () => Promise<void>;
   reset: () => void;
 }
-
-
 
 export const createPaymentsSlice: StateCreator<
   BillingState,
@@ -34,8 +31,6 @@ export const createPaymentsSlice: StateCreator<
   PaymentsSlice
 > = (set, get) => ({
   payments: [],
-  loading: false,
-  error: null,
   pagination: {
     page: 1,
     pageSize: 10,
@@ -48,63 +43,45 @@ export const createPaymentsSlice: StateCreator<
   overdueMembers: [],
 
   fetchPayments: async (params = {}) => {
-    set((state) => {
-      state.loading = true;
-      state.error = null;
+    const { page = 1, ...filters } = params;
+    
+    const response = await fitdeskApi.get<{
+      data: Payment[];
+      pagination?: {
+        page: number;
+        pageSize: number;
+        total: number;
+      };
+      page?: number;
+      limit?: number;
+      total?: number;
+      totalPages?: number;
+    }>('/payments', {
+      params: {
+        page,
+        pageSize: 10,
+        ...filters,
+      },
     });
     
-    try {
-      const { page = 1, ...filters } = params;
-      
-     
-      const response = await fitdeskApi.get<{
-        data: Payment[];
-        pagination?: {
-          page: number;
-          pageSize: number;
-          total: number;
-        };
-        
-        page?: number;
-        limit?: number;
-        total?: number;
-        totalPages?: number;
-      }>('/payments', {
-        params: {
-          page,
-          pageSize: 10, 
-          ...filters,
-        },
-      });
-      
-      const responseData = response.data;
-      
-     
-      const payments = responseData.data || [];
-      const paginationData = responseData.pagination || {
-        page: responseData.page || 1,
-        pageSize: responseData.limit || 10,
-        total: responseData.total || 0,
+    const responseData = response.data;
+    const payments = Array.isArray(responseData.data) ? responseData.data : [];
+    
+    const paginationData = responseData.pagination || {
+      page: responseData.page || page,
+      pageSize: responseData.limit || 10,
+      total: responseData.total || payments.length,
+    };
+    
+    set((state) => {
+      state.payments = payments;
+      state.pagination = {
+        page: paginationData.page,
+        pageSize: paginationData.pageSize,
+        totalItems: paginationData.total,
+        totalPages: responseData.totalPages || Math.ceil((paginationData.total || 0) / (paginationData.pageSize || 10)),
       };
-      
-      set((state) => {
-        state.payments = payments;
-        state.pagination = {
-          page: paginationData.page,
-          pageSize: paginationData.pageSize,
-          totalItems: paginationData.total,
-          totalPages: responseData.totalPages || Math.ceil((paginationData.total || 0) / (paginationData.pageSize || 10)),
-        };
-        state.loading = false;
-      });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al cargar los pagos';
-      set((state) => {
-        state.error = errorMessage;
-        state.loading = false;
-      });
-      throw new Error(errorMessage);
-    }
+    });
   },
 
   setFilters: (filters) => {
@@ -133,123 +110,77 @@ export const createPaymentsSlice: StateCreator<
   },
 
   forceRenewal: async (paymentId: string) => {
+    const response = await fitdeskApi.post(`/payments/${paymentId}/renew`);
+    
     set((state) => {
-      state.loading = true;
-      state.error = null;
+      state.payments = state.payments.map(payment => 
+        payment.id === paymentId 
+          ? response.data.updatedPayment
+          : payment
+      );
     });
     
-    try {
-   
-      const response = await fitdeskApi.post(`/payments/${paymentId}/renew`);
-      
-   
-      set((state) => {
-        state.payments = state.payments.map(payment => 
-          payment.id === paymentId 
-            ? response.data.updatedPayment
-            : payment
-        );
-      });
-      
-      
-      await get().fetchPayments();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al forzar la renovación';
-      set((state) => {
-        state.error = errorMessage;
-      });
-      throw new Error(errorMessage);
-    } finally {
-      set((state) => {
-        state.loading = false;
-      });
-    }
+    await get().fetchPayments();
   },
 
   processRefund: async (paymentId: string, amount?: number) => {
+    const response = await fitdeskApi.post<{ updatedPayment: Payment }>(`/payments/${paymentId}/refund`, { amount });
+    
     set((state) => {
-      state.loading = true;
-      state.error = null;
+      state.payments = state.payments.map(payment => 
+        payment.id === paymentId 
+          ? response.data.updatedPayment
+          : payment
+      );
     });
-
-    try {
-      
-      const response = await fitdeskApi.post<{ updatedPayment: Payment }>(`/payments/${paymentId}/refund`, { amount });
-      
-  
-      set((state) => {
-        state.payments = state.payments.map(payment => 
-          payment.id === paymentId 
-            ? response.data.updatedPayment
-            : payment
-        );
-      });
-      
-   
-      await get().fetchPayments();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al procesar el reembolso';
-      set((state) => {
-        state.error = errorMessage;
-      });
-      throw new Error(errorMessage);
-    } finally {
-      set((state) => {
-        state.loading = false;
-      });
-    }
+    
+    await get().fetchPayments();
   },
 
   exportPayments: async () => {
-    set((state) => {
-      state.loading = true;
-      state.error = null;
+    const response = await fitdeskApi.get('/payments/export', {
+      responseType: 'blob',
     });
     
-    try {
-  
-      const response = await fitdeskApi.get('/payments/export', {
-        responseType: 'blob', 
-      });
-      
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      
-   
-      const contentDisposition = response.headers['content-disposition'];
-      let fileName = `payments-${new Date().toISOString().split('T')[0]}.csv`;
-      
-      if (contentDisposition) {
-        const fileNameMatch = contentDisposition.match(/filename="?(.+)"/);
-        if (fileNameMatch && fileNameMatch[1]) {
-          fileName = fileNameMatch[1];
-        }
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const contentDisposition = response.headers['content-disposition'];
+    let fileName = `payments-${new Date().toISOString().split('T')[0]}.csv`;
+    
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="?(.+)"/);
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = fileNameMatch[1];
       }
-      
-      link.setAttribute('download', fileName);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al exportar los pagos';
-      set((state) => {
-        state.error = errorMessage;
-      });
-      throw new Error(errorMessage);
-    } finally {
-      set((state) => {
-        state.loading = false;
-      });
     }
+    
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+
+  fetchBillingMetrics: async () => {
+    const response = await fitdeskApi.get('/admin/billing/metrics');
+    
+    set((state) => {
+      state.billingMetrics = response.data;
+    });
+  },
+
+  fetchOverdueMembers: async () => {
+    const response = await fitdeskApi.get('/admin/billing/overdue-members');
+    
+    set((state) => {
+      state.overdueMembers = Array.isArray(response.data) ? response.data : [];
+    });
   },
 
   reset: () => {
     set((state) => {
       state.payments = [];
-      state.loading = false;
-      state.error = null;
       state.pagination = {
         page: 1,
         pageSize: 10,

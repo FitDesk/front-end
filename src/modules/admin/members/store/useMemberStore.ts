@@ -7,8 +7,6 @@ import { immer } from 'zustand/middleware/immer';
 interface MemberState {
   members: Member[];
   currentMember: Member | null;
-  isLoading: boolean;
-  error: string | null;
   filters: MemberFilters;
   pagination: {
     page: number;
@@ -17,11 +15,9 @@ interface MemberState {
     totalPages: number;
   };
 
-
+  
   setMembers: (members: Member[]) => void;
   setCurrentMember: (member: Member | null) => void;
-  setLoading: (isLoading: boolean) => void;
-  setError: (error: string | null) => void;
   setFilters: (filters: Partial<MemberFilters>) => void;
   setPagination: (pagination: Partial<{
     page: number;
@@ -41,8 +37,6 @@ interface MemberState {
 const initialState = {
   members: [],
   currentMember: null,
-  isLoading: false,
-  error: null,
   filters: {},
   pagination: {
     page: 1,
@@ -59,10 +53,6 @@ const memberApi: StateCreator<MemberState, [["zustand/immer", never]], []> = (se
   setMembers: (members) => set({ members }),
 
   setCurrentMember: (member) => set({ currentMember: member }),
-
-  setLoading: (isLoading) => set({ isLoading }),
-
-  setError: (error) => set({ error }),
 
   setFilters: (filters) =>
     set((state) => ({
@@ -108,7 +98,6 @@ const memberApi: StateCreator<MemberState, [["zustand/immer", never]], []> = (se
       }));
       return true;
     } catch (error) {
-      console.error('Error al eliminar miembro:', error);
       return false;
     }
   },

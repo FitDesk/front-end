@@ -101,22 +101,25 @@ const PlansPage = () => {
         </Button>
       </div>
 
-      <Card className="p-6">
-        {plans.length === 0 ? (
-          <div className="text-center py-12">
-            <Shield className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-2 text-sm font-semibold">No hay planes</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Empieza creando un nuevo plan.
+      {plans.length === 0 ? (
+        <div className="rounded-lg border-2 border-dashed p-12 text-center">
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <Shield className="h-14 w-14 text-muted-foreground" />
+            <h3 className="text-xl font-medium">No hay planes</h3>
+            <p className="text-muted-foreground max-w-md">
+              Aún no has creado ningún plan. Crea tu primer plan para
+              empezar a ofrecer servicios especiales a tus clientes.
             </p>
             <div className="mt-6">
               <Button onClick={handleCreate}>
-                <Plus className="-ml-0.5 mr-1.5 h-4 w-4" />
-                Nuevo Plan
+                <Plus className="mr-2 h-4 w-4" />
+                Crear Primer Plan
               </Button>
             </div>
           </div>
-        ) : (
+        </div>
+      ) : (
+        <Card className="p-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {plans.map((plan) => (
               <PlanCard
@@ -128,8 +131,8 @@ const PlansPage = () => {
               />
             ))}
           </div>
-        )}
-      </Card>
+        </Card>
+      )}
 
       {isModalOpen && (
         <PlanModal

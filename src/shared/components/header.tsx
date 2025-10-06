@@ -15,28 +15,28 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    { name: 'Home', href: '/' },
-    { name: 'Features', href: '/features' },
+    { name: 'Inicio', href: '/' },
+    { name: 'Características', href: '/features' },
     {
-        name: 'Products',
+        name: 'Productos',
         href: '/products',
         hasDropdown: true,
         dropdownItems: [
             {
-                name: 'Analytics',
+                name: 'Analíticas',
                 href: '/analytics',
-                description: 'Track your metrics',
+                description: 'Rastrea tus métricas',
             },
             {
-                name: 'Dashboard',
+                name: 'Panel de Control',
                 href: '/dashboard',
-                description: 'Manage your data',
+                description: 'Gestiona tus datos',
             },
-            { name: 'Reports', href: '/reports', description: 'Generate insights' },
+            { name: 'Reportes', href: '/reports', description: 'Genera información' },
         ],
     },
-    { name: 'Pricing', href: '/pricing' },
-    { name: 'About', href: '/about' },
+    { name: 'Precios', href: '/pricing' },
+    { name: 'Acerca de', href: '/about' },
 ];
 export const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -76,7 +76,7 @@ export const Header = () => {
             variants={headerVariants}
             initial="initial"
             animate={isScrolled ? 'scrolled' : 'animate'}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            transition={{ duration: 0.1, ease: 'easeInOut' }}
             style={{
                 backdropFilter: isScrolled ? 'blur(20px)' : 'none',
                 backgroundColor: isScrolled

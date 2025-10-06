@@ -1,11 +1,11 @@
 import { fitdeskApi } from "../api/fitdeskApi";
-import type { AuthRequestLogin, AuthRequestRegister, AuthResponse } from "../interfaces/auth.interface";
+import type { AuthAccess, AuthRequestLogin, AuthRequestRegister, AuthResponse } from "../interfaces/auth.interface";
 
 export const AuthService = {
     async login(credentials: AuthRequestLogin): Promise<AuthResponse> {
         try {
             const { data } = await fitdeskApi.post<AuthResponse>(
-                "/security/auth/login", 
+                "/security/auth/login",
                 {
                     email: credentials.email,
                     password: credentials.password
@@ -17,6 +17,16 @@ export const AuthService = {
             throw new Error(`Error al iniciar sesión: ${error instanceof Error ? error.message : String(error)}`);
         }
     },
+    async me(): Promise<AuthAccess> {
+        try {
+            const { data } = await fitdeskApi.get<AuthAccess>("/security/auth/me")
+            console.log("Trayendo informacion del usuario")
+            return data;
+        } catch (error) {
+            throw new Error(`Error al traer al usuario ${error}`)
+        }
+    },
+
     async refresh(): Promise<AuthResponse> {
         try {
             const { data } = await fitdeskApi.post<AuthResponse>("/security/auth/refresh")
@@ -30,7 +40,7 @@ export const AuthService = {
     async register(registrationData: AuthRequestRegister): Promise<AuthResponse> {
         try {
             const { data } = await fitdeskApi.post<AuthResponse>(
-                "/security/auth/register", 
+                "/security/auth/register",
                 {
                     email: registrationData.email,
                     password: registrationData.password,
