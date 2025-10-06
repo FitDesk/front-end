@@ -1,4 +1,6 @@
 import { fitdeskApi } from '@/core/api/fitdeskApi';
+import { PaginatedApiResponseSchema } from '@/core/zod';
+import { z } from 'zod';
 import type { 
   TrainerClass, 
   ClassSession, 
@@ -9,16 +11,45 @@ import type {
   ClassMember
 } from '../types';
 
+const TrainerClassSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  dayOfWeek: z.string(),
+  startTime: z.string(),
+  duration: z.number(),
+  capacity: z.number(),
+  location: z.string(),
+  status: z.enum(['scheduled', 'in_progress', 'completed', 'cancelled']),
+  enrolledCount: z.number(),
+  enrolledMembers: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string(),
+    phone: z.string().optional(),
+    avatar: z.string().optional(),
+    enrolledAt: z.string().datetime(),
+    attendanceStatus: z.enum(['present', 'absent', 'late']).optional(),
+  })),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
 
-interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
+const ClassSessionSchema = z.object({
+  id: z.string().uuid(),
+  classId: z.string().uuid(),
+  sessionDate: z.string().datetime(),
+  startTime: z.string().datetime(),
+  endTime: z.string().datetime().optional(),
+  status: z.enum(['scheduled', 'in_progress', 'completed', 'cancelled']),
+  attendees: z.array(z.object({
+    memberId: z.string(),
+    memberName: z.string(),
+    status: z.enum(['present', 'absent', 'late']),
+    notes: z.string().optional(),
+  })),
+  notes: z.string().optional(),
+});
 
 interface TrainerClassFilters extends CalendarFilters {
   startDate?: string;
@@ -60,11 +91,24 @@ export class TrainerClassService {
       params.append('limit', filters.limit.toString());
     }
 
-    const response = await fitdeskApi.get<PaginatedResponse<TrainerClass>>(
+    const response = await fitdeskApi.get(
       `${this.ENDPOINT}?${params.toString()}`
     );
     
-    return response.data.data;
+    const validatedResponse = PaginatedApiResponseSchema(TrainerClassSchema).parse(response.data);
+    
+    const adaptedClasses = validatedResponse.data.map(classData => ({
+      ...classData,
+      dayOfWeek: classData.dayOfWeek as any,
+      createdAt: new Date(classData.createdAt),
+      updatedAt: new Date(classData.updatedAt),
+      enrolledMembers: classData.enrolledMembers.map(member => ({
+        ...member,
+        enrolledAt: new Date(member.enrolledAt),
+      })),
+    }));
+    
+    return adaptedClasses;
   }
 
   /**
@@ -130,11 +174,25 @@ export class TrainerClassService {
   
   static async getCurrentSession(): Promise<ClassSession | null> {
     try {
-      const response = await fitdeskApi.get<ClassSession>(`${this.ENDPOINT}/current-session`);
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        return null; 
+      const response = await fitdeskApi.get(`${this.ENDPOINT}/current-session`);
+      const validatedSession = ClassSessionSchema.parse(response.data);
+      
+      return {
+        ...validatedSession,
+        date: new Date(validatedSession.sessionDate),
+        startTime: new Date(validatedSession.startTime),
+        endTime: validatedSession.endTime ? new Date(validatedSession.endTime) : undefined,
+        attendees: validatedSession.attendees.map(attendee => ({
+          ...attendee,
+          checkInTime: undefined,
+        })),
+      };
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } };
+        if (axiosError.response?.status === 404) {
+          return null; 
+        }
       }
       throw error;
     }
@@ -153,7 +211,13 @@ export class TrainerClassService {
     averageAttendance: number;
     upcomingClasses: number;
   }> {
-    const response = await fitdeskApi.get(`${this.ENDPOINT}/stats`);
+    const response = await fitdeskApi.get<{
+      totalClasses: number;
+      completedClasses: number;
+      totalStudents: number;
+      averageAttendance: number;
+      upcomingClasses: number;
+    }>(`${this.ENDPOINT}/stats`);
     return response.data;
   }
 

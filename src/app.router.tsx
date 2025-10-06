@@ -14,6 +14,8 @@ import { CreateMemberPage } from "./modules/admin/members/pages/CreateMemberPage
 import { MemberDetailsPage } from "./modules/admin/members/pages/MemberDetailsPage";
 import { EditMemberPage } from "./modules/admin/members/pages/EditMemberPage";
 import { MessagePage } from "./modules/trainer/messages/message-page";
+import { ConfigurationPage } from "./modules/trainer/configuration";
+//import { TrainerRoute } from "./shared/components/protected-routes";
 import {TrainerRoute, AdminRoute, NotAuthenticatedRoute} from './shared/components/protected-routes';
 
 //Admin
@@ -228,16 +230,8 @@ export const appRouter = createBrowserRouter([
                 element: <div className="p-6">Workouts Page</div>
             },
             {
-                path: "stats",
-                element: <div className="p-6">Stats Page</div>
-            },
-            {
                 path: "messages",
-                element: <Suspense fallback={<PageLoader />}> <MessagePage /></Suspense>
-            },
-            {
-                path: "reports",
-                element: <div className="p-6">Reports Page</div>
+                element: <Suspense fallback={<PageLoader />}><MessagePage /></Suspense>
             },
             {
                 path: "profile",
@@ -245,7 +239,7 @@ export const appRouter = createBrowserRouter([
             },
             {
                 path: "settings",
-                element: <div className="p-6">Settings Page</div>
+                element: <Suspense fallback={<PageLoader />}><ConfigurationPage /></Suspense>
             },
         ]
     },

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { studentService } from '../services/student.service';
 import { useStudentsStore } from '../store/students-store';
+import { z } from 'zod';
 
 export function useStudentMetrics() {
   const queryClient = useQueryClient();
@@ -22,9 +23,42 @@ export function useStudentMetrics() {
     queryKey: ['student-metrics'],
     queryFn: async () => {
       try {
-        const result = await studentService.getMetrics();
-        setMetrics(result);
-        return result;
+        const response = await studentService.getMetrics();
+        
+     
+        const metricsSchema = z.object({
+          totalStudents: z.number(),
+          activeStudents: z.number(),
+          inactiveStudents: z.number(),
+          averageAttendanceRate: z.number(),
+          totalClassesThisMonth: z.number(),
+          newStudentsThisMonth: z.number(),
+          weeklyStats: z.array(z.object({
+            week: z.string(),
+            totalClasses: z.number(),
+            averageAttendance: z.number(),
+          })),
+          topStudents: z.array(z.object({
+            student: z.object({
+              id: z.string(),
+              firstName: z.string(),
+              lastName: z.string(),
+              profileImage: z.string().optional(),
+            }),
+            attendanceRate: z.number(),
+            totalClasses: z.number(),
+          })),
+          weeklyTrends: z.array(z.object({
+            name: z.string(),
+            value: z.number(),
+            positive: z.number(),
+            negative: z.number(),
+          })).optional(),
+        });
+        
+        const validatedMetrics = metricsSchema.parse(response);
+        setMetrics(validatedMetrics);
+        return validatedMetrics;
       } catch (error) {
         console.error('Error fetching metrics:', error);
         setMetrics(null);
@@ -105,8 +139,11 @@ export function useStudentMetrics() {
       
       toast.success('Asistencia registrada exitosamente');
     },
-    onError: () => {
-      toast.error('Error al registrar asistencia');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al registrar asistencia';
+      toast.error(errorMessage);
     },
   });
 
@@ -128,8 +165,11 @@ export function useStudentMetrics() {
     onSuccess: () => {
       toast.success('Mensaje enviado exitosamente');
     },
-    onError: () => {
-      toast.error('Error al enviar mensaje');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al enviar mensaje';
+      toast.error(errorMessage);
     },
   });
 

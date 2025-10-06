@@ -415,7 +415,15 @@ export function AttendanceSessionModal({ sessionId, open, onOpenChange }: Attend
 }
 
 interface MemberAttendanceRowProps {
-  record: any;
+  record: {
+    id: string;
+    memberName: string;
+    memberEmail?: string;
+    memberAvatar?: string;
+    status: AttendanceStatus;
+    notes?: string;
+    checkInTime?: Date;
+  };
   isSelected: boolean;
   onSelect: () => void;
   onStatusChange: (status: AttendanceStatus) => void;

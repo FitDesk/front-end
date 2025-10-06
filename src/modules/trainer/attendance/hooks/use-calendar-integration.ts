@@ -14,7 +14,7 @@ export function useCalendarIntegration() {
     date: Date;
     startTime: Date;
     location: string;
-    enrolledMembers: any[];
+    enrolledMembers: unknown[];
   }) => {
     try {
       const session = await createSessionMutation.mutateAsync({
@@ -62,7 +62,7 @@ export function useCalendarIntegration() {
   const syncCalendarData = useCallback((calendarData: {
     classId: string;
     sessionId?: string;
-    members: any[];
+    members: unknown[];
     status: string;
   }) => {
     console.log('Syncing calendar data:', calendarData);

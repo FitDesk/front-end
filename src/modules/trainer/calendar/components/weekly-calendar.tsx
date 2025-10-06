@@ -11,9 +11,10 @@ import {
 import { es } from 'date-fns/locale';
 import { MapPin, Play, Square } from 'lucide-react';
 import { cn } from '@/core/lib/utils';
+import type { CalendarEvent } from '../types';
+import { useStartClass, useEndClass } from '../hooks/use-trainer-classes';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
-import type { CalendarEvent } from '../types';
 import { CLASS_STATUS_COLORS, CLASS_STATUS_LABELS } from '../types';
 
 interface WeeklyCalendarProps {
@@ -21,8 +22,6 @@ interface WeeklyCalendarProps {
   currentDate: Date;
   onEventClick?: (event: CalendarEvent) => void;
   onDateClick?: (date: Date) => void;
-  onStartClass?: (event: CalendarEvent, notes?: string) => void;
-  onEndClass?: (event: CalendarEvent) => void;
   className?: string;
 }
 
@@ -33,10 +32,11 @@ export function WeeklyCalendar({
   currentDate,
   onEventClick,
   onDateClick,
-  onStartClass,
-  onEndClass,
   className
 }: WeeklyCalendarProps) {
+
+  const startClassMutation = useStartClass();
+  const endClassMutation = useEndClass();
   
   const weekDays = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -91,14 +91,23 @@ export function WeeklyCalendar({
     onEventClick?.(event);
   };
 
-  const handleStartClass = (event: CalendarEvent, e: React.MouseEvent) => {
+  const handleStartClass = async (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
-    onStartClass?.(event);
+    await startClassMutation.mutateAsync({
+      classId: event.id,
+      sessionDate: new Date(),
+      notes: ''
+    });
   };
 
-  const handleEndClass = (event: CalendarEvent, e: React.MouseEvent) => {
+  const handleEndClass = async (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
-    onEndClass?.(event);
+    await endClassMutation.mutateAsync({
+      sessionId: event.id,
+      endTime: new Date(),
+      attendees: [],
+      notes: ''
+    });
   };
 
   return (

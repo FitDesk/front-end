@@ -27,9 +27,9 @@ class ChatService {
     }
   }
 
-  public async searchConversations(query: string): Promise<any[]> {
+  public async searchConversations(query: string): Promise<unknown[]> {
     try {
-      const response = await fitdeskApi.get<any[]>(
+      const response = await fitdeskApi.get<unknown[]>(
         `${this.basePath}/conversations/search`,
         {
           params: { q: query }
@@ -37,20 +37,20 @@ class ChatService {
       );
       return response.data;
     } catch (error) {
-      console.error('Error al buscar conversaciones:', error);
-      throw error;
+      console.error('Error searching conversations:', error);
+      return [];
     }
   }
 
-  public async getConversations(): Promise<any[]> {
+  public async getConversations(): Promise<unknown[]> {
     try {
-      const response = await fitdeskApi.get<any[]>(
+      const response = await fitdeskApi.get<unknown[]>(
         `${this.basePath}/conversations`
       );
       return response.data;
     } catch (error) {
       console.error('Error al obtener conversaciones:', error);
-      throw error;
+      return [];
     }
   }
 }

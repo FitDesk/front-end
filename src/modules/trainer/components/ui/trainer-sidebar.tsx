@@ -4,9 +4,7 @@ import {
     ClipboardList,
     Dumbbell,
     User,
-    BarChart3,
     MessageSquare,
-    FileText,
     LayoutDashboard,
     Settings,
     LogOut,
@@ -24,9 +22,7 @@ const menuItems = [
     { title: 'Asistencia', icon: ClipboardList, href: '/trainer/attendance' },
     { title: 'Mis Alumnos', icon: Users, href: '/trainer/students' },
     { title: 'Rutinas', icon: Dumbbell, href: '/trainer/workouts' },
-    { title: 'Estadísticas', icon: BarChart3, href: '/trainer/stats' },
     { title: 'Mensajes', icon: MessageSquare, href: '/trainer/messages' },
-    { title: 'Reportes', icon: FileText, href: '/trainer/reports' },
     { title: 'Configuración', icon: Settings, href: '/trainer/settings' },
 ];
 

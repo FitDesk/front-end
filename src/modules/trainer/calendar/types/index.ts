@@ -29,7 +29,7 @@ export interface TrainerClass {
   description?: string;
   dayOfWeek: DayOfWeek;
   startTime: string;
-  duration: number; // en minutos
+  duration: number; 
   capacity: number;
   location: string;
   status: ClassStatus;
@@ -68,7 +68,7 @@ export interface ClassAttendee {
   notes?: string;
 }
 
-// Tipos para el calendario
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -96,7 +96,6 @@ export interface CalendarView {
   currentDate: Date;
 }
 
-// DTOs para API
 export interface StartClassDTO {
   classId: string;
   sessionDate: Date;
@@ -115,7 +114,6 @@ export interface UpdateAttendanceDTO {
   attendees: ClassAttendee[];
 }
 
-// Schemas de validación
 export const StartClassSchema = z.object({
   classId: z.string().min(1, 'ID de clase requerido'),
   sessionDate: z.date(),
@@ -135,11 +133,11 @@ export const EndClassSchema = z.object({
   notes: z.string().optional()
 });
 
-// Tipos derivados
+
 export type CreateClassSessionDTO = z.infer<typeof StartClassSchema>;
 export type CompleteClassSessionDTO = z.infer<typeof EndClassSchema>;
 
-// Constantes
+
 export const CLASS_STATUS_LABELS: Record<ClassStatus, string> = {
   [ClassStatusEnum.SCHEDULED]: 'Programada',
   [ClassStatusEnum.IN_PROGRESS]: 'En Progreso',
