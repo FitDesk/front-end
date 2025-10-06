@@ -28,8 +28,7 @@ interface ConfigurationState {
 }
 
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const configurationStore = (set: any) => ({
+const configurationStore = (set: (fn: (state: ConfigurationState) => void) => void) => ({
   activeSection: 'personal-data' as ConfigurationSection,
   showChangePasswordModal: false,
   showDeactivateAccountModal: false,

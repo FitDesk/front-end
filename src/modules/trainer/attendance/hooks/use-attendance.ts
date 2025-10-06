@@ -16,8 +16,8 @@ export const attendanceKeys = {
   session: (id: string) => [...attendanceKeys.sessions(), id] as const,
   sessionsByDate: (date: string) => [...attendanceKeys.sessions(), 'by-date', date] as const,
   sessionsByClass: (classId: string) => [...attendanceKeys.sessions(), 'by-class', classId] as const,
-  summary: (params?: any) => [...attendanceKeys.all, 'summary', params] as const,
-  memberHistory: (params?: any) => [...attendanceKeys.all, 'member-history', params] as const,
+  summary: (params?: unknown) => [...attendanceKeys.all, 'summary', params] as const,
+  memberHistory: (params?: unknown) => [...attendanceKeys.all, 'member-history', params] as const,
   quickStats: () => [...attendanceKeys.all, 'quick-stats'] as const,
 };
 
@@ -128,8 +128,11 @@ export function useCreateAttendanceSession() {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.quickStats() });
       toast.success('Sesión de asistencia creada correctamente');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Error al crear la sesión');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al crear la sesión';
+      toast.error(errorMessage);
     },
   });
 }
@@ -147,8 +150,11 @@ export function useUpdateAttendance() {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.sessions() });
       toast.success('Asistencia actualizada correctamente');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Error al actualizar la asistencia');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al actualizar la asistencia';
+      toast.error(errorMessage);
     },
   });
 }
@@ -166,8 +172,11 @@ export function useBulkUpdateAttendance() {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.sessions() });
       toast.success('Asistencia actualizada masivamente');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Error en la actualización masiva');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error en la actualización masiva';
+      toast.error(errorMessage);
     },
   });
 }
@@ -186,8 +195,11 @@ export function useCompleteAttendanceSession() {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.quickStats() });
       toast.success('Sesión completada correctamente');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Error al completar la sesión');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al completar la sesión';
+      toast.error(errorMessage);
     },
   });
 }
@@ -221,8 +233,11 @@ export function useMarkAttendance() {
       };
       toast.success(`Miembro marcado como ${statusLabels[variables.status]}`);
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Error al marcar asistencia');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al marcar asistencia';
+      toast.error(errorMessage);
     },
   });
 }
@@ -253,8 +268,11 @@ export function useExportAttendanceReport() {
       const formatLabels = { pdf: 'PDF', excel: 'Excel', csv: 'CSV' };
       toast.success(`Reporte ${formatLabels[variables.format]} descargado correctamente`);
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Error al exportar el reporte');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al exportar el reporte';
+      toast.error(errorMessage);
     },
   });
 }

@@ -27,7 +27,7 @@ const LanguageRegionSection = memo(() => {
   const { data: settings, isLoading } = useLanguageRegionSettings();
   const updateSettingsMutation = useUpdateLanguageRegionSettings();
 
-  const handleSettingChange = async (key: string, value: any) => {
+  const handleSettingChange = async (key: string, value: unknown) => {
     if (!settings) return;
 
     const updatedSettings = {

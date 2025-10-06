@@ -9,6 +9,44 @@ export const AttendanceStatusEnum = {
 
 export type AttendanceStatus = typeof AttendanceStatusEnum[keyof typeof AttendanceStatusEnum];
 
+
+export const AttendanceRecordSchema = z.object({
+  id: z.string(),
+  sessionId: z.string(),
+  memberId: z.string(),
+  memberName: z.string(),
+  memberEmail: z.string(),
+  memberAvatar: z.string().optional(),
+  status: z.enum(['present', 'absent', 'late', 'excused']),
+  checkInTime: z.date().optional(),
+  checkOutTime: z.date().optional(),
+  notes: z.string().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date()
+});
+
+export const AttendanceSessionSchema = z.object({
+  id: z.string(),
+  classId: z.string(),
+  className: z.string(),
+  date: z.date(),
+  startTime: z.date(),
+  endTime: z.date().optional(),
+  location: z.string(),
+  trainerId: z.string(),
+  trainerName: z.string(),
+  totalMembers: z.number(),
+  presentCount: z.number(),
+  absentCount: z.number(),
+  lateCount: z.number(),
+  excusedCount: z.number(),
+  attendanceRecords: z.array(AttendanceRecordSchema),
+  notes: z.string().optional(),
+  status: z.enum(['scheduled', 'in_progress', 'completed', 'cancelled']),
+  createdAt: z.date(),
+  updatedAt: z.date()
+});
+
 export interface AttendanceRecord {
   id: string;
   sessionId: string;
@@ -72,7 +110,6 @@ export interface MemberAttendanceHistory {
   recentSessions: AttendanceRecord[];
 }
 
-// Filtros y búsqueda
 export interface AttendanceFilters {
   dateRange?: {
     start: Date;
@@ -93,7 +130,7 @@ export interface AttendanceSearchParams {
   filters?: AttendanceFilters;
 }
 
-// DTOs para API
+
 export interface CreateAttendanceSessionDTO {
   classId: string;
   date: Date;

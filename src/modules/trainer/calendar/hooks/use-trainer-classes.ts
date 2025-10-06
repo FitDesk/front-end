@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TrainerClassService } from '../services/trainer-class.service';
+import { toast } from 'sonner';
 import type { 
   CalendarFilters, 
   StartClassDTO, 
@@ -32,8 +33,17 @@ export function useTrainerClasses(filters?: CalendarFilters & {
 }) {
   return useQuery({
     queryKey: trainerClassKeys.list(filters),
-    queryFn: () => TrainerClassService.getMyClasses(filters),
-    staleTime: 5 * 60 * 1000, 
+    queryFn: async () => {
+      try {
+        return await TrainerClassService.getMyClasses(filters);
+      } catch (error) {
+        console.error('Error fetching trainer classes:', error);
+        throw error;
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -113,6 +123,13 @@ export function useStartClass() {
     mutationFn: (data: StartClassDTO) => TrainerClassService.startClass(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trainerClassKeys.all });
+      toast.success('Clase iniciada exitosamente');
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al iniciar la clase';
+      toast.error(errorMessage);
     },
   });
 }
@@ -125,6 +142,13 @@ export function useEndClass() {
     mutationFn: (data: EndClassDTO) => TrainerClassService.endClass(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trainerClassKeys.all });
+      toast.success('Clase finalizada exitosamente');
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al finalizar la clase';
+      toast.error(errorMessage);
     },
   });
 }
@@ -136,6 +160,13 @@ export function useUpdateAttendance() {
     mutationFn: (data: UpdateAttendanceDTO) => TrainerClassService.updateAttendance(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trainerClassKeys.currentSession() });
+      toast.success('Asistencia actualizada correctamente');
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al actualizar asistencia';
+      toast.error(errorMessage);
     },
   });
 }
@@ -153,6 +184,13 @@ export function useMarkAttendance() {
     }) => TrainerClassService.markAttendance(sessionId, memberId, status, notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trainerClassKeys.currentSession() });
+      toast.success('Asistencia marcada correctamente');
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al marcar asistencia';
+      toast.error(errorMessage);
     },
   });
 }
@@ -166,6 +204,13 @@ export function useCancelClass() {
       TrainerClassService.cancelClass(classId, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trainerClassKeys.all });
+      toast.success('Clase cancelada correctamente');
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al cancelar la clase';
+      toast.error(errorMessage);
     },
   });
 }

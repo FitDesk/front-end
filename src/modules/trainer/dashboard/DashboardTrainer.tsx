@@ -89,35 +89,12 @@ const DashboardTrainer = () => {
                         <div className="space-y-4 sm:space-y-6">
                             <QuickActions
                                 title="Acciones Rápidas"
-                                actions={[
-                                    { 
-                                        label: 'Agregar Alumno', 
-                                        onClick: handleAddStudent,
-                                        icon: <Users className="h-4 w-4" />
-                                    },
-                                    { 
-                                        label: 'Crear Rutina', 
-                                        onClick: () => console.log('Crear rutina'),
-                                        icon: <Dumbbell className="h-4 w-4" />
-                                    },
-                                    { 
-                                        label: 'Programar Clase', 
-                                        onClick: () => console.log('Programar clase'),
-                                        icon: <Calendar className="h-4 w-4" />
-                                    },
-                                ]}
                             />
                             <SystemStatus 
-                                title="Estado del Sistema" 
-                                statusMessage="Tus servicios están funcionando correctamente"
+                                title="Estado del Sistema"
                             />
                             <RecentActivity 
                                 title="Actividad Reciente"
-                                activities={[
-                                    { id: 1, title: 'Nuevo alumno registrado', time: 'Hace 2 horas', type: 'user' },
-                                    { id: 2, title: 'Clase de pesas completada', time: 'Hace 5 horas', type: 'class' },
-                                    { id: 3, title: 'Rutina actualizada', time: 'Ayer', type: 'workout' },
-                                ]}
                             />
                         </div>
                     </div>

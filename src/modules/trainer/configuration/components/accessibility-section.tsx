@@ -26,7 +26,7 @@ const AccessibilitySection = memo(() => {
   const { data: settings, isLoading } = useAccessibilitySettings();
   const updateSettingsMutation = useUpdateAccessibilitySettings();
 
-  const handleSettingChange = async (key: string, value: any) => {
+  const handleSettingChange = async (key: string, value: unknown) => {
     if (!settings) return;
 
     const updatedSettings = {

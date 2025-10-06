@@ -139,8 +139,11 @@ export function useStudentMetrics() {
       
       toast.success('Asistencia registrada exitosamente');
     },
-    onError: () => {
-      toast.error('Error al registrar asistencia');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al registrar asistencia';
+      toast.error(errorMessage);
     },
   });
 
@@ -162,8 +165,11 @@ export function useStudentMetrics() {
     onSuccess: () => {
       toast.success('Mensaje enviado exitosamente');
     },
-    onError: () => {
-      toast.error('Error al enviar mensaje');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al enviar mensaje';
+      toast.error(errorMessage);
     },
   });
 

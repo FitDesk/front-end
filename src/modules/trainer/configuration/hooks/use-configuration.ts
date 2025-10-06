@@ -110,8 +110,11 @@ export const useChangePassword = () => {
       toast.success(message || 'Contraseña cambiada correctamente');
       queryClient.invalidateQueries({ queryKey: configurationKeys.securityCheck() });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Error al cambiar contraseña');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al cambiar contraseña';
+      toast.error(errorMessage);
     },
   });
 };
@@ -122,8 +125,11 @@ export const useDeactivateAccount = () => {
     onSuccess: (message) => {
       toast.success(message || 'Cuenta desactivada correctamente');
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Error al desactivar cuenta');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al desactivar cuenta';
+      toast.error(errorMessage);
     },
   });
 };
@@ -134,8 +140,11 @@ export const useDeleteAccount = () => {
     onSuccess: (message) => {
       toast.success(message || 'Cuenta eliminada correctamente');
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Error al eliminar cuenta');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al eliminar cuenta';
+      toast.error(errorMessage);
     },
   });
 };
@@ -149,8 +158,11 @@ export const useTerminateSession = () => {
       toast.success(message || 'Sesión terminada correctamente');
       queryClient.invalidateQueries({ queryKey: configurationKeys.sessions() });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Error al terminar sesión');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al terminar sesión';
+      toast.error(errorMessage);
     },
   });
 };
@@ -164,8 +176,11 @@ export const useUpdateNotificationSettings = () => {
       toast.success(message || 'Configuración de notificaciones actualizada');
       queryClient.invalidateQueries({ queryKey: configurationKeys.notifications() });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Error al actualizar notificaciones');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al actualizar notificaciones';
+      toast.error(errorMessage);
     },
   });
 };
@@ -179,8 +194,11 @@ export const useUpdateAccessibilitySettings = () => {
       toast.success(message || 'Configuración de accesibilidad actualizada');
       queryClient.invalidateQueries({ queryKey: configurationKeys.accessibility() });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Error al actualizar accesibilidad');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al actualizar accesibilidad';
+      toast.error(errorMessage);
     },
   });
 };
@@ -194,8 +212,11 @@ export const useUpdatePrivacySettings = () => {
       toast.success(message || 'Configuración de privacidad actualizada');
       queryClient.invalidateQueries({ queryKey: configurationKeys.privacy() });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Error al actualizar privacidad');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al actualizar privacidad';
+      toast.error(errorMessage);
     },
   });
 };
@@ -209,8 +230,11 @@ export const useUpdateLanguageRegionSettings = () => {
       toast.success(message || 'Configuración de idioma y región actualizada');
       queryClient.invalidateQueries({ queryKey: configurationKeys.languageRegion() });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Error al actualizar idioma y región');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al actualizar idioma y región';
+      toast.error(errorMessage);
     },
   });
 };

@@ -6,7 +6,8 @@ import { MemberSchema, PaginatedApiResponseSchema } from '@/core/zod';
 import type { 
   CreateStudentDTO,
   UpdateStudentDTO,
-  StudentStatus
+  StudentStatus,
+  StudentFilters
 } from '../types';
 
 export function useStudents() {
@@ -31,7 +32,6 @@ export function useStudents() {
       try {
         const response = await studentService.getStudents(filters, pagination);
         
-      
         const validatedResponse = PaginatedApiResponseSchema(MemberSchema).parse(response);
         
         
@@ -52,14 +52,14 @@ export function useStudents() {
             status: member.status === 'ACTIVE' ? 'ACTIVE' as const : 'EXPIRED' as const,
           },
           stats: {
-            totalClasses: 0, // TODO: Obtener del backend
-            attendedClasses: 0, // TODO: Obtener del backend
-            attendanceRate: 0, // TODO: Calcular del backend
-            currentStreak: 0, // TODO: Obtener del backend
-            longestStreak: 0, // TODO: Obtener del backend
+            totalClasses: 0,
+            attendedClasses: 0,
+            attendanceRate: 0,
+            currentStreak: 0,
+            longestStreak: 0,
           },
-          createdAt: member.joinDate, // Usar joinDate como createdAt
-          updatedAt: member.lastActivity || member.joinDate, // Usar lastActivity o joinDate
+          createdAt: member.joinDate,
+          updatedAt: member.lastActivity || member.joinDate,
         }));
         
         setStudents(adaptedStudents);
@@ -95,8 +95,11 @@ export function useStudents() {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       toast.success('Estudiante agregado exitosamente');
     },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Error al agregar estudiante');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al agregar estudiante';
+      toast.error(errorMessage);
     },
   });
 
@@ -108,8 +111,11 @@ export function useStudents() {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       toast.success('Estudiante actualizado exitosamente');
     },
-    onError: () => {
-      toast.error('Error al actualizar estudiante');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al actualizar estudiante';
+      toast.error(errorMessage);
     },
   });
 
@@ -122,9 +128,12 @@ export function useStudents() {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       toast.success('Estado actualizado exitosamente');
     },
-    onError: (_, { id, status }) => {
+    onError: (error: unknown, { id, status }) => {
       updateStudentStatus(id, status);
-      toast.error('Error al actualizar estado');
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al actualizar estado';
+      toast.error(errorMessage);
     },
   });
 
@@ -137,16 +146,19 @@ export function useStudents() {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       toast.success('Estudiante eliminado exitosamente');
     },
-    onError: () => {
-      toast.error('Error al eliminar estudiante');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al eliminar estudiante';
+      toast.error(errorMessage);
     },
   });
 
-  const updateFilters = (newFilters: any) => {
+  const updateFilters = (newFilters: Partial<StudentFilters>) => {
     setFilters(newFilters);
   };
 
-  const updatePagination = (updates: any) => {
+  const updatePagination = (updates: Partial<{ page: number; limit: number }>) => {
     setPagination(updates);
   };
 
@@ -207,8 +219,11 @@ export function useStudent(studentId?: string) {
       queryClient.setQueryData(['student', updatedStudent.id], updatedStudent);
       toast.success('Estudiante actualizado exitosamente');
     },
-    onError: () => {
-      toast.error('Error al actualizar estudiante');
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as any)?.response?.data?.message 
+        : 'Error al actualizar estudiante';
+      toast.error(errorMessage);
     },
   });
   

@@ -31,7 +31,7 @@ const ProfilePrivacySection = memo(() => {
   const { data: settings, isLoading } = usePrivacySettings();
   const updateSettingsMutation = useUpdatePrivacySettings();
 
-  const handleSettingChange = async (key: string, value: any) => {
+  const handleSettingChange = async (key: string, value: unknown) => {
     if (!settings) return;
 
     const updatedSettings = {

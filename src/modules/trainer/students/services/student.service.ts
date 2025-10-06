@@ -8,6 +8,8 @@ import type {
   CreateStudentDTO,
   UpdateStudentDTO,
   StudentStatus,
+  StudentFilters,
+  PaginationOptions,
   ApiResponse
 } from '../types';
 
@@ -20,16 +22,17 @@ export const studentService = {
     return data;
   },
 
-  async getStudents(filters?: any, pagination?: any): Promise<PaginatedResponse<Student>> {
+  async getStudents(filters?: StudentFilters, pagination?: PaginationOptions): Promise<PaginatedResponse<Student>> {
     const params = new URLSearchParams();
     
-    
     if (filters?.searchTerm) params.append('searchTerm', filters.searchTerm);
-    if (filters?.status) params.append('status', filters.status);
-    if (filters?.membershipType) params.append('membershipType', filters.membershipType);
-    if (filters?.attendanceRate) params.append('attendanceRate', filters.attendanceRate.toString());
+    if (filters?.status?.length) params.append('status', filters.status.join(','));
+    if (filters?.membershipType?.length) params.append('membershipType', filters.membershipType.join(','));
+    if (filters?.attendanceRate) {
+      params.append('attendanceRateMin', filters.attendanceRate.min.toString());
+      params.append('attendanceRateMax', filters.attendanceRate.max.toString());
+    }
     
-   
     if (pagination?.page) params.append('page', pagination.page.toString());
     if (pagination?.limit) params.append('limit', pagination.limit.toString());
     if (pagination?.sortBy) params.append('sortBy', pagination.sortBy);

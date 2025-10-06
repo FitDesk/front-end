@@ -24,28 +24,37 @@ import {
 import { cn } from '@/core/lib/utils';
 import type { CalendarEvent, ClassAttendee } from '../types';
 import { CLASS_STATUS_COLORS, CLASS_STATUS_LABELS } from '../types';
+import { 
+  useStartClass, 
+  useEndClass, 
+  useMarkAttendance, 
+  useCancelClass 
+} from '../hooks/use-trainer-classes';
 
 interface ClassManagementModalProps {
   event: CalendarEvent | null;
   isOpen: boolean;
   onClose: () => void;
-  onStartClass?: (event: CalendarEvent, notes?: string) => void;
-  onEndClass?: (event: CalendarEvent, attendees: ClassAttendee[], notes?: string) => void;
-  onMarkAttendance?: (memberId: string, status: 'present' | 'absent' | 'late', notes?: string) => void;
-  isLoading?: boolean;
 }
 
 export function ClassManagementModal({
   event,
   isOpen,
-  onClose,
-  onStartClass,
-  onEndClass,
-  onMarkAttendance,
-  isLoading = false
+  onClose
 }: ClassManagementModalProps) {
   const [notes, setNotes] = useState('');
   const [attendanceData, setAttendanceData] = useState<Record<string, { status: 'present' | 'absent' | 'late'; notes?: string }>>({});
+
+  
+  const startClassMutation = useStartClass();
+  const endClassMutation = useEndClass();
+  const markAttendanceMutation = useMarkAttendance();
+  const cancelClassMutation = useCancelClass();
+
+  const isLoading = startClassMutation.isPending || 
+                   endClassMutation.isPending || 
+                   markAttendanceMutation.isPending || 
+                   cancelClassMutation.isPending;
 
 
   const attendanceStats = useMemo(() => {
@@ -71,7 +80,6 @@ export function ClassManagementModal({
       </Dialog>
     );
   }
-
  
   const initializeAttendance = () => {
     const initialData: Record<string, { status: 'present' | 'absent' | 'late'; notes?: string }> = {};
@@ -79,31 +87,40 @@ export function ClassManagementModal({
       initialData[member.id] = { 
         status: member.attendanceStatus || 'present',
         notes: ''
-      };
+      }
     });
     setAttendanceData(initialData);
   };
 
-  
-  const handleAttendanceChange = (memberId: string, status: 'present' | 'absent' | 'late') => {
+ 
+  const handleMarkAttendance = async (memberId: string, status: 'present' | 'absent' | 'late') => {
     setAttendanceData(prev => ({
       ...prev,
       [memberId]: { ...prev[memberId], status }
     }));
     
    
-    onMarkAttendance?.(memberId, status, attendanceData[memberId]?.notes);
-  };
-
-
-  
-  const handleStartClass = () => {
-    initializeAttendance();
-    onStartClass?.(event, notes);
+    if (event?.id) {
+      await markAttendanceMutation.mutateAsync({
+        sessionId: event.id,
+        memberId,
+        status,
+        notes: attendanceData[memberId]?.notes
+      });
+    }
   };
 
  
-  const handleEndClass = () => {
+  const handleStartClass = async () => {
+    initializeAttendance();
+    await startClassMutation.mutateAsync({
+      classId: event.id,
+      sessionDate: new Date(),
+      notes
+    });
+  };
+
+  const handleEndClass = async () => {
     const attendees: ClassAttendee[] = event.members.map(member => ({
       memberId: member.id,
       memberName: member.name,
@@ -112,7 +129,16 @@ export function ClassManagementModal({
       notes: attendanceData[member.id]?.notes
     }));
 
-    onEndClass?.(event, attendees, notes);
+    await endClassMutation.mutateAsync({
+      sessionId: event.id,
+      endTime: new Date(),
+      attendees,
+      notes
+    });
+  };
+
+  const handleAttendanceChange = (memberId: string, status: 'present' | 'absent' | 'late') => {
+    handleMarkAttendance(memberId, status);
   };
 
 
