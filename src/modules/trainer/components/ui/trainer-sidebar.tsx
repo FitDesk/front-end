@@ -98,9 +98,7 @@ const TrainerSidebar = memo(() => {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem className={togglerWrapperClass}>
-                        <SidebarMenuButton className="flex w-full justify-center p-0">
-                            {/* <ThemeTogglerButton showLabel="auto" variant="ghost" direction='bottom-left' /> */}
-                        </SidebarMenuButton>
+                        <ThemeTogglerButton showLabel="auto" variant="ghost" direction='bottom-left' />
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
