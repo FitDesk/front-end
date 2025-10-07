@@ -16,7 +16,6 @@ import { EditMemberPage } from "./modules/admin/members/pages/EditMemberPage";
 import { MessagePage } from "./modules/trainer/messages/message-page";
 import { OAuthCallback } from "./modules/shared/auth/oauth-callback";
 import { ConfigurationPage } from "./modules/trainer/configuration";
-//import { TrainerRoute } from "./shared/components/protected-routes";
 import {TrainerRoute, AdminRoute, NotAuthenticatedRoute} from './shared/components/protected-routes';
 
 
@@ -29,8 +28,6 @@ const ClassesPage = lazy(() => import("@/modules/admin/classes/pages/classes-pag
 const LocationsPage = lazy(() => import("@/modules/admin/classes/pages/locations-page"))
 const BillingPage = lazy(() => import("@/modules/admin/billing/pages/BillingPage"))
 const UserRolesPage = lazy(() => import("@/modules/admin/roles/pages/UserRolesPage"))
-
-
 
 
 //Trainer
@@ -117,11 +114,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/auth",
         element: (
-            <NotAuthenticatedRoute>
+           <NotAuthenticatedRoute>
                 <Suspense fallback={<PageLoader />}>
                     <AuthLayout />
                 </Suspense>
-            </NotAuthenticatedRoute>
+             </NotAuthenticatedRoute>
         ),
         children: [
             { index: true, element: <Suspense><Login /></Suspense> },
@@ -207,7 +204,7 @@ export const appRouter = createBrowserRouter([
                 <Suspense fallback={<PageLoader />}>
                     <TrainerLayout />
                 </Suspense>
-            </TrainerRoute>
+             </TrainerRoute>
         ),
         children: [
             { index: true, element: <Navigate to="dashboard" replace /> },
