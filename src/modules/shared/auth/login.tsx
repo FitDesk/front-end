@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import {  useState } from "react"
 import { motion } from 'motion/react';
 import { Eye, EyeOff } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
@@ -12,11 +12,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Image } from "@/shared/components/ui/image";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Label } from "@/shared/components/ui/label";
-import { AuthService } from "@/core/services/auth.service";
-import { useAuthStore } from "@core/store/auth.store.ts";
-import { useRoleRedirec } from "@core/hooks/useRoleRedirec.tsx";
 import { GoogleIcon } from "@/shared/components/icons/google";
-import { fitdeskApi } from "@/core/api/fitdeskApi";
+import { useAuth } from "@/core/hooks/useAuth";
+
 
 
 const formSchema = z.object({
@@ -25,8 +23,8 @@ const formSchema = z.object({
 })
 
 export const Login = () => {
-    const loginStore = useAuthStore();
-    const { redirectByRole } = useRoleRedirec();
+    const {loginMutation,handleGoogleLogin} = useAuth()
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -39,23 +37,10 @@ export const Login = () => {
     const [rememberMe, setRememberMe] = useState(false)
 
     const handleLogin = async (values: z.infer<typeof formSchema>) => {
-        const { success } = await AuthService.login(values)
-        if (success) {
-            await loginStore.login(values);
-            console.log("User despues de login", loginStore.user)
-        }
-    }
-    useEffect(() => {
-        if (loginStore.user) {
-            console.log("Redirigiendo según el rol del usuario:", loginStore.user.roles);
-            redirectByRole();
-        }
-    }, [loginStore.user, redirectByRole]);
-
-    const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:9091/oauth2/authorization/google";
+        loginMutation.mutate(values)
     }
 
+    
     return (
         <div
             className="min-h-screen relative overflow-hidden bg-background transition-colors">

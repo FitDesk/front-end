@@ -12,7 +12,7 @@ import { AnimatedNumber } from '@/shared/components/animated-number';
 const plans = [
     {
         id: 'hobby',
-        name: 'Básico',
+        name: '1 Mes',
         icon: Star,
         price: {
             monthly: 'Gratis',
@@ -31,7 +31,7 @@ const plans = [
     },
     {
         id: 'pro',
-        name: 'Premium',
+        name: '3 Meses',
         icon: Zap,
         price: {
             monthly: 90,
@@ -50,7 +50,7 @@ const plans = [
     },
     {
         id: 'enterprise',
-        name: 'Empresarial',
+        name: '1 Año',
         icon: Shield,
         price: {
             monthly: 'Contáctanos',
