@@ -6,6 +6,7 @@ import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet 
 import { Input } from "./ui/input";
 import { PaymentService } from "@/core/services/payment.service";
 import { useRef, useState } from "react";
+import type { PlanResponse } from "@/core/interfaces/plan.interface";
 
 const detectCardType = (number: string): 'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown' => {
     const cleaned = number.replace(/\s/g, '');
@@ -20,18 +21,14 @@ const detectCardType = (number: string): 'visa' | 'mastercard' | 'amex' | 'disco
 
 
 interface PaymentFormProps {
-    membershipPlan: {
-        id: string;
-        name: string;
-        price: number;
-        description: string;
-    };
+
     userId: string;
     userEmail: string;
+    plan: PlanResponse;
     onPaymentSuccess: (paymentData: any) => void;
 }
 
-const PaymentForm = ({ membershipPlan, userId, userEmail, onPaymentSuccess }: PaymentFormProps) => {
+const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess }: PaymentFormProps) => {
 
     const [detectedPaymentMethod, setDetectedPaymentMethod] = useState('visa');
     const [formData, setFormData] = useState({
@@ -73,18 +70,6 @@ const PaymentForm = ({ membershipPlan, userId, userEmail, onPaymentSuccess }: Pa
     const formatCcv = (value: string) => value.replace(/\D/g, "").slice(0, 3);
 
     const formatDni = (value: string) => value.replace(/\D/g, "").slice(0, 8);
-
-
-    const onCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const formatted = formatCardNumber(e.target.value);
-        handleInputChange("cardNumber", formatted || "");
-
-    };
-
-
-    const onCardNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        handleInputChange("cardName", e.target.value.toUpperCase());
-    };
 
 
     const onExpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,23 +136,23 @@ const PaymentForm = ({ membershipPlan, userId, userEmail, onPaymentSuccess }: Pa
             const paymentResponse = await PaymentService.processDirectPayment({
                 externalReference,
                 userId,
-                amount: membershipPlan.price,
+                planId: plan.id,
+                amount: plan.price,
                 payerEmail: userEmail,
                 payerFirstName: formData.cardName.split(' ')[0],
                 payerLastName: formData.cardName.split(' ').slice(1).join(' ') || 'N/A',
-                description: `Membresía ${membershipPlan.name} - FitDesk`,
+                description: `Membresía ${plan.name} - FitDesk`,
                 token: cardToken.id,
                 installments: 1,
-                paymentMethodId: detectedPaymentMethod, 
+                paymentMethodId: detectedPaymentMethod,
                 identificationType: "DNI",
                 identificationNumber: formData.dni
             });
 
             console.log('✅ Pago procesado:', paymentResponse);
 
-            // 3️⃣ Manejar respuesta según el estado
             if (paymentResponse.status === 'approved') {
-                console.info(`🎉 ¡Pago Exitoso! , la membresia ${membershipPlan.name} a sido activada`)
+                console.info(`🎉 ¡Pago Exitoso! , la membresia ${plan.name} a sido activada`)
                 onPaymentSuccess(paymentResponse);
             } else if (paymentResponse.status === 'pending') {
                 onPaymentSuccess(paymentResponse);
@@ -228,7 +213,7 @@ const PaymentForm = ({ membershipPlan, userId, userEmail, onPaymentSuccess }: Pa
                                 </FieldDescription>
 
                                 <FieldGroup>
-                                  
+
                                     <Field>
                                         <FieldLabel htmlFor="card-number">
                                             Numero de Tarjeta

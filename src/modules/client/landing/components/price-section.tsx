@@ -2,75 +2,20 @@ import { Badge } from '@/shared/components/ui/badge';
 import { ArrowRight, Check, Shield, Sparkles, Star, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react';
-import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { cn } from '@/core/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import { AnimatedNumber } from '@/shared/components/animated-number';
 import { useNavigate } from 'react-router';
+import { useActivePlans } from '@/modules/admin/plans';
+import type { PlanResponse } from '@/core/interfaces/plan.interface';
 
-
-const plans = [
-    {
-        id: 'hobby',
-        name: '1 Mes',
-        icon: Star,
-        price: {
-            monthly: 'Gratis',
-            yearly: 'Gratis',
-        },
-        description:
-            'El lugar perfecto para comenzar tu viaje de fitness.',
-        features: [
-            '50 sesiones al mes',
-            'Acceso básico a entrenamientos',
-            'Cuenta individual',
-            '5 planes de entrenamiento',
-            'Soporte por correo básico',
-        ],
-        cta: 'Comenzar gratis',
-    },
-    {
-        id: 'pro',
-        name: '3 Meses',
-        icon: Zap,
-        price: {
-            monthly: 90,
-            yearly: 75,
-        },
-        description: 'Todo lo que necesitas para alcanzar tus metas de fitness.',
-        features: [
-            'Sesiones ilimitadas',
-            'Entrenamientos personalizados',
-            'Cuenta familiar',
-            'Planes de entrenamiento ilimitados',
-            'Soporte prioritario',
-        ],
-        cta: 'Suscríbete a Premium',
-        popular: true,
-    },
-    {
-        id: 'enterprise',
-        name: '1 Año',
-        icon: Shield,
-        price: {
-            monthly: 'Contáctanos',
-            yearly: 'Contáctanos',
-        },
-        description: 'Soporte y características premium para tu negocio de fitness.',
-        features: [
-            'Soporte 24/7',
-            'Entrenadores certificados',
-            'Cuentas para todo tu equipo',
-            'Planes personalizados',
-            'Análisis avanzados',
-        ],
-        cta: 'Contáctanos',
-    },
-];
 
 
 export const PriceSection = () => {
+
+    const { data: plans } = useActivePlans()
+
     const [frequency, setFrequency] = useState<string>('monthly');
     const [mounted, setMounted] = useState(false);
     const navigate = useNavigate();
@@ -79,9 +24,19 @@ export const PriceSection = () => {
     }, []);
 
     if (!mounted) return null;
-    const handlePayment = () => {
-        navigate('/payment');
+    const handlePayment = (plan: PlanResponse) => {
+        navigate('/client/payments',{state:{selectedPlan:plan}});
     }
+
+
+    const getPlanIcon = (planName: string) => {
+        const name = planName.toLowerCase();
+        if (name.includes('1 mes') || name.includes('mensual')) return Star;
+        if (name.includes('3 meses') || name.includes('trimestral')) return Zap;
+        if (name.includes('1 año') || name.includes('anual')) return Shield;
+        return Star; // default icon
+    };
+
     return (
         <div className="not-prose relative flex w-full flex-col gap-16 overflow-hidden px-4 py-24 text-center sm:px-8">
             <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -118,41 +73,8 @@ export const PriceSection = () => {
                     </motion.p>
                 </div>
 
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: 0.2 }}
-                >
-                    <Tabs
-                        defaultValue={frequency}
-                        onValueChange={setFrequency}
-                        className="bg-muted/30 inline-block rounded-full p-1 shadow-sm"
-                    >
-                        <TabsList className="bg-transparent">
-                            <TabsTrigger
-                                value="monthly"
-                                className="data-[state=active]:bg-background rounded-full transition-all duration-300 data-[state=active]:shadow-sm"
-                            >
-                                Mensual
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="yearly"
-                                className="data-[state=active]:bg-background rounded-full transition-all duration-300 data-[state=active]:shadow-sm"
-                            >
-                                Anual
-                                <Badge
-                                    variant="secondary"
-                                    className="bg-primary/10 text-primary hover:bg-primary/15 ml-2"
-                                >
-                                    20% de descuento
-                                </Badge>
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                </motion.div>
-
                 <div className="mt-8 grid w-full max-w-6xl grid-cols-1 gap-6 md:grid-cols-3">
-                    {plans.map((plan, index) => (
+                    {plans?.map((plan, index) => (
                         <motion.div
                             key={plan.id}
                             initial={{ opacity: 0, y: 20 }}
@@ -164,14 +86,14 @@ export const PriceSection = () => {
                             <Card
                                 className={cn(
                                     'bg-secondary/20 relative h-full w-full text-left transition-all duration-300 hover:shadow-lg',
-                                    plan.popular
+                                    plan.isPopular
                                         ? 'ring-primary/50 dark:shadow-primary/10 shadow-md ring-2'
                                         : 'hover:border-primary/30',
-                                    plan.popular &&
+                                    plan.isPopular &&
                                     'from-primary/[0.03] bg-gradient-to-b to-transparent',
                                 )}
                             >
-                                {plan.popular && (
+                                {plan.isPopular && (
                                     <div className="absolute -top-3 right-0 left-0 mx-auto w-fit">
                                         <Badge className="bg-primary text-primary-foreground rounded-full px-4 py-1 shadow-sm">
                                             <Sparkles className="mr-1 h-3.5 w-3.5" />
@@ -179,22 +101,22 @@ export const PriceSection = () => {
                                         </Badge>
                                     </div>
                                 )}
-                                <CardHeader className={cn('pb-4', plan.popular && 'pt-8')}>
+                                <CardHeader className={cn('pb-4', plan.isPopular && 'pt-8')}>
                                     <div className="flex items-center gap-2">
                                         <div
                                             className={cn(
                                                 'flex h-8 w-8 items-center justify-center rounded-full',
-                                                plan.popular
+                                                plan.isPopular
                                                     ? 'bg-primary/10 text-primary'
                                                     : 'bg-secondary text-foreground',
                                             )}
                                         >
-                                            <plan.icon className="h-4 w-4" />
-                                        </div>
+                                            
+                                            </div>
                                         <CardTitle
                                             className={cn(
                                                 'text-xl font-bold',
-                                                plan.popular && 'text-primary',
+                                                plan.isPopular && 'text-primary',
                                             )}
                                         >
                                             {plan.name}
@@ -208,10 +130,10 @@ export const PriceSection = () => {
                                             ] === 'number' ? (
                                                 <div className="flex items-baseline">
                                                     <AnimatedNumber
-                                                        value={plan.price[frequency as keyof typeof plan.price] as number}
+                                                        value={plan.price}
                                                         className={cn(
                                                             'text-3xl font-bold',
-                                                            plan.popular ? 'text-primary' : 'text-foreground',
+                                                            plan.isPopular ? 'text-primary' : 'text-foreground',
                                                         )}
                                                         format={{
                                                             style: 'currency',
@@ -227,10 +149,10 @@ export const PriceSection = () => {
                                                 <span
                                                     className={cn(
                                                         'text-2xl font-bold',
-                                                        plan.popular ? 'text-primary' : 'text-foreground',
+                                                        plan.isPopular ? 'text-primary' : 'text-foreground',
                                                     )}
                                                 >
-                                                    {plan.price[frequency as keyof typeof plan.price]}
+                                                    {plan.price}
                                                 </span>
                                             )}
                                         </div>
@@ -248,7 +170,7 @@ export const PriceSection = () => {
                                             <div
                                                 className={cn(
                                                     'flex h-5 w-5 items-center justify-center rounded-full',
-                                                    plan.popular
+                                                    plan.isPopular
                                                         ? 'bg-primary/10 text-primary'
                                                         : 'bg-secondary text-secondary-foreground',
                                                 )}
@@ -257,7 +179,7 @@ export const PriceSection = () => {
                                             </div>
                                             <span
                                                 className={
-                                                    plan.popular
+                                                    plan.isPopular
                                                         ? 'text-foreground'
                                                         : 'text-muted-foreground'
                                                 }
@@ -269,21 +191,21 @@ export const PriceSection = () => {
                                 </CardContent>
                                 <CardFooter>
                                     <Button
-                                        variant={plan.popular ? 'default' : 'outline'}
-                                        onClick={handlePayment}
+                                        variant={plan.isPopular ? 'default' : 'outline'}
+                                        onClick={() => handlePayment(plan)}
                                         className={cn(
                                             'w-full font-medium transition-all duration-300',
-                                            plan.popular
+                                            plan.isPopular
                                                 ? 'bg-primary hover:bg-primary/90 hover:shadow-primary/20 hover:shadow-md'
                                                 : 'hover:border-primary/30 hover:bg-primary/5 hover:text-primary',
                                         )}
                                     >
-                                        {plan.cta}
+
                                         <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                                     </Button>
                                 </CardFooter>
 
-                                {plan.popular ? (
+                                {plan.isPopular ? (
                                     <>
                                         <div className="from-primary/[0.05] pointer-events-none absolute right-0 bottom-0 left-0 h-1/2 rounded-b-lg bg-gradient-to-t to-transparent" />
                                         <div className="border-primary/20 pointer-events-none absolute inset-0 rounded-lg border" />

@@ -62,12 +62,6 @@ export const appRouter = createBrowserRouter([
         path: "/dashboard",
         element: <Navigate to="/client/dashboard" replace />
     },
-    {
-        path: "/payment",
-        element: (
-            <PaymentPage />
-        )
-    },
     // Landing Page Route
     {
         path: "/",
@@ -93,6 +87,10 @@ export const appRouter = createBrowserRouter([
             {
                 path: "dashboard",
                 element: <Suspense><ClientDashboard /></Suspense>
+            },
+            {
+                path: "payment",
+                element: <Suspense><PaymentPage /></Suspense>
             },
             {
                 path: "profile",

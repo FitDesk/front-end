@@ -1,22 +1,18 @@
 import { useAuthStore } from "@/core/store/auth.store";
 import PaymentForm from "@/shared/components/payment-form";
+import { useLocation } from "react-router";
 
 export default function PaymentsPage() {
-
+  const location = useLocation();
+  const selectedPlan = location.state?.selectedPlan;
   const user = useAuthStore((state) => state.user);
   const authStatus = useAuthStore((state) => state.authStatus);
 
+  console.log("Plan Selecionado", selectedPlan);
 
-  const mockMembershipPlan = {
-    id: "1",
-    name: "Plan Básico",
-    price: 50,
-    description: "Acceso básico al gimnasio"
-  };
-
-  const handlePaymentSuccess = (paymentData: any) => {
+  const handlePaymentSuccess = (paymentData: PaymentResponse) => {
     console.log("Pago exitoso:", paymentData);
-    // Aquí puedes manejar el éxito del pago, como redirigir o mostrar un mensaje
+
   };
 
 
@@ -37,7 +33,7 @@ export default function PaymentsPage() {
       </div>
 
       <PaymentForm
-        membershipPlan={mockMembershipPlan}
+        plan={selectedPlan}
         userId={user?.id ?? ''}
         userEmail={user?.email ?? ''}
         onPaymentSuccess={handlePaymentSuccess}

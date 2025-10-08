@@ -15,3 +15,36 @@ export interface CardData {
   identificationType: string;
   identificationNumber: string;
 }
+
+export interface CreatePaymentRequest {
+    externalReference: string;
+    userId: string;
+    planId: string;
+    amount: number;
+    payerEmail: string;
+    payerFirstName: string;
+    payerLastName: string;
+    description: string;
+    token: string;
+    installments: number;
+    paymentMethodId: string;
+    identificationType: string;
+    identificationNumber: string;
+}
+
+export interface PaymentResponse {
+  authorizationCode: string;
+  currencyId: string;
+  dateApproved: string;
+  dateCreated: string;
+  externalReference: string;
+  paymentId: number;
+  paymentMethodId: string;
+  paymentTypeId: string;
+  status: STATUS_PAYMENT;
+  statusDetail: string;
+  transactionAmount: number;
+  transactionId: string;
+}
+
+export type STATUS_PAYMENT = "approved" | "pending" | "rejected";

@@ -1,6 +1,8 @@
 import type {
   CardData,
+  CreatePaymentRequest,
   CreateTokenPaymentResponse,
+  PaymentResponse,
 } from "../interfaces/payment.interface";
 import { fitdeskApi } from "../api/fitdeskApi";
 
@@ -10,6 +12,7 @@ declare global {
   }
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: <>
 export class PaymentService {
   private static mp: any = null;
   private static publicKey: string =
@@ -48,7 +51,7 @@ export class PaymentService {
     await this.initialize();
 
     try {
-      // ✅ API correcta para crear tokens sin montar campos
+    
       const cardToken = await this.mp.createCardToken({
         cardNumber: cardData.cardNumber,
         cardholderName: cardData.cardholderName,
@@ -87,16 +90,16 @@ export class PaymentService {
         return paymentMethods.results[0].id;
       }
 
-      return "visa"; // fallback
+      return "visa"; 
     } catch (error) {
       console.warn("Error detectando método de pago:", error);
-      return "visa"; // fallback
+      return "visa";
     }
   }
 
-  static async processDirectPayment(paymentData: any) {
+  static async processDirectPayment(paymentData: CreatePaymentRequest):Promise<PaymentResponse> {
     try {
-      const response = await fitdeskApi.post(
+      const response = await fitdeskApi.post<PaymentResponse>(
         "/billing/payments/process",
         paymentData
       );
