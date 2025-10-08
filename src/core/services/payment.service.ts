@@ -1,20 +1,20 @@
-import axios from "axios";
 import type {
   CardData,
   CreateTokenPaymentResponse,
 } from "../interfaces/payment.interface";
+import { fitdeskApi } from "../api/fitdeskApi";
 
 declare global {
   interface Window {
     MercadoPago: any;
   }
 }
+
 export class PaymentService {
   private static mp: any = null;
   private static publicKey: string =
     import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY || "";
-  private static backendUrl: string =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:9090/billing";
+  
   static async initialize() {
     if (!this.mp) {
       await this.loadMercadoPagoScript();
@@ -96,13 +96,10 @@ export class PaymentService {
 
   static async processDirectPayment(paymentData: any) {
     try {
-      const response = await axios.post(
-        `${this.backendUrl}/payments/process`,
+      const response = await fitdeskApi.post(
+        "/billing/payments/process",
         paymentData,
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
           timeout: 30000, // 30 segundos timeout
         }
       );
@@ -110,12 +107,8 @@ export class PaymentService {
     } catch (error: any) {
       console.error("Error procesando pago:", error);
 
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-
-      if (error.code === "ECONNABORTED") {
-        throw new Error("Timeout: El pago está tardando más de lo esperado");
+      if (error.message) {
+        throw new Error(error.message);
       }
 
       throw new Error("Error de conexión con el servidor");
@@ -127,14 +120,14 @@ export class PaymentService {
    */
   static async getPaymentStatus(externalReference: string) {
     try {
-      const response = await axios.get(
-        `${this.backendUrl}/payments/status/${externalReference}`
+      const response = await fitdeskApi.get(
+        `/billing/payments/status/${externalReference}`
       );
       return response.data;
     } catch (error: any) {
       console.error("Error consultando estado:", error);
       throw new Error(
-        error.response?.data?.message || "Error al consultar estado del pago"
+        error.message || "Error al consultar estado del pago"
       );
     }
   }
