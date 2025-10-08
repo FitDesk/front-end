@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { cn } from '@/core/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import { AnimatedNumber } from '@/shared/components/animated-number';
+import { useNavigate } from 'react-router';
 
 
 const plans = [
@@ -72,11 +73,15 @@ const plans = [
 export const PriceSection = () => {
     const [frequency, setFrequency] = useState<string>('monthly');
     const [mounted, setMounted] = useState(false);
+    const navigate = useNavigate();
     useEffect(() => {
         setMounted(true);
     }, []);
 
     if (!mounted) return null;
+    const handlePayment = () => {
+        navigate('/payment');
+    }
     return (
         <div className="not-prose relative flex w-full flex-col gap-16 overflow-hidden px-4 py-24 text-center sm:px-8">
             <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -265,6 +270,7 @@ export const PriceSection = () => {
                                 <CardFooter>
                                     <Button
                                         variant={plan.popular ? 'default' : 'outline'}
+                                        onClick={handlePayment}
                                         className={cn(
                                             'w-full font-medium transition-all duration-300',
                                             plan.popular
@@ -277,7 +283,6 @@ export const PriceSection = () => {
                                     </Button>
                                 </CardFooter>
 
-                                {/* Subtle gradient effects */}
                                 {plan.popular ? (
                                     <>
                                         <div className="from-primary/[0.05] pointer-events-none absolute right-0 bottom-0 left-0 h-1/2 rounded-b-lg bg-gradient-to-t to-transparent" />
