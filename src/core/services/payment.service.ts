@@ -14,7 +14,7 @@ export class PaymentService {
   private static mp: any = null;
   private static publicKey: string =
     import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY || "";
-  
+
   static async initialize() {
     if (!this.mp) {
       await this.loadMercadoPagoScript();
@@ -98,10 +98,7 @@ export class PaymentService {
     try {
       const response = await fitdeskApi.post(
         "/billing/payments/process",
-        paymentData,
-        {
-          timeout: 30000, // 30 segundos timeout
-        }
+        paymentData
       );
       return response.data;
     } catch (error: any) {
@@ -126,9 +123,7 @@ export class PaymentService {
       return response.data;
     } catch (error: any) {
       console.error("Error consultando estado:", error);
-      throw new Error(
-        error.message || "Error al consultar estado del pago"
-      );
+      throw new Error(error.message || "Error al consultar estado del pago");
     }
   }
 

@@ -36,7 +36,7 @@ const PaymentForm = ({ membershipPlan, userId, userEmail, onPaymentSuccess }: Pa
     const [detectedPaymentMethod, setDetectedPaymentMethod] = useState('visa');
     const [formData, setFormData] = useState({
         cardNumber: "",
-        cardName: "",
+        cardName: "APRO",
         expDate: "",
         ccv: "",
         dni: "",
@@ -150,6 +150,7 @@ const PaymentForm = ({ membershipPlan, userId, userEmail, onPaymentSuccess }: Pa
 
             const paymentResponse = await PaymentService.processDirectPayment({
                 externalReference,
+                userId,
                 amount: membershipPlan.price,
                 payerEmail: userEmail,
                 payerFirstName: formData.cardName.split(' ')[0],
@@ -157,7 +158,7 @@ const PaymentForm = ({ membershipPlan, userId, userEmail, onPaymentSuccess }: Pa
                 description: `Membresía ${membershipPlan.name} - FitDesk`,
                 token: cardToken.id,
                 installments: 1,
-                paymentMethodId: detectedPaymentMethod, // ✅ Usar método detectado
+                paymentMethodId: detectedPaymentMethod, 
                 identificationType: "DNI",
                 identificationNumber: formData.dni
             });
@@ -227,21 +228,7 @@ const PaymentForm = ({ membershipPlan, userId, userEmail, onPaymentSuccess }: Pa
                                 </FieldDescription>
 
                                 <FieldGroup>
-                                    <Field>
-                                        <FieldLabel htmlFor="card-name">
-                                            Nombre de la targeta
-                                        </FieldLabel>
-                                        {/** biome-ignore lint/correctness/useUniqueElementIds: <> */}
-                                        <Input
-                                            id="card-name"
-                                            onFocus={hideBackCard}
-                                            onClick={hideBackCard}
-                                            value={formData.cardName}
-                                            onChange={onCardNameChange}
-                                            required
-                                        />
-                                    </Field>
-
+                                  
                                     <Field>
                                         <FieldLabel htmlFor="card-number">
                                             Numero de Tarjeta
