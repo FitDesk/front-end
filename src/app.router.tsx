@@ -17,6 +17,7 @@ import { MessagePage } from "./modules/trainer/messages/message-page";
 import { OAuthCallback } from "./modules/shared/auth/oauth-callback";
 import { ConfigurationPage } from "./modules/trainer/configuration";
 import { TrainerRoute, AdminRoute, NotAuthenticatedRoute } from './shared/components/protected-routes';
+import { MembershipPage } from "./modules/client/payments/membership-page";
 
 
 //Admin
@@ -62,6 +63,10 @@ export const appRouter = createBrowserRouter([
         path: "/dashboard",
         element: <Navigate to="/client/dashboard" replace />
     },
+    {
+        path: "/payments",
+        element: <Suspense><PaymentPage /></Suspense>
+    },
     // Landing Page Route
     {
         path: "/",
@@ -89,8 +94,8 @@ export const appRouter = createBrowserRouter([
                 element: <Suspense><ClientDashboard /></Suspense>
             },
             {
-                path: "payment",
-                element: <Suspense><PaymentPage /></Suspense>
+                path: "membership",
+                element: <Suspense><MembershipPage /></Suspense>
             },
             {
                 path: "profile",

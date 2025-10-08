@@ -22,3 +22,26 @@ export interface CreatePlanRequest {
 }
 
 export interface UpdatePlanRequest extends CreatePlanRequest {}
+
+export interface Membership {
+  id: string;
+  userId: string;
+  paymentId: string;
+  planId: string;
+  planName: string;
+  durationMonths: number;
+  amountPaid: number;
+  startDate: string;
+  endDate: string;
+  status: "ACTIVE" | "EXPIRED" | "CANCELLED" | "SUSPENDED" | "PENDING";
+  externalReference: string;
+  isActive: boolean;
+  isExpired: boolean;
+  daysRemaining: number;
+}
+export interface UserMemberships {
+    activeMembership: Membership | null;
+    membershipHistory: Membership[];
+    hasActiveMembership: boolean;
+    totalMemberships: number;
+  }

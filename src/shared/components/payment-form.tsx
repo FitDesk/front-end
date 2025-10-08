@@ -7,6 +7,10 @@ import { Input } from "./ui/input";
 import { PaymentService } from "@/core/services/payment.service";
 import { useRef, useState } from "react";
 import type { PlanResponse } from "@/core/interfaces/plan.interface";
+import { useMyMembership } from "@/modules/client/payments/useMembershipQuery";
+import type { PaymentResponse } from "@/core/interfaces/payment.interface";
+import { toast } from "./ui/toast-provider";
+
 
 const detectCardType = (number: string): 'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown' => {
     const cleaned = number.replace(/\s/g, '');
@@ -25,10 +29,13 @@ interface PaymentFormProps {
     userId: string;
     userEmail: string;
     plan: PlanResponse;
-    onPaymentSuccess: (paymentData: any) => void;
+    onPaymentSuccess: (paymentData: PaymentResponse) => void;
 }
 
 const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess }: PaymentFormProps) => {
+
+
+    const { data: myMembership } = useMyMembership()
 
     const [detectedPaymentMethod, setDetectedPaymentMethod] = useState('visa');
     const [formData, setFormData] = useState({
@@ -107,15 +114,6 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess }: PaymentFormP
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Payment submitted:", {
-            cardNumber: formData.cardNumber,
-            cardName: formData.cardName,
-            expDate: formData.expDate,
-            ccv: formData.ccv,
-            dni: formData.dni,
-            comments: formData.comments,
-            cardType
-        });
         try {
             console.log('🔒 Creando token de tarjeta en el navegador...');
             const cardToken = await PaymentService.createCardToken({
@@ -129,7 +127,6 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess }: PaymentFormP
             });
 
             console.log('✅ Token creado:', cardToken.id);
-            // 2️⃣ Enviar token al backend para procesar el pago
             console.log('💳 Procesando pago en el backend...');
             const externalReference = `MEMBERSHIP_${userId}_${Date.now()}`;
 
@@ -152,6 +149,8 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess }: PaymentFormP
             console.log('✅ Pago procesado:', paymentResponse);
 
             if (paymentResponse.status === 'approved') {
+            
+                toast.success("¡Pago exitoso! Tu membresia ha sido activada")
                 console.info(`🎉 ¡Pago Exitoso! , la membresia ${plan.name} a sido activada`)
                 onPaymentSuccess(paymentResponse);
             } else if (paymentResponse.status === 'pending') {
@@ -162,9 +161,10 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess }: PaymentFormP
 
         } catch (error: any) {
             console.error('❌ Error procesando pago:', error);
-            alert(`Error: ${error.message}`);
+            toast.error(`Error al procesar el pago ${error.message}`)
         }
     };
+
 
 
     const getCardGradient = () => {
@@ -183,6 +183,9 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess }: PaymentFormP
     };
 
     const CardLogo = CardDesing[cardType];
+
+
+
 
     return (
         <>
@@ -218,7 +221,7 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess }: PaymentFormP
                                         <FieldLabel htmlFor="card-number">
                                             Numero de Tarjeta
                                         </FieldLabel>
-                                        {/** biome-ignore lint/correctness/useUniqueElementIds: <explanation> */}
+                                        {/** biome-ignore lint/correctness/useUniqueElementIds: <> */}
                                         <Input
                                             id="card-number"
                                             type="text"
@@ -274,7 +277,7 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess }: PaymentFormP
                                                     value={formData.ccv}
                                                     onChange={onCcvChange}
                                                     maxLength={3}
-                                                    placeholder="123"
+                                                    placeholder="xxx"
                                                     required
                                                 />
                                             </Field>

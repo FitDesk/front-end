@@ -5,6 +5,7 @@ import type {
   PlanResponse,
   CreatePlanRequest,
   UpdatePlanRequest,
+  UserMemberships,
 } from "../../../../core/interfaces/plan.interface";
 
 export class PlanService {
@@ -115,6 +116,20 @@ export class PlanService {
     } catch (error: any) {
       console.error("Error filtrando planes por duración:", error);
       throw new Error(error.message || "Error al filtrar planes por duración");
+    }
+  }
+
+  static async getMyMembership(): Promise<UserMemberships> {
+    try {
+      const response = await fitdeskApi.get<UserMemberships>(
+        `/members/memberships/my-active-membership`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error obteniendo membresía del usuario:", error);
+      throw new Error(
+        error.message || "Error al obtener la membresía del usuario"
+      );
     }
   }
 }

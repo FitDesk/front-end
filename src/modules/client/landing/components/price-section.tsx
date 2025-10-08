@@ -25,7 +25,7 @@ export const PriceSection = () => {
 
     if (!mounted) return null;
     const handlePayment = (plan: PlanResponse) => {
-        navigate('/client/payments',{state:{selectedPlan:plan}});
+        navigate('/payments',{state:{selectedPlan:plan}});
     }
 
 
