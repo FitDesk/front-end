@@ -8,7 +8,6 @@ const LandingPage = () => {
             <HeroSection />
             <StatsSection />
             <PriceSection />
-            {/* <TrainerSection /> */}
         </div>
     )
 }

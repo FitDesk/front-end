@@ -83,7 +83,7 @@ export default function ClientDashboardLayout() {
               { id: 'inicio', icon: Home, label: 'Inicio', path: '/client/dashboard' },
               { id: 'clases', icon: Calendar, label: 'Clases', path: '/client/classes' },
               { id: 'historial', icon: BarChart2, label: 'Historial', path: '/client/history' },
-              { id: 'pagos', icon: CreditCard, label: 'Pagos', path: '/client/payments' },
+              { id: 'pagos', icon: CreditCard, label: 'Pagos', path: '/client/membership' },
               { id: 'perfil', icon: User, label: 'Perfil', path: '/client/profile' },
             ].map((tab) => (
               <Button
@@ -143,7 +143,7 @@ export default function ClientDashboardLayout() {
               { id: 'inicio', icon: Home, label: 'Inicio', path: '/client/dashboard' },
               { id: 'clases', icon: Calendar, label: 'Clases', path: '/client/classes' },
               { id: 'historial', icon: BarChart2, label: 'Historial', path: '/client/history' },
-              { id: 'pagos', icon: CreditCard, label: 'Pagos', path: '/client/payments' },
+              { id: 'pagos', icon: CreditCard, label: 'Membresia', path: '/client/membership' },
               { id: 'perfil', icon: User, label: 'Perfil', path: '/client/profile' },
             ].map((tab) => (
               <Button

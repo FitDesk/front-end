@@ -6,15 +6,13 @@ import { toast } from 'sonner';
 
 import { PlanModal } from '../components/plan-modal';
 import { PlanCard } from '../components/plan-card';
-import { usePlans, useCreatePlan, useUpdatePlan, useDeletePlan } from '../hooks/usePlansQuery';
+import { useCreatePlan, useUpdatePlan, useDeletePlan, useAllPlans } from '../hooks/usePlansQuery';
 import { usePlanStore } from '../store/usePlanStore';
 import type { Plan } from '../types';
 
 const PlansPage = () => {
   const { filters } = usePlanStore();
-  const { data: plans = [], isLoading, error } = usePlans(filters);
-  const createPlan = useCreatePlan();
-  const updatePlan = useUpdatePlan();
+  const { data: plans, isLoading, error } = useAllPlans()
   const deletePlan = useDeletePlan();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | undefined>(undefined);
@@ -33,23 +31,7 @@ const PlansPage = () => {
 
   const handleSubmit = async (values: Omit<Plan, 'id' | 'promotions'> & { id?: string }) => {
     setIsSubmitting(true);
-    try {
-      if (selectedPlan) {
-        // Actualizar plan existente
-        await updatePlan.mutateAsync({ ...values, id: selectedPlan.id });
-        toast.success('El plan se ha actualizado correctamente');
-      } else {
-        // Crear nuevo plan
-        await createPlan.mutateAsync(values);
-        toast.success('El plan se ha creado correctamente');
-      }
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error('Error saving plan:', error);
-      toast.error('Ha ocurrido un error al guardar el plan');
-    } finally {
-      setIsSubmitting(false);
-    }
+
   };
 
   const handleDelete = async (id: string) => {
@@ -101,7 +83,7 @@ const PlansPage = () => {
         </Button>
       </div>
 
-      {plans.length === 0 ? (
+      {plans?.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed p-12 text-center">
           <div className="flex flex-col items-center justify-center space-y-3">
             <Shield className="h-14 w-14 text-muted-foreground" />
@@ -121,7 +103,7 @@ const PlansPage = () => {
       ) : (
         <Card className="p-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {plans.map((plan) => (
+            {plans?.map((plan) => (
               <PlanCard
                 key={plan.id}
                 plan={plan}

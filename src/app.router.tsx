@@ -17,7 +17,8 @@ import { MessagePage } from "./modules/trainer/messages/message-page";
 import { ClientMessagePage } from "./modules/client/messages/message-page";
 import { OAuthCallback } from "./modules/shared/auth/oauth-callback";
 import { ConfigurationPage } from "./modules/trainer/configuration";
-import {TrainerRoute, AdminRoute, NotAuthenticatedRoute} from './shared/components/protected-routes';
+import { TrainerRoute, AdminRoute, NotAuthenticatedRoute } from './shared/components/protected-routes';
+import { MembershipPage } from "./modules/client/payments/membership-page";
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
@@ -40,9 +41,6 @@ const TrainerStudentsPage = lazy(() => import("@/modules/trainer/students/pages/
 
 
 
-
-
-
 // Client
 const ClientLayout = lazy(() => import("@/shared/layouts/ClientLayout"))
 const ClientDashboardLayout = lazy(() => import("@/shared/layouts/ClientDashboardLayout"))
@@ -55,11 +53,18 @@ const ClientPaymentsPage = lazy(() => import("@/modules/client/payments/payments
 
 // Auth
 const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
+
+// Payment
+const PaymentPage = lazy(() => import("@/modules/client/payments/payments-page"))
+
 export const appRouter = createBrowserRouter([
-    // Redirect from /dashboard to /client/dashboard
     {
         path: "/dashboard",
         element: <Navigate to="/client/dashboard" replace />
+    },
+    {
+        path: "/payments",
+        element: <Suspense><PaymentPage /></Suspense>
     },
     // Landing Page Route
     {
@@ -88,6 +93,10 @@ export const appRouter = createBrowserRouter([
                 element: <Suspense><ClientDashboard /></Suspense>
             },
             {
+                path: "membership",
+                element: <Suspense><MembershipPage /></Suspense>
+            },
+            {
                 path: "profile",
                 element: <Suspense><ClientProfilePage /></Suspense>
             },
@@ -113,11 +122,13 @@ export const appRouter = createBrowserRouter([
     {
         path: "/auth",
         element: (
-        <NotAuthenticatedRoute>
+
+            <NotAuthenticatedRoute>
                 <Suspense fallback={<PageLoader />}>
                     <AuthLayout />
                 </Suspense>
-          </NotAuthenticatedRoute>
+            </NotAuthenticatedRoute>
+
         ),
         children: [
             { index: true, element: <Suspense><Login /></Suspense> },
