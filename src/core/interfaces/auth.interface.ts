@@ -1,4 +1,5 @@
 export interface UserLogin {
+    id: string;
     roles: string[];
     email: string;
 }
@@ -24,6 +25,7 @@ export interface AuthResponse {
 
 
 export interface AuthAccess {
+    id: string;
     authorities: Authority[];
     email: string;
     authenticated: boolean;

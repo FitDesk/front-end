@@ -1,101 +1,135 @@
-import { fitdeskApi } from '@/core/api/fitdeskApi';
-import type { Plan, Promotion, CreatePlanDto } from '../types';
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: <> */
+/** biome-ignore-all lint/suspicious/noExplicitAny: <> */
+import { fitdeskApi } from "../../../../core/api/fitdeskApi";
+import type {
+  PlanResponse,
+  CreatePlanRequest,
+  UpdatePlanRequest,
+  UserMemberships,
+} from "../../../../core/interfaces/plan.interface";
 
 export class PlanService {
-  private static readonly ENDPOINT = '/plans';
-
-  /**
-   * 
-   * @returns 
-   */
-  static async getAll(): Promise<Plan[]> {
+  static async getActivePlans(): Promise<PlanResponse[]> {
     try {
-     
-      const { data: plans } = await fitdeskApi.get<Plan[]>(this.ENDPOINT);
-      
-      if (!plans || !Array.isArray(plans)) {
-        return [];
-      }
-      
-      try {
-        
-        const { data: promotions = [] } = await fitdeskApi.get<Promotion[]>('/promotions/active');
-        
-        
-        return plans.map(plan => ({
-          ...plan,
-          promotions: Array.isArray(promotions) ? promotions.filter(promo => 
-            promo && 
-            (promo.target === 'all' || 
-            (promo.target === 'members' && plan.name.toLowerCase().includes('miembro')) ||
-            (promo.target === 'trainers' && plan.name.toLowerCase().includes('entrenador')))
-          ) : []
-        }));
-      } catch (promoError) {
-        console.error('Error cargando promociones:', promoError);
-        
-        return plans.map(plan => ({
-          ...plan,
-          promotions: []
-        }));
-      }
-    } catch (error) {
-      console.error('Error en PlanService.getAll:', error);
-      return [];
-    }
-  }
-
-  /**
-   * 
-   * @param plan 
-   * @returns 
-   */
-  static async create(plan: CreatePlanDto): Promise<Plan> {
-    try {
-      const { data } = await fitdeskApi.post<Plan>(this.ENDPOINT, plan);
-      return data;
-    } catch (error) {
-      console.error('Error en PlanService.create:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 
-   * @param plan 
-   * @returns 
-   */
-  static async update(plan: Plan): Promise<Plan> {
-    try {
-      const { data } = await fitdeskApi.put<Plan>(
-        `${this.ENDPOINT}/${plan.id}`, 
-        plan
+      const response = await fitdeskApi.get<PlanResponse[]>(
+        `/billing/plans/active`
       );
-      return data;
-    } catch (error) {
-      console.error('Error en PlanService.update:', error);
-      throw new Error('No se pudo actualizar el plan');
+      return response.data;
+    } catch (error: any) {
+      console.error("Error obteniendo planes activos:", error);
+      throw new Error(error.message || "Error al obtener planes activos");
     }
   }
 
-  /**
-   * 
-   * @param id 
-   */
-  static async delete(id: string): Promise<void> {
+  static async getAllPlans(): Promise<PlanResponse[]> {
     try {
-      await fitdeskApi.delete(`${this.ENDPOINT}/${id}`);
-    } catch (error) {
-      console.error('Error en PlanService.delete:', error);
-      throw new Error('No se pudo eliminar el plan');
+      const response = await fitdeskApi.get<PlanResponse[]>("/billing/plans");
+      return response.data;
+    } catch (error: any) {
+      console.error("Error obteniendo todos los planes:", error);
+      throw new Error(error.message || "Error al obtener los planes");
+    }
+  }
+
+  static async getPlanById(id: string): Promise<PlanResponse> {
+    try {
+      const response = await fitdeskApi.get<PlanResponse>(
+        `/billing/plans/${id}`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error obteniendo plan con ID ${id}:`, error);
+      throw new Error(error.message || "Error al obtener el plan");
+    }
+  }
+
+  static async createPlan(planData: CreatePlanRequest): Promise<PlanResponse> {
+    try {
+      const response = await fitdeskApi.post<PlanResponse>(
+        `/billing/plans`,
+        planData
+      );
+      console.log("✅ Plan creado exitosamente:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("Error creando plan:", error);
+      throw new Error(error.message || "Error al crear el plan");
+    }
+  }
+
+  static async updatePlan(
+    id: string,
+    planData: UpdatePlanRequest
+  ): Promise<PlanResponse> {
+    try {
+      const response = await fitdeskApi.put<PlanResponse>(
+        `/billing/plans/${id}`,
+        planData
+      );
+      console.log("✅ Plan actualizado exitosamente:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error actualizando plan con ID ${id}:`, error);
+      throw new Error(error.message || "Error al actualizar el plan");
+    }
+  }
+
+  static async deletePlan(id: string): Promise<void> {
+    try {
+      await fitdeskApi.delete(`/billing/plans/${id}`);
+      console.log("✅ Plan eliminado exitosamente");
+    } catch (error: any) {
+      console.error(`Error eliminando plan con ID ${id}:`, error);
+      throw new Error(error.message || "Error al eliminar el plan");
+    }
+  }
+
+  static async getPopularPlans(): Promise<PlanResponse[]> {
+    try {
+      const plans = await this.getActivePlans();
+      return plans.filter((plan) => plan.isPopular);
+    } catch (error: any) {
+      console.error("Error obteniendo planes populares:", error);
+      throw new Error(error.message || "Error al obtener planes populares");
+    }
+  }
+
+  static async getPlansByPriceRange(
+    minPrice: number,
+    maxPrice: number
+  ): Promise<PlanResponse[]> {
+    try {
+      const plans = await this.getActivePlans();
+      return plans.filter(
+        (plan) => plan.price >= minPrice && plan.price <= maxPrice
+      );
+    } catch (error: any) {
+      console.error("Error filtrando planes por precio:", error);
+      throw new Error(error.message || "Error al filtrar planes por precio");
+    }
+  }
+
+  static async getPlansByDuration(months: number): Promise<PlanResponse[]> {
+    try {
+      const plans = await this.getActivePlans();
+      return plans.filter((plan) => plan.durationMonths === months);
+    } catch (error: any) {
+      console.error("Error filtrando planes por duración:", error);
+      throw new Error(error.message || "Error al filtrar planes por duración");
+    }
+  }
+
+  static async getMyMembership(): Promise<UserMemberships> {
+    try {
+      const response = await fitdeskApi.get<UserMemberships>(
+        `/members/memberships/my-active-membership`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error obteniendo membresía del usuario:", error);
+      throw new Error(
+        error.message || "Error al obtener la membresía del usuario"
+      );
     }
   }
 }
-
-
-export const planService = {
-  getAll: PlanService.getAll,
-  create: PlanService.create,
-  update: PlanService.update,
-  delete: PlanService.delete
-};

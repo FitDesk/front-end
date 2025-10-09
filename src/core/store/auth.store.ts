@@ -44,6 +44,7 @@ const authAPI: StateCreator<AuthStore> = (set, get) => ({
                     .map(auth => auth.authority.replace("ROLE_", ""));
                 console.log("Roles del usuario:", roles);
                 const user: UserLogin = {
+                    id: meData.id,
                     email: meData.email,
                     roles,
                 }
@@ -78,6 +79,7 @@ const authAPI: StateCreator<AuthStore> = (set, get) => ({
                     .map(auth => auth.authority.replace("ROLE_", ""));
                 console.log("Roles del usuario:", roles);
                 const user: UserLogin = {
+                    id: meData.id,
                     email: meData.email,
                     roles,
                 }
@@ -105,7 +107,7 @@ export const useAuthStore = create<AuthStore>()(
         )
         , {
             name: "fitdesk-user",
-            // partialize: (state) => ({user: state.user})
+            partialize: (state) => ({user: state.user})
         }
     )
 )
