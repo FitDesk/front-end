@@ -14,10 +14,10 @@ import { CreateMemberPage } from "./modules/admin/members/pages/CreateMemberPage
 import { MemberDetailsPage } from "./modules/admin/members/pages/MemberDetailsPage";
 import { EditMemberPage } from "./modules/admin/members/pages/EditMemberPage";
 import { MessagePage } from "./modules/trainer/messages/message-page";
+import { ClientMessagePage } from "./modules/client/messages/message-page";
 import { OAuthCallback } from "./modules/shared/auth/oauth-callback";
 import { ConfigurationPage } from "./modules/trainer/configuration";
 import {TrainerRoute, AdminRoute, NotAuthenticatedRoute} from './shared/components/protected-routes';
-
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
@@ -52,7 +52,6 @@ const ClientProfilePage = lazy(() => import("@/modules/client/profile/profile-pa
 const ClientClassesPage = lazy(() => import("@/modules/client/classes/client-classes-page"))
 const ClientHistoryPage = lazy(() => import("@/modules/client/history/history-page"))
 const ClientPaymentsPage = lazy(() => import("@/modules/client/payments/payments-page"))
-const ClientNotificationsPage = lazy(() => import("@/modules/client/notifications/notifications-page"))
 
 // Auth
 const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
@@ -105,8 +104,8 @@ export const appRouter = createBrowserRouter([
                 element: <Suspense><ClientPaymentsPage /></Suspense>
             },
             {
-                path: "notifications",
-                element: <Suspense><ClientNotificationsPage /></Suspense>
+                path: "messages",
+                element: <Suspense fallback={<PageLoader />}><ClientMessagePage /></Suspense>
             },
         ]
     },
@@ -114,11 +113,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/auth",
         element: (
-           <NotAuthenticatedRoute>
+        <NotAuthenticatedRoute>
                 <Suspense fallback={<PageLoader />}>
                     <AuthLayout />
                 </Suspense>
-             </NotAuthenticatedRoute>
+          </NotAuthenticatedRoute>
         ),
         children: [
             { index: true, element: <Suspense><Login /></Suspense> },
@@ -130,7 +129,7 @@ export const appRouter = createBrowserRouter([
     {
         path: "/admin",
         element: (
-            <AdminRoute>
+          <AdminRoute>
                 <Suspense fallback={<PageLoader />}>
                     <AdminLayout />
                 </Suspense>
@@ -200,11 +199,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/trainer",
         element: (
-            <TrainerRoute>
+           <TrainerRoute>
                 <Suspense fallback={<PageLoader />}>
                     <TrainerLayout />
                 </Suspense>
-             </TrainerRoute>
+            </TrainerRoute>
         ),
         children: [
             { index: true, element: <Navigate to="dashboard" replace /> },

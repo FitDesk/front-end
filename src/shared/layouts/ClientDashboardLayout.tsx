@@ -4,7 +4,7 @@ import { Toaster } from '@/shared/components/ui/sonner';
 import { Outlet, Link, useLocation } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
-import { BarChart2, Bell, Calendar, CreditCard, Home, LogOut, Menu, Search, Settings, User, X } from 'lucide-react';
+import { BarChart2, MessageCircle, Calendar, CreditCard, Home, LogOut, Menu, Search, Settings, User, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function ClientDashboardLayout() {
@@ -17,6 +17,7 @@ export default function ClientDashboardLayout() {
     if (path.includes('history')) return 'historial';
     if (path.includes('payments')) return 'pagos';
     if (path.includes('profile')) return 'perfil';
+    if (path.includes('messages')) return 'mensajes';
     return 'inicio';
   };
   
@@ -51,11 +52,13 @@ export default function ClientDashboardLayout() {
       >
         <div className="flex justify-end items-center p-4 border-b">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                3
-              </span>
+            <Button variant="ghost" size="icon" className="relative" asChild>
+              <Link to="/client/messages">
+                <MessageCircle className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+                  3
+                </span>
+              </Link>
             </Button>
             <ThemeTogglerButton 
               variant="ghost" 
@@ -169,11 +172,13 @@ export default function ClientDashboardLayout() {
               />
             </div>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                  3
-                </span>
+              <Button variant="ghost" size="icon" className="relative" asChild>
+                <Link to="/client/messages">
+                  <MessageCircle className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+                    3
+                  </span>
+                </Link>
               </Button>
               <ThemeTogglerButton 
                 variant="ghost" 
@@ -195,9 +200,17 @@ export default function ClientDashboardLayout() {
       </header>
       {/* Main Content */}
       <main className="flex-1 pt-16">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6">
-          <Outlet />
-        </div>
+        {location.pathname.includes('/messages') ? (
+          // Para la página de mensajes, ancho completo en móvil y tablet, contenedor en desktop
+          <div className="w-full lg:container lg:max-w-7xl lg:mx-auto lg:px-4 xl:px-6 2xl:px-8">
+            <Outlet />
+          </div>
+        ) : (
+          // Para otras páginas, con padding normal
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6">
+            <Outlet />
+          </div>
+        )}
       </main>
       <Toaster />
     </div>
