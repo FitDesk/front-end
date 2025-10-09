@@ -1,4 +1,4 @@
-import {  useState } from "react"
+import { useState } from "react"
 import { motion } from 'motion/react';
 import { Eye, EyeOff } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
@@ -13,7 +13,7 @@ import { Image } from "@/shared/components/ui/image";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Label } from "@/shared/components/ui/label";
 import { GoogleIcon } from "@/shared/components/icons/google";
-import { useAuth } from "@/core/hooks/useAuth";
+import { useAuthQueries } from "@/core/queries/useAuthQuery";
 
 
 
@@ -23,7 +23,7 @@ const formSchema = z.object({
 })
 
 export const Login = () => {
-    const {loginMutation,handleGoogleLogin} = useAuth()
+    const { useLoginMutation, handleGoogleLogin } = useAuthQueries()
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -37,10 +37,10 @@ export const Login = () => {
     const [rememberMe, setRememberMe] = useState(false)
 
     const handleLogin = async (values: z.infer<typeof formSchema>) => {
-        loginMutation.mutate(values)
+        useLoginMutation.mutate(values)
     }
 
-    
+
     return (
         <div
             className="min-h-screen relative overflow-hidden bg-background transition-colors">

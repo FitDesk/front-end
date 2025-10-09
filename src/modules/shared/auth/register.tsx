@@ -12,23 +12,27 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Image } from "@/shared/components/ui/image";
 import { Tabs, TabsContent, TabsContents, TabsList, TabsTrigger } from "@/shared/components/animated/tabs";
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import { useAuthQueries } from "@/core/queries/useAuthQuery";
+
 const formSchema = z.object({
     firstName: z.string(),
     lastName: z.string(),
     email: z.string().min(2, { message: "El dni debe tener al menos 7 caracteres" }),
-    dni: z.number(),
+    dni: z.string().min(7, { message: "El dni debe tener al menos 7 caracteres" }),
+    phone: z.string(),
     password: z.string()
 })
 export const Register = () => {
+    const { useRegisterMutation } = useAuthQueries()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             firstName: "",
             lastName: "",
-            dni: 0,
+            dni: "",
             email: "",
-            password: ""
+            password: "",
+            phone: ""
         }
     })
     const [showPassword, setShowPassword] = useState(false)
@@ -36,6 +40,7 @@ export const Register = () => {
 
     const handleLogin = (values: z.infer<typeof formSchema>) => {
         console.log(values)
+        useRegisterMutation.mutate(values)
     }
     return (
         <div
@@ -187,10 +192,29 @@ export const Register = () => {
                                                                     <FormLabel className="block text-sm font-medium text-foreground mb-2">Ingresa tu DNI</FormLabel>
                                                                     <FormControl>
                                                                         <Input
-                                                                            type="number"
+                                                                            type="text"
                                                                             required
                                                                             className="w-full bg-background border-border text-foreground"
-                                                                            placeholder="Correo"
+                                                                            placeholder="DNI"
+                                                                            {...field}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="phone"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="block text-sm font-medium text-foreground mb-2">Ingresa tu Celular</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            type="text"
+                                                                            required
+                                                                            className="w-full bg-background border-border text-foreground"
+                                                                            placeholder="Celular"
                                                                             {...field}
                                                                         />
                                                                     </FormControl>
@@ -302,6 +326,7 @@ export const Register = () => {
                                                         <Button
                                                             type="submit"
                                                             className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                                                            onClick={() => form.handleSubmit(handleLogin)()}
                                                         >
                                                             Registrarse
                                                         </Button>

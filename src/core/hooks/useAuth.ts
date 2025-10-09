@@ -20,12 +20,9 @@ export const useAuth = () => {
     },
   });
 
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:9091/oauth2/authorization/google";
-  };
 
   return {
     loginMutation,
-    handleGoogleLogin,
+    
   };
 };
