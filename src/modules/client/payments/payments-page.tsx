@@ -1,35 +1,24 @@
 import { useAuthStore } from "@/core/store/auth.store";
 import PaymentForm from "@/shared/components/payment-form";
-import { useLocation } from "react-router";
-import { useMembershipStore } from "./store/useMembershipState";
+import { useLocation, useNavigate } from "react-router";
 import type { PaymentResponse } from "@/core/interfaces/payment.interface";
-import { PlanService } from "@/modules/admin/plans/services/plan.service";
-import { useMyMembership } from "./useMembershipQuery";
+import { useState } from "react";
+import { Button } from "@/shared/components/ui/button";
 
 export default function PaymentsPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const selectedPlan = location.state?.selectedPlan;
   const user = useAuthStore((state) => state.user);
   const authStatus = useAuthStore((state) => state.authStatus);
-
-  const { membership, setMembership } = useMembershipStore();
-  const { data: myMembership } = useMyMembership();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePaymentSuccess = async (paymentData: PaymentResponse) => {
     console.log("Pago exitoso:", paymentData);
-
-    if (paymentData.status === "approved") {
-      try {
-        console.log("Mi membresia", myMembership);
-        if (myMembership) {
-          setMembership(myMembership);
-        } else {
-          console.error("No se pudo obtener la membresía.");
-        }
-      } catch (error) {
-        console.error("Error obteniendo la membresía:", error);
-      }
-    }
+    setIsProcessing(true);
+    setTimeout(() => {
+      navigate("/client/membership");
+    }, 1800);
   };
 
   if (authStatus === "not-authenticated" || authStatus === "checking") {
@@ -44,49 +33,32 @@ export default function PaymentsPage() {
     );
   }
 
-  // Mostrar detalles de la membresía si ya existe
-  if (membership?.hasActiveMembership) {
+  // Si no hay plan seleccionado, redirigir a la página de planes
+  if (!selectedPlan) {
     return (
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Detalles de tu Membresía</h2>
-        <p>
-          <strong>Plan:</strong> {membership.activeMembership?.planName}
-        </p>
-        <p>
-          <strong>Estado:</strong> {membership.activeMembership?.status}
-        </p>
-        <p>
-          <strong>Inicio:</strong>{" "}
-          {membership.activeMembership?.startDate
-            ? new Date(membership.activeMembership.startDate).toLocaleDateString()
-            : "N/A"}
-        </p>
-        <p>
-          <strong>Vencimiento:</strong>{" "}
-          {membership.activeMembership?.endDate
-            ? new Date(membership.activeMembership.endDate).toLocaleDateString()
-            : "N/A"}
-        </p>
-        <p>
-          <strong>Días Restantes:</strong>{" "}
-          {membership.activeMembership?.daysRemaining}
-        </p>
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center p-8">
+          <p className="text-lg text-muted-foreground mb-4">
+            No has seleccionado ningún plan
+          </p>
+          <Button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+          >
+            Ver planes disponibles
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Plan Adquirido</h1>
-      </div>
-
-      <PaymentForm
-        plan={selectedPlan}
-        userId={user?.id ?? ""}
-        userEmail={user?.email ?? ""}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
-    </div>
+    <PaymentForm
+      plan={selectedPlan}
+      userId={user?.id ?? ""}
+      userEmail={user?.email ?? ""}
+      onPaymentSuccess={handlePaymentSuccess}
+      isProcessingPayment={isProcessing}
+    />
   );
 }
