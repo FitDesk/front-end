@@ -10,11 +10,12 @@ export interface AuthRequestLogin {
 }
 
 export interface AuthRequestRegister {
-    email: string;
-    password: string;
     firstName: string;
     lastName: string;
-    username?: string;
+    email: string;
+    dni: string;
+    password: string;
+    phone?: string;
 }
 
 export interface AuthResponse {

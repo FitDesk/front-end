@@ -1,5 +1,5 @@
 import { Toaster } from '@/shared/components/ui/sonner';
-import { Outlet, Link, useLocation } from 'react-router';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
 import { BarChart2, MessageCircle, Calendar, CreditCard, Home, LogOut, Menu, Search, Settings, User, X } from 'lucide-react';
@@ -8,12 +8,14 @@ import { Image } from '../components/ui/image';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/core/store/auth.store';
 import { MemberService } from '@/core/services/member.service';
+import { AuthService } from '@/core/services/auth.service';
 
 export default function ClientDashboardLayout() {
 
   const queryClient = useQueryClient();
-
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   const handlePrefetch = (path: string) => {
     if (!user?.id) return;
 
@@ -62,6 +64,12 @@ export default function ClientDashboardLayout() {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+
+  const handleLogout = async () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {mobileMenuOpen && (
@@ -98,7 +106,7 @@ export default function ClientDashboardLayout() {
               variant="ghost"
               size="icon"
               showLabel={false}
-              direction="top-left"
+              direction="ltr"
             />
             <Button
               variant="ghost"
@@ -227,7 +235,7 @@ export default function ClientDashboardLayout() {
                 <Settings className="h-5 w-5" />
                 <span className="sr-only">Configuración</span>
               </Button>
-              <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+              <Button onClick={handleLogout} variant="ghost" size="icon" className="hidden md:inline-flex">
                 <LogOut className="h-5 w-5" />
                 <span className="sr-only">Cerrar sesión</span>
               </Button>
