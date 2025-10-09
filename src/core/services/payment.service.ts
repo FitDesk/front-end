@@ -115,9 +115,6 @@ export class PaymentService {
     }
   }
 
-  /**
-   * Obtener estado del pago
-   */
   static async getPaymentStatus(externalReference: string) {
     try {
       const response = await fitdeskApi.get(
@@ -130,9 +127,7 @@ export class PaymentService {
     }
   }
 
-  /**
-   * Obtener métodos de pago disponibles
-   */
+
   static async getPaymentMethods() {
     try {
       await this.initialize();

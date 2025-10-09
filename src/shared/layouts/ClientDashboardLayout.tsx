@@ -1,54 +1,88 @@
-'use client';
-
 import { Toaster } from '@/shared/components/ui/sonner';
 import { Outlet, Link, useLocation } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
 import { BarChart2, MessageCircle, Calendar, CreditCard, Home, LogOut, Menu, Search, Settings, User, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Image } from '../components/ui/image';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/core/store/auth.store';
+import { MemberService } from '@/core/services/member.service';
 
 export default function ClientDashboardLayout() {
+
+  const queryClient = useQueryClient();
+
+  const user = useAuthStore((state) => state.user);
+  const handlePrefetch = (path: string) => {
+    if (!user?.id) return;
+
+    if (path === "/client/dashboard") {
+      // Prefetch para la data del dashboard
+    } else if (path === '/client/membership') {
+      queryClient.prefetchQuery({
+        queryKey: ['membership', user.id],
+        queryFn: () => MemberService.getMyMembership,
+        staleTime: 5 * 60 * 1000,
+      });
+    } else if (path === '/client/classes') {
+      // Prefetch para las clases del usuario
+    } else if (path === '/client/profile') {
+      queryClient.prefetchQuery({
+        queryKey: ['user', user.id],
+        queryFn: () => MemberService.getMemberById(user?.id ?? ''),
+        staleTime: 5 * 60 * 1000,
+      });
+    }
+
+  }
+
+
   const location = useLocation();
-  
-  // Obtener la pestaña activa basada en la ruta actual
+
   const getActiveTab = () => {
     const path = location.pathname;
     if (path.includes('classes')) return 'clases';
     if (path.includes('history')) return 'historial';
-    if (path.includes('payments')) return 'pagos';
+    if (path.includes('membership')) return 'membresía';
     if (path.includes('profile')) return 'perfil';
     if (path.includes('messages')) return 'mensajes';
     return 'inicio';
   };
-  
+
   const [activeTab, setActiveTab] = useState(getActiveTab());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  // Actualizar la pestaña activa cuando cambia la ruta
+
+
   useEffect(() => {
     setActiveTab(getActiveTab());
   }, [location.pathname]);
 
-  // Cerrar el menú móvil al cambiar de ruta
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div 
+        <button
+          type="button"
           className="fixed inset-0 z-40 bg-black/50 sm:hidden"
           onClick={() => setMobileMenuOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setMobileMenuOpen(false);
+            }
+          }}
+          aria-label="Cerrar menú"
+          tabIndex={0}
         />
       )}
 
       {/* Mobile Menu */}
-      <div 
-        className={`fixed top-0 right-0 z-50 h-full w-72 bg-background shadow-lg transition-transform duration-300 ease-in-out transform ${
-          mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        } sm:hidden flex flex-col`}
+      <div
+        className={`fixed top-0 right-0 z-50 h-full w-72 bg-background shadow-lg transition-transform duration-300 ease-in-out transform ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          } sm:hidden flex flex-col`}
       >
         <div className="flex justify-end items-center p-4 border-b">
           <div className="flex items-center gap-2">
@@ -60,15 +94,15 @@ export default function ClientDashboardLayout() {
                 </span>
               </Link>
             </Button>
-            <ThemeTogglerButton 
-              variant="ghost" 
-              size="icon" 
+            <ThemeTogglerButton
+              variant="ghost"
+              size="icon"
               showLabel={false}
               direction="top-left"
             />
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setMobileMenuOpen(false)}
             >
               <X className="h-5 w-5" />
@@ -76,7 +110,7 @@ export default function ClientDashboardLayout() {
             </Button>
           </div>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <nav className="space-y-2">
             {[
@@ -90,16 +124,18 @@ export default function ClientDashboardLayout() {
                 key={tab.id}
                 asChild
                 variant={activeTab === tab.id ? 'default' : 'ghost'}
-                className="w-full justify-start"
+                size="sm"
+                className={`justify-start sm:justify-center gap-2 ${activeTab === tab.id ? 'shadow' : ''}`}
+                onMouseOver={() => handlePrefetch(tab.path)}
               >
                 <Link to={tab.path}>
-                  <tab.icon className="h-4 w-4 mr-2" />
-                  {tab.label}
+                  <tab.icon className="h-4 w-4" />
+                  <span className="whitespace-nowrap">{tab.label}</span>
                 </Link>
               </Button>
             ))}
           </nav>
-          
+
           <div className="pt-4 border-t space-y-2">
             <Button variant="ghost" className="w-full justify-start">
               <Settings className="h-4 w-4 mr-2" />
@@ -118,25 +154,25 @@ export default function ClientDashboardLayout() {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/client/dashboard" className="flex items-center gap-2">
-              <img 
-                src="/favicon.svg" 
-                alt="FitDesk Logo" 
+              <Image
+                src="/favicon.svg"
+                alt="FitDesk Logo"
                 className="h-8 w-auto"
               />
             </Link>
           </div>
-          
+
           {/* Mobile Menu Button - Moved to right */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setMobileMenuOpen(true)}
             className="sm:hidden ml-2"
           >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Abrir menú</span>
           </Button>
-          
+
           {/* Desktop Navigation */}
           <nav className="hidden sm:flex flex-1 flex-row items-center justify-center mx-4 gap-1">
             {[
@@ -152,6 +188,7 @@ export default function ClientDashboardLayout() {
                 variant={activeTab === tab.id ? 'default' : 'ghost'}
                 size="sm"
                 className={`justify-start sm:justify-center gap-2 ${activeTab === tab.id ? 'shadow' : ''}`}
+                onMouseOver={() => handlePrefetch(tab.path)}
               >
                 <Link to={tab.path}>
                   <tab.icon className="h-4 w-4" />
@@ -160,7 +197,7 @@ export default function ClientDashboardLayout() {
               </Button>
             ))}
           </nav>
-          
+
           {/* User actions */}
           <div className="hidden sm:flex items-center gap-2 py-2 sm:py-0">
             <div className="relative">
@@ -180,9 +217,9 @@ export default function ClientDashboardLayout() {
                   </span>
                 </Link>
               </Button>
-              <ThemeTogglerButton 
-                variant="ghost" 
-                size="icon" 
+              <ThemeTogglerButton
+                variant="ghost"
+                size="icon"
                 showLabel={false}
                 direction="top-left"
               />

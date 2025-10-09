@@ -119,17 +119,5 @@ export class PlanService {
     }
   }
 
-  static async getMyMembership(): Promise<UserMemberships> {
-    try {
-      const response = await fitdeskApi.get<UserMemberships>(
-        `/members/memberships/my-active-membership`
-      );
-      return response.data;
-    } catch (error: any) {
-      console.error("Error obteniendo membresía del usuario:", error);
-      throw new Error(
-        error.message || "Error al obtener la membresía del usuario"
-      );
-    }
-  }
+
 }
