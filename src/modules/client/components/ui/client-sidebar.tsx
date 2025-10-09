@@ -3,7 +3,7 @@ import {
   Calendar,
   BarChart3,
   CreditCard,
-  Bell,
+  MessageCircle,
   User,
   LogOut,
 } from 'lucide-react';
@@ -32,7 +32,7 @@ const menuItems = [
   { title: 'Clases', icon: Calendar, href: '/client/classes' },
   { title: 'Historial', icon: BarChart3, href: '/client/history' },
   { title: 'Pagos', icon: CreditCard, href: '/client/payments' },
-  { title: 'Notificaciones', icon: Bell, href: '/client/notifications' },
+  { title: 'Chats', icon: MessageCircle, href: '/client/messages' },
 ];
 
 const ClientSidebar = memo(() => {
@@ -81,15 +81,13 @@ const ClientSidebar = memo(() => {
       <SidebarFooter className="mt-auto">
         <SidebarMenu>
           <SidebarMenuItem className={togglerWrapperClass}>
-            <SidebarMenuButton className="flex w-full justify-center p-0">
-              <ThemeTogglerButton 
-                variant="ghost" 
-                size="sm" 
-                direction="bottom-left"
-                showLabel="auto"
-                className="w-full justify-start"
-              />
-            </SidebarMenuButton>
+            <ThemeTogglerButton 
+              variant="ghost" 
+              size="sm" 
+              direction="bottom-left"
+              showLabel="auto"
+              className="w-full justify-start"
+            />
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
