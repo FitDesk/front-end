@@ -1,4 +1,4 @@
-import { PlanService } from "@/modules/admin/plans/services/plan.service";
+import { MemberService } from "@/core/services/member.service";
 import { useQuery } from "@tanstack/react-query";
 
 
@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 export const useMyMembership = () => {
     return useQuery({
         queryKey: ["membership", "my"],
-        queryFn: () => PlanService.getMyMembership(),
+        queryFn: () => MemberService.getMyMembership(),
         staleTime: 5 * 60 * 1000,
     });
 };

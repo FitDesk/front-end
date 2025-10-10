@@ -1,29 +1,31 @@
-import React from 'react';
+import React, { use } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
-import { 
-  Dumbbell, 
-  Clock, 
-  Trophy, 
-  Zap, 
-  Flame, 
-  HeartPulse, 
+import {
+  Dumbbell,
+  Clock,
+  Trophy,
+  Zap,
+  Flame,
+  HeartPulse,
   Award,
   BarChart2,
   Calendar,
   CreditCard
 } from 'lucide-react';
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  CartesianGrid 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid
 } from 'recharts';
+import { useAuthStore } from '@/core/store/auth.store';
+import { useGetMemberQuery } from '../profile/query/useMemberQuery';
 
 // Dashboard stats data
 const stats = [
@@ -81,26 +83,26 @@ const weeklyActivity = [
 ];
 
 const achievements = [
-  { id: 1, title: 'Maratón de la Mañana', description: '5 días seguidos de entrenamiento matutino', icon: Award, progress: 3/5, color: 'bg-purple-500' },
-  { id: 2, title: 'Quemagrasas', description: 'Quema 5,000 calorías en una semana', icon: Flame, progress: 2.5/5, color: 'bg-red-500' },
-  { id: 3, title: 'Corazón de Acero', description: 'Completa 10 sesiones de cardio', icon: HeartPulse, progress: 7/10, color: 'bg-pink-500' },
+  { id: 1, title: 'Maratón de la Mañana', description: '5 días seguidos de entrenamiento matutino', icon: Award, progress: 3 / 5, color: 'bg-purple-500' },
+  { id: 2, title: 'Quemagrasas', description: 'Quema 5,000 calorías en una semana', icon: Flame, progress: 2.5 / 5, color: 'bg-red-500' },
+  { id: 3, title: 'Corazón de Acero', description: 'Completa 10 sesiones de cardio', icon: HeartPulse, progress: 7 / 10, color: 'bg-pink-500' },
 ];
 
 const upcomingClasses = [
-  { 
-    id: 1, 
-    title: 'Spinning Intenso', 
-    time: 'Hoy, 06:00 PM - 07:00 PM', 
+  {
+    id: 1,
+    title: 'Spinning Intenso',
+    time: 'Hoy, 06:00 PM - 07:00 PM',
     instructor: 'Carlos M.',
     level: 'Intermedio',
     image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
     category: 'Cardio',
     spots: 5
   },
-  { 
-    id: 2, 
-    title: 'Yoga Matutino', 
-    time: 'Mañana, 07:00 AM - 08:00 AM', 
+  {
+    id: 2,
+    title: 'Yoga Matutino',
+    time: 'Mañana, 07:00 AM - 08:00 AM',
     instructor: 'Ana P.',
     level: 'Principiante',
     image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1220&q=80',
@@ -110,6 +112,10 @@ const upcomingClasses = [
 ];
 
 const ClientDashboard: React.FC = () => {
+
+  const user = useAuthStore(state => state.user);
+  const { data: member } = useGetMemberQuery(user?.id || '');
+
   // Handlers
   const handleBookClass = () => {
     console.log('Reservar clase...');
@@ -123,10 +129,12 @@ const ClientDashboard: React.FC = () => {
     console.log('Ver estadísticas...');
   };
 
+
+
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -135,7 +143,7 @@ const ClientDashboard: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              Hola, Juan Pérez
+              Hola {member?.firstName} {member?.lastName}
             </h1>
             <p className="text-muted-foreground mt-1">
               ¡Bienvenido de nuevo a tu rutina de entrenamiento! 🚀
@@ -197,38 +205,38 @@ const ClientDashboard: React.FC = () => {
               <AreaChart data={weeklyActivity}>
                 <defs>
                   <linearGradient id="colorMinutos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
                   </linearGradient>
                   <linearGradient id="colorCalorias" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
                   className="text-xs"
                 />
-                <YAxis 
-                  yAxisId="left" 
-                  orientation="left" 
-                  stroke="#3b82f6" 
-                  axisLine={false} 
-                  tickLine={false} 
+                <YAxis
+                  yAxisId="left"
+                  orientation="left"
+                  stroke="#3b82f6"
+                  axisLine={false}
+                  tickLine={false}
                   className="text-xs"
                 />
-                <YAxis 
-                  yAxisId="right" 
-                  orientation="right" 
-                  stroke="#10b981" 
-                  axisLine={false} 
-                  tickLine={false} 
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  stroke="#10b981"
+                  axisLine={false}
+                  tickLine={false}
                   className="text-xs"
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--background))',
                     borderColor: 'hsl(var(--border))',
@@ -236,21 +244,21 @@ const ClientDashboard: React.FC = () => {
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                   }}
                 />
-                <Area 
+                <Area
                   yAxisId="left"
-                  type="monotone" 
-                  dataKey="minutos" 
+                  type="monotone"
+                  dataKey="minutos"
                   stroke="#3b82f6"
-                  fillOpacity={1} 
+                  fillOpacity={1}
                   fill="url(#colorMinutos)"
                   name="Minutos"
                 />
-                <Area 
+                <Area
                   yAxisId="right"
-                  type="monotone" 
-                  dataKey="calorias" 
+                  type="monotone"
+                  dataKey="calorias"
                   stroke="#10b981"
-                  fillOpacity={1} 
+                  fillOpacity={1}
                   fill="url(#colorCalorias)"
                   name="Calorías"
                 />
@@ -278,9 +286,9 @@ const ClientDashboard: React.FC = () => {
                 <Card className="overflow-hidden transition-all hover:shadow-md">
                   <div className="flex">
                     <div className="h-24 w-24 flex-shrink-0">
-                      <img 
-                        src={classItem.image} 
-                        alt={classItem.title} 
+                      <img
+                        src={classItem.image}
+                        alt={classItem.title}
                         className="h-full w-full object-cover"
                       />
                     </div>
@@ -323,7 +331,7 @@ const ClientDashboard: React.FC = () => {
               {achievements.map((achievement, index) => {
                 const Icon = achievement.icon;
                 return (
-                  <motion.div 
+                  <motion.div
                     key={achievement.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -343,8 +351,8 @@ const ClientDashboard: React.FC = () => {
                               {Math.round(achievement.progress * 100)}%
                             </span>
                           </div>
-                          <Progress 
-                            value={achievement.progress * 100} 
+                          <Progress
+                            value={achievement.progress * 100}
                             className="h-2"
                             indicatorClassName={achievement.color}
                           />
@@ -363,8 +371,8 @@ const ClientDashboard: React.FC = () => {
       <div className="mt-8">
         <h2 className="mb-4 text-lg font-semibold">Acciones Rápidas</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="h-auto flex-col items-start gap-3 p-4 text-left"
             onClick={handleBookClass}
           >
@@ -376,9 +384,9 @@ const ClientDashboard: React.FC = () => {
               <p className="text-sm text-muted-foreground">Encuentra y reserva tu próxima clase</p>
             </div>
           </Button>
-          
-          <Button 
-            variant="outline" 
+
+          <Button
+            variant="outline"
             className="h-auto flex-col items-start gap-3 p-4 text-left"
             onClick={handleViewInvoices}
           >
@@ -390,9 +398,9 @@ const ClientDashboard: React.FC = () => {
               <p className="text-sm text-muted-foreground">Revisa tu historial de pagos</p>
             </div>
           </Button>
-          
-          <Button 
-            variant="outline" 
+
+          <Button
+            variant="outline"
             className="h-auto flex-col items-start gap-3 p-4 text-left"
             onClick={handleViewStats}
           >

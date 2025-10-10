@@ -31,6 +31,7 @@ export const OAuthCallback = () => {
                     console.log("Roles del usuario OAuth2:", roles);
                     
                     const user: UserLogin = {
+                        id: meData.id,
                         email: meData.email,
                         roles,
                     };
