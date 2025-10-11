@@ -47,7 +47,7 @@ const ClientDashboardLayout = lazy(() => import("@/shared/layouts/ClientDashboar
 const LandingPage = lazy(() => import("@/modules/client/landing/landing-page"))
 const ClientDashboard = lazy(() => import("@/modules/client/dashboard/ClientDashboard"))
 const ClientProfilePage = lazy(() => import("@/modules/client/profile/profile-page"))
-const ClientClassesPage = lazy(() => import("@/modules/client/classes/client-classes-page"))
+const ClientClassesPage = lazy(() => import("@/modules/client/classes/pages/client-classes-page"))
 const ClientHistoryPage = lazy(() => import("@/modules/client/history/history-page"))
 const ClientPaymentsPage = lazy(() => import("@/modules/client/payments/payments-page"))
 
