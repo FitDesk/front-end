@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from 'motion/react';
 import { Link } from "react-router";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
-import { ModeToggle } from "./mode-toggle";
 import fitdeskLogo from '@/assets/logo.svg'
 import { Image } from "./ui/image";
 import { ThemeTogglerButton } from "./animated/theme-toggler";
@@ -17,23 +16,27 @@ interface NavItem {
 const navItems: NavItem[] = [
     { name: 'Inicio', href: '/' },
     { name: 'Características', href: '/features' },
-    {
-        name: 'Productos',
-        href: '/products',
+    { 
+        name: 'Entrena con Nosotros', 
+        href: '/book-class',
         hasDropdown: true,
         dropdownItems: [
             {
-                name: 'Analíticas',
-                href: '/analytics',
-                description: 'Rastrea tus métricas',
+                name: 'Reserva tu clase',
+                href: '/book-class',
+                description: 'Vive la experiencia de entrenar con nosotros',
             },
             {
-                name: 'Panel de Control',
-                href: '/dashboard',
-                description: 'Gestiona tus datos',
+                name: 'Sesiones personalizadas',
+                href: '/personal-training',
+                description: 'Entrena con un coach que se adapta a tu ritmo',
             },
-            { name: 'Reportes', href: '/reports', description: 'Genera información' },
-        ],
+            {
+                name: 'Blog',
+                href: '/blog',
+                description: 'Descubre nuevas rutinas y mantén la motivación',
+            },
+        ]
     },
     { name: 'Precios', href: '/pricing' },
     { name: 'Acerca de', href: '/about' },
@@ -43,6 +46,7 @@ export const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const { theme } = useTheme();
+
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
@@ -110,52 +114,63 @@ export const Header = () => {
 
                     <nav className="hidden items-center space-x-8 lg:flex">
                         {navItems.map((item) => (
-                            <div
-                                key={item.name}
-                                className="relative"
-                            >
-                                <Link prefetch="none" to={item.href}
-                                    className="text-foreground flex items-center space-x-1 font-medium transition-colors duration-200 hover:text-rose-500"
-                                    onMouseEnter={() =>
-                                        item.hasDropdown && setActiveDropdown(item.name)
-                                    }
-                                    onMouseLeave={() => setActiveDropdown(null)}
-                                >
-                                    <span>{item.name}</span>
-                                    {item.hasDropdown && (
-                                        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
-                                    )}
-                                </Link>
+                            <div key={item.name} className="relative">
+                                {item.hasDropdown ? (
+                                    <div className="relative">
+                                        <button
+                                            className="text-foreground flex items-center space-x-1 font-medium transition-colors duration-200 hover:text-rose-500"
+                                            onClick={() => setActiveDropdown(activeDropdown === item.name ? null : item.name)}
+                                            onMouseEnter={() => setActiveDropdown(item.name)}
+                                        >
+                                            <span>{item.name}</span>
+                                            <ChevronDown 
+                                                className={`h-4 w-4 transition-transform duration-200 ${
+                                                    activeDropdown === item.name ? 'rotate-180' : ''
+                                                }`} 
+                                            />
+                                        </button>
 
-                                {item.hasDropdown && (
-                                    <AnimatePresence>
-                                        {activeDropdown === item.name && (
-                                            <motion.div
-                                                className="border-border bg-background/95 absolute top-full left-0 mt-2 w-64 overflow-hidden rounded-xl border shadow-xl backdrop-blur-lg"
-                                                variants={dropdownVariants}
-                                                initial="hidden"
-                                                animate="visible"
-                                                exit="hidden"
-                                                transition={{ duration: 0.2 }}
-                                            >
-                                                {item.dropdownItems?.map((dropdownItem) => (
-                                                    <Link prefetch="none" key={dropdownItem.name}
-                                                        to={dropdownItem.href}
-                                                        className="hover:bg-muted block px-4 py-3 transition-colors duration-200"
-                                                    >
-                                                        <div className="text-foreground font-medium">
-                                                            {dropdownItem.name}
-                                                        </div>
-                                                        {dropdownItem.description && (
-                                                            <div className="text-muted-foreground text-sm">
-                                                                {dropdownItem.description}
+                                        <AnimatePresence>
+                                            {activeDropdown === item.name && (
+                                                <motion.div
+                                                    className="border-border bg-background/95 absolute top-full left-0 mt-2 w-64 overflow-hidden rounded-xl border shadow-xl backdrop-blur-lg z-50"
+                                                    variants={dropdownVariants}
+                                                    initial="hidden"
+                                                    animate="visible"
+                                                    exit="hidden"
+                                                    transition={{ duration: 0.2 }}
+                                                    onMouseEnter={() => setActiveDropdown(item.name)}
+                                                    onMouseLeave={() => setActiveDropdown(null)}
+                                                >
+                                                    {item.dropdownItems?.map((dropdownItem) => (
+                                                        <Link 
+                                                            prefetch="none" 
+                                                            key={dropdownItem.name}
+                                                            to={dropdownItem.href}
+                                                            className="hover:bg-muted block px-4 py-3 transition-colors duration-200"
+                                                        >
+                                                            <div className="text-foreground font-medium">
+                                                                {dropdownItem.name}
                                                             </div>
-                                                        )}
-                                                    </Link>
-                                                ))}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                                            {dropdownItem.description && (
+                                                                <div className="text-muted-foreground text-sm">
+                                                                    {dropdownItem.description}
+                                                                </div>
+                                                            )}
+                                                        </Link>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                ) : (
+                                    <Link 
+                                        prefetch="none" 
+                                        to={item.href}
+                                        className="text-foreground font-medium transition-colors duration-200 hover:text-rose-500"
+                                    >
+                                        {item.name}
+                                    </Link>
                                 )}
                             </div>
                         ))}
