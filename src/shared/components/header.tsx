@@ -23,12 +23,12 @@ const navItems: NavItem[] = [
         dropdownItems: [
             {
                 name: 'Reserva tu clase',
-                href: '/book-class',
+                href: '/reserva-clase',
                 description: 'Vive la experiencia de entrenar con nosotros',
             },
             {
                 name: 'Sesiones personalizadas',
-                href: '/personal-training',
+                href: '/sesiones-personalizadas',
                 description: 'Entrena con un coach que se adapta a tu ritmo',
             },
             {

@@ -50,6 +50,9 @@ const ClientProfilePage = lazy(() => import("@/modules/client/profile/profile-pa
 const ClientClassesPage = lazy(() => import("@/modules/client/classes/pages/client-classes-page"))
 const ClientHistoryPage = lazy(() => import("@/modules/client/history/pages/history-page"))
 const ClientPaymentsPage = lazy(() => import("@/modules/client/payments/payments-page"))
+const ReservaClasePage = lazy(() => import("@/modules/client/reserva-clase").then(m => ({ default: m.ReservaClasePage })))
+const SesionesPersonalizadasPage = lazy(() => import("@/modules/client/sesiones-personalizadas").then(m => ({ default: m.SesionesPersonalizadasPage })))
+const BlogPage = lazy(() => import("@/modules/client/blog").then(m => ({ default: m.BlogPage })))
 
 // Auth
 const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
@@ -76,6 +79,18 @@ export const appRouter = createBrowserRouter([
         ),
         children: [
             { index: true, element: <Suspense><LandingPage /></Suspense> },
+            { 
+                path: "reserva-clase", 
+                element: <Suspense fallback={<PageLoader />}><ReservaClasePage /></Suspense> 
+            },
+            { 
+                path: "sesiones-personalizadas", 
+                element: <Suspense fallback={<PageLoader />}><SesionesPersonalizadasPage /></Suspense> 
+            },
+            { 
+                path: "blog", 
+                element: <Suspense fallback={<PageLoader />}><BlogPage /></Suspense> 
+            },
         ]
     },
     // Client Routes
