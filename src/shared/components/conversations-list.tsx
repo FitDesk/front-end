@@ -39,7 +39,7 @@ export function ConversationsList({
                 hour: '2-digit',
                 minute: '2-digit'
             });
-        } else if (diffInHours < 168) { // 7 días
+        } else if (diffInHours < 168) {
             return date.toLocaleDateString('es-ES', { weekday: 'short' });
         } else {
             return date.toLocaleDateString('es-ES', {
@@ -91,6 +91,7 @@ export function ConversationsList({
                 {isLoading ? (
                     <div className="p-4 space-y-3">
                         {Array.from({ length: 4 }).map((_, i) => (
+                            // biome-ignore lint/suspicious/noArrayIndexKey: <>
                             <div key={i} className="flex items-center gap-3 p-3">
                                 <div className="w-12 h-12 bg-muted rounded-full animate-pulse" />
                                 <div className="flex-1">
@@ -118,12 +119,14 @@ export function ConversationsList({
                 ) : (
                     <div className="p-2">
                         {filteredConversations.map((conversation) => (
+                            // biome-ignore lint/a11y/noStaticElementInteractions: <>
+                            // biome-ignore lint/a11y/useKeyWithClickEvents: <>
                             <div
                                 key={conversation.id}
                                 onClick={() => onSelectConversation(conversation)}
                                 className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedConversation?.id === conversation.id
-                                        ? "bg-muted border-l-2 border-primary"
-                                        : "hover:bg-muted/50"
+                                    ? "bg-muted border-l-2 border-primary"
+                                    : "hover:bg-muted/50"
                                     }`}
                             >
                                 <div className="relative">
