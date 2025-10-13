@@ -1,16 +1,16 @@
 export interface ChatMessage {
-    id: string;
-    roomId: string;
-    fromId: string;
-    fromRole: "TRAINER" | "USER";
-    text: string;
-    createdAt: string;
+  id: string;
+  roomId: string;
+  fromId: string;
+  fromRole: "TRAINER" | "USER";
+  text: string;
+  createdAt: string;
 }
 
 export interface SendMessageData {
-    text: string;
-    fromId?: string;
-    fromRole?: string;
+  text: string;
+  fromId?: string;
+  fromRole?: string;
 }
 
 export interface User {
@@ -20,6 +20,7 @@ export interface User {
   avatar?: string;
   role: "TRAINER" | "USER";
   isOnline?: boolean;
+  initials: string;
 }
 
 export interface Conversation {
@@ -30,6 +31,9 @@ export interface Conversation {
   isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
+  connected: boolean;
+  lastMessageDate?: string;
+
 }
 
 export interface SendMessageRequest {

@@ -1,9 +1,9 @@
 import { useChat } from '@/core/hooks/useChat';
 import type { Conversation } from '@/core/interfaces/chat.interface';
 import { useState, useEffect } from 'react';
+import { UserList } from './user-list';
 import { ChatArea } from './chat-area';
 import { ConversationsList } from './conversations-list';
-import { UserList } from './user-list';
 
 interface ChatContainerProps {
   userRole: 'TRAINER' | 'USER';
@@ -18,7 +18,6 @@ export function ChatContainer({ userRole }: ChatContainerProps) {
     conversations,
     messages,
     conversationsLoading,
-    messagesLoading,
     sendMessage,
     createConversation,
     markAsRead,
@@ -41,7 +40,7 @@ export function ChatContainer({ userRole }: ChatContainerProps) {
 
   const handleSendMessage = (text: string) => {
     if (!selectedConversation || !text.trim()) return;
-    
+
     sendMessage({
       text: text.trim(),
       toUserId: selectedConversation.participant.id
@@ -103,7 +102,6 @@ export function ChatContainer({ userRole }: ChatContainerProps) {
   // Vista desktop
   return (
     <div className="flex h-full bg-background">
-      {/* Sidebar */}
       <div className="w-80 border-r border-border">
         {showUserList ? (
           <UserList
@@ -123,7 +121,6 @@ export function ChatContainer({ userRole }: ChatContainerProps) {
         )}
       </div>
 
-      {/* Chat Area */}
       <div className="flex-1">
         {selectedConversation ? (
           <ChatArea

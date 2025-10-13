@@ -1,6 +1,6 @@
-import { ChatContainer } from "@/shared/components/chat-container";
+import { ChatContainer } from "@/modules/shared/chat/components/chat-container";
 export function ClientMessagePage() {
-     return (
+  return (
     <div className="h-full">
       <ChatContainer userRole="USER" />
     </div>

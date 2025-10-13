@@ -1,10 +1,12 @@
-import { Search, MoreHorizontal, Star, RotateCcw } from "lucide-react";
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <skeleton> */
+/** biome-ignore-all lint/a11y/noStaticElementInteractions: <> */
+import { Search, MoreHorizontal, Star } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu";
-import type { Conversation } from "../data";
+import type { Conversation } from "@/core/interfaces/chat.interface";
 
 interface ConversationsListProps {
     conversations: Conversation[];
@@ -23,7 +25,7 @@ export function ConversationsList({
     setChatFilter,
     isLoading,
 }: ConversationsListProps) {
-    
+
     return (
         <div className="flex flex-col h-full bg-card">
             {/* Header móvil */}
@@ -37,22 +39,7 @@ export function ConversationsList({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                            <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
-                                Filtrar mensajes por
-                            </div>
-                            <DropdownMenuItem 
-                                onClick={() => setChatFilter?.('unread')}
-                            >
-                                <RotateCcw className="h-4 w-4 mr-2" />
-                                No leídos
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                                onClick={() => setChatFilter?.('favorites')}
-                            >
-                                <Star className="h-4 w-4 mr-2" />
-                                Favoritos
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                                 onClick={() => setChatFilter?.('all')}
                             >
                                 Todos los mensajes
@@ -120,7 +107,7 @@ function ConversationItem({ conversation, isSelected, onClick }: {
 }) {
     const getAvatarColor = (name: string) => {
         const colors = [
-            "bg-orange-500", "bg-pink-500", "bg-yellow-500", 
+            "bg-orange-500", "bg-pink-500", "bg-yellow-500",
             "bg-green-500", "bg-blue-500", "bg-purple-500",
             "bg-red-500", "bg-indigo-500"
         ];
@@ -133,20 +120,20 @@ function ConversationItem({ conversation, isSelected, onClick }: {
     };
 
     return (
+        // biome-ignore lint/a11y/useKeyWithClickEvents: <>
         <div
             onClick={onClick}
-            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                isSelected 
-                    ? "bg-muted border-l-2 border-primary" 
-                    : "hover:bg-muted/50"
-            }`}
+            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${isSelected
+                ? "bg-muted border-l-2 border-primary"
+                : "hover:bg-muted/50"
+                }`}
         >
             {/* Avatar con color de fondo */}
             <div className="relative">
                 <Avatar className="h-12 w-12">
-                    <AvatarImage src={conversation.user.avatar} alt={conversation.user.name} />
-                    <AvatarFallback className={`${getAvatarColor(conversation.user.name)} text-white font-medium`}>
-                        {getInitials(conversation.user.name)}
+                    <AvatarImage src={conversation.participant.avatar} alt={conversation.participant.name} />
+                    <AvatarFallback className={`${getAvatarColor(conversation.participant.name)} text-white font-medium`}>
+                        {getInitials(conversation.participant.name)}
                     </AvatarFallback>
                 </Avatar>
                 {/* Indicador de estrella favorito */}
@@ -155,8 +142,7 @@ function ConversationItem({ conversation, isSelected, onClick }: {
                         <Star className="h-4 w-4 fill-current" />
                     </div>
                 )}
-                {/* Indicador online */}
-                {conversation.isOnline && (
+                {conversation.connected && (
                     <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-card rounded-full" />
                 )}
             </div>
@@ -165,15 +151,15 @@ function ConversationItem({ conversation, isSelected, onClick }: {
             <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                     <h3 className="font-medium text-foreground truncate">
-                        {conversation.user.name}
+                        {conversation.participant.name}
                     </h3>
                     <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                        {conversation.lastMessageTime}
+                        {conversation.lastMessageDate}
                     </span>
                 </div>
                 <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground truncate">
-                        {conversation.isOnline ? "En línea" : conversation.lastMessage || "Sin mensajes"}
+                        {conversation.connected ? "En línea" : conversation.lastMessage?.text ?? 'Sin mensajes todavía'}
                     </p>
                     {conversation.unreadCount > 0 && (
                         <Badge className="bg-destructive text-destructive-foreground text-xs min-w-[20px] h-5 flex items-center justify-center ml-2">

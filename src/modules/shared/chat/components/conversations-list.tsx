@@ -5,6 +5,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
 import { Badge } from '@/shared/components/ui/badge';
 import type { Conversation } from '@/core/interfaces/chat.interface';
+import { formatUsername } from '@/core/utils/chat-helpers';
 
 interface ConversationsListProps {
     conversations: Conversation[];
@@ -12,7 +13,7 @@ interface ConversationsListProps {
     onSelectConversation: (conversation: Conversation) => void;
     onNewChat: () => void;
     isLoading: boolean;
-    userRole: 'TRAINER' | 'STUDENT';
+    userRole: 'TRAINER' | 'USER';
 }
 
 export function ConversationsList({
@@ -23,6 +24,7 @@ export function ConversationsList({
     isLoading,
     userRole
 }: ConversationsListProps) {
+    console.log("conversations", conversations);
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredConversations = conversations.filter(conv =>
@@ -49,9 +51,6 @@ export function ConversationsList({
         }
     };
 
-    const getInitials = (name: string) => {
-        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    };
 
     return (
         <div className="flex flex-col h-full bg-card">
@@ -133,10 +132,10 @@ export function ConversationsList({
                                     <Avatar className="h-12 w-12">
                                         <AvatarImage src={conversation.participant.avatar} />
                                         <AvatarFallback>
-                                            {getInitials(conversation.participant.name)}
+                                            {conversation.participant.initials}
                                         </AvatarFallback>
                                     </Avatar>
-                                    {conversation.participant.isOnline && (
+                                    {conversation.connected && (
                                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-card rounded-full" />
                                     )}
                                 </div>
@@ -144,17 +143,17 @@ export function ConversationsList({
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between mb-1">
                                         <h3 className="font-medium text-foreground truncate">
-                                            {conversation.participant.name}
+                                            {formatUsername(conversation.participant.name)}
                                         </h3>
                                         {conversation.lastMessage && (
                                             <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                                                {formatTime(conversation.lastMessage.createdAt)}
+                                                {formatTime(conversation.lastMessageDate ?? '')}
                                             </span>
                                         )}
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm text-muted-foreground truncate">
-                                            {conversation.lastMessage?.text || 'No hay mensajes'}
+                                            {conversation.lastMessage?.text || 'Sin mensajes aún...'}
                                         </p>
                                         {conversation.unreadCount > 0 && (
                                             <Badge className="bg-destructive text-destructive-foreground text-xs min-w-[20px] h-5">

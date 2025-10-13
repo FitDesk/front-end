@@ -2,12 +2,13 @@
 /** biome-ignore-all lint/a11y/noStaticElementInteractions: <> */
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Search, Plus } from 'lucide-react';
+import { ArrowLeft, Search, Plus, User2 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
 import { fitdeskApi } from '@/core/api/fitdeskApi';
-import { Image } from './ui/image';
+import { Image } from '../../../../shared/components/ui/image';
+import { formatUsername } from '@/core/utils/chat-helpers';
 
 interface UserListProps {
     targetRole: 'TRAINER' | 'USER';
@@ -17,15 +18,13 @@ interface UserListProps {
 
 interface User {
     id: string;
-    username?: string;
-    email?: string;
-    firstName?: string | null;
-    lastName?: string | null;
+    username: string;
     enabled: boolean;
-    name: string;
     avatar?: string;
-    roles: Array<{ name: string; description: string }>;
+    initials: string;
+
 }
+
 
 export function UserList({ targetRole, onSelectUser, onBack }: UserListProps) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -38,33 +37,6 @@ export function UserList({ targetRole, onSelectUser, onBack }: UserListProps) {
         },
         staleTime: 60000,
     });
-    console.log("Users:", users);
-
-
-
-    // ✅ Función helper para obtener iniciales
-    const getInitials = (user: User): string => {
-        if (user.name) {
-            const names = user.name.trim().split(' ');
-            const initials = names.map(n => n.charAt(0).toUpperCase()).join('');
-            return initials.slice(0, 2); 
-        }
-
-        return '??';
-    };
-
-    // const filteredUsers = users.filter(user => {
-    //     if (!searchTerm.trim()) return true;
-
-    //     const displayName = getDisplayName(user).toLowerCase();
-    //     const email = (user.email || '').toLowerCase();
-    //     const username = (user.username || '').toLowerCase();
-    //     const search = searchTerm.toLowerCase();
-
-    //     return displayName.includes(search) ||
-    //         email.includes(search) ||
-    //         username.includes(search);
-    // });
 
     return (
         <div className="flex flex-col h-full bg-card">
@@ -80,7 +52,7 @@ export function UserList({ targetRole, onSelectUser, onBack }: UserListProps) {
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <h1 className="text-xl font-semibold text-foreground">
-                        Seleccionar {targetRole === 'TRAINER' ? 'Entrenador' : 'Estudiante'}
+                        Seleccionar {targetRole === 'TRAINER' ? 'Entrenador' : 'Usuario'}
                     </h1>
                 </div>
 
@@ -112,7 +84,9 @@ export function UserList({ targetRole, onSelectUser, onBack }: UserListProps) {
                     </div>
                 ) : users.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8">
-                        <div className="text-4xl mb-4">👥</div>
+                        <div className="text-4xl mb-4">
+                            <User2 />
+                        </div>
                         <h3 className="text-lg font-medium mb-2">No se encontraron usuarios</h3>
                         <p className="text-center text-sm">
                             {searchTerm.trim()
@@ -130,13 +104,13 @@ export function UserList({ targetRole, onSelectUser, onBack }: UserListProps) {
                         >
                             <Avatar className="h-12 w-12">
                                 <AvatarFallback className="bg-primary text-primary-foreground">
-                                    {user.avatar ? <Image src={user.avatar} alt="Avatar" /> : getInitials(user)}
+                                    {user.avatar ? <Image src={user.avatar} alt="Avatar" /> : user.initials}
                                 </AvatarFallback>
                             </Avatar>
 
                             <div className="flex-1">
                                 <p className="font-medium text-foreground">
-                                    {user.name}
+                                    {formatUsername(user.username)}
                                 </p>
 
                             </div>

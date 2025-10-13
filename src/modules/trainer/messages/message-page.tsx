@@ -1,4 +1,4 @@
-import { ChatContainer } from "@/shared/components/chat-container";
+import { ChatContainer } from "@/modules/shared/chat/components/chat-container";
 
 export function MessagePage() {
     return (

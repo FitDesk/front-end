@@ -14,18 +14,17 @@ export function useChat(conversationId?: string) {
   const { user, isTrainer } = useAuthStore();
   const queryClient = useQueryClient();
 
-  // ✅ Lista de conversaciones
+
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: async (): Promise<Conversation[]> => {
       const response = await fitdeskApi.get('/chat/conversations');
-      return response.data as Conversation[];
+      return response.data;
     },
     staleTime: 30000,
     refetchOnWindowFocus: false,
   });
 
-  // ✅ Mensajes iniciales
   const { data: initialMessages = [], isLoading: messagesLoading } = useQuery({
     queryKey: ['messages', conversationId],
     queryFn: async (): Promise<ChatMessage[]> => {
@@ -39,7 +38,6 @@ export function useChat(conversationId?: string) {
     refetchInterval: false,
   });
 
-  // 🔄 Manejar mensajes en tiempo real
   const handleNewMessage = useCallback((message: ChatMessage) => {
     setMessages(prev => {
       if (prev.some(m => m.id === message.id)) {
@@ -64,7 +62,6 @@ export function useChat(conversationId?: string) {
     });
   }, [queryClient, user?.id]);
 
-  // 🔗 Conectar WebSocket
   useEffect(() => {
     if (!conversationId || !user) return;
 
@@ -93,14 +90,13 @@ export function useChat(conversationId?: string) {
     };
   }, [conversationId, user, handleNewMessage]);
 
-  // 🔄 Sincronizar mensajes
-useEffect(() => {
-  if (initialMessages.length > 0) {
-    setMessages(initialMessages);
-  } else if (conversationId) {
-    setMessages([]); // ✅ Limpiar mensajes al cambiar de conversación
-  }
-}, [initialMessages, conversationId]);
+  useEffect(() => {
+    if (initialMessages.length > 0) {
+      setMessages(initialMessages);
+    } else if (conversationId) {
+      setMessages([]);
+    }
+  }, [initialMessages, conversationId]);
 
   // 📤 Enviar mensaje - USANDO isTrainer() del store
   const sendMessageMutation = useMutation({
@@ -132,7 +128,6 @@ useEffect(() => {
     }
   });
 
-  // ➕ Crear conversación
   const createConversationMutation = useMutation({
     mutationFn: async ({ participantId, participantRole }: CreateConversationRequest) => {
       const response = await fitdeskApi.post('/chat/conversations', {
@@ -146,7 +141,6 @@ useEffect(() => {
     }
   });
 
-  // ✅ Marcar como leído
   const markAsReadMutation = useMutation({
     mutationFn: async (conversationId: string) => {
       await fitdeskApi.patch(`/chat/conversations/${conversationId}/read`);
@@ -156,35 +150,28 @@ useEffect(() => {
     }
   });
 
-  // 📜 Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   return {
-    // Data
     conversations,
     messages,
 
-    // Loading states
     conversationsLoading,
     messagesLoading,
     isConnecting,
 
-    // Connection state
     connectionState,
     isConnected: connectionState === 'CONNECTED',
 
-    // Actions
     sendMessage: sendMessageMutation.mutate,
     createConversation: createConversationMutation.mutate,
     markAsRead: markAsReadMutation.mutate,
 
-    // Mutation states
     isSendingMessage: sendMessageMutation.isPending,
     isCreatingConversation: createConversationMutation.isPending,
 
-    // Refs
     messagesEndRef
   };
 }
