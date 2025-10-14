@@ -29,14 +29,5 @@ export const dashboardStats: DashboardStat[] = [
     icon: Activity,
     color: 'text-purple-500',
     bgColor: 'bg-purple-500/10',
-  },
-  {
-    title: 'Page Views',
-    value: '34,567',
-    change: '-2.4%',
-    changeType: 'negative' as const,
-    icon: Eye,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10',
-  },
+  }
 ];

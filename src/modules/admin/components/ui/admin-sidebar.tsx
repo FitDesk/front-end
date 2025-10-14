@@ -33,7 +33,6 @@ import { cn } from '@/core/lib/utils';
 
 const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-    { title: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
     { title: 'Miembros', icon: Users, href: '/admin/members' },
     { title: 'Entrenadores', icon: Users, href: '/admin/trainers' },
     { title: 'Roles', icon: Shield, href: '/admin/roles' },
@@ -41,7 +40,6 @@ const menuItems = [
     { title: 'Ubicaciones', icon: MapPin, href: '/admin/locations' },
     { title: 'Facturación', icon: DollarSign, href: '/admin/billing' },
     { title: 'Planes', icon: Shield, href: '/admin/plans' },
-    { title: 'Promociones', icon: Zap, href: '/admin/promotions' },
     { title: 'Configuración', icon: Settings, href: '/admin/settings' },
 ];
 

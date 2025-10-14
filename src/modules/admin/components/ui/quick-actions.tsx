@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { motion } from 'motion/react';
-import { Users, BarChart3, Download, Settings } from 'lucide-react';
+import { Users, Settings } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 
 interface QuickActionsProps {
@@ -11,28 +11,14 @@ interface QuickActionsProps {
 const actions = [
   {
     icon: Users,
-    label: 'Add New User',
+    label: 'Añadir nuevo entrenador',
     color: 'blue',
     shortcut: 'Ctrl+M',
     action: 'addUser',
   },
   {
-    icon: BarChart3,
-    label: 'View Analytics',
-    color: 'green',
-    shortcut: 'Ctrl+A',
-    action: 'analytics',
-  },
-  {
-    icon: Download,
-    label: 'Export Data',
-    color: 'purple',
-    shortcut: 'Ctrl+E',
-    action: 'export',
-  },
-  {
     icon: Settings,
-    label: 'System Settings',
+    label: 'Configuración del sistema',
     color: 'orange',
     shortcut: 'Ctrl+S',
     action: 'settings',
@@ -89,5 +75,3 @@ export const QuickActions = memo(
     );
   },
 );
-
-QuickActions.displayName = 'QuickActions';
