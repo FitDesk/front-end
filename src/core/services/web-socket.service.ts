@@ -28,7 +28,6 @@ class WebSocketService {
             this.disconnect();
             this.currentRoomId = roomId;
 
-            // ✅ Conectar a través del Gateway con cookies automáticas
             const wsUrl = `ws://localhost:9090/ws/chat/${roomId}`;
             this.socket = new WebSocket(wsUrl);
 

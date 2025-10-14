@@ -98,7 +98,6 @@ export function useChat(conversationId?: string) {
     }
   }, [initialMessages, conversationId]);
 
-  // 📤 Enviar mensaje - USANDO isTrainer() del store
   const sendMessageMutation = useMutation({
     mutationFn: async ({ text, toUserId }: SendMessageRequest) => {
       if (!conversationId) throw new Error('No hay conversación seleccionada');

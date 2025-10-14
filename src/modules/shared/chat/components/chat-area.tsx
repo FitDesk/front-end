@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Smile } from 'lucide-react'; // Importa el ícono de emoji
 import { Button } from '@/shared/components/ui/button';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
@@ -7,18 +7,8 @@ import { Badge } from '@/shared/components/ui/badge';
 import { useAuthStore } from '@/core/store/auth.store';
 import type { ChatMessage, Conversation } from '@/core/interfaces/chat.interface';
 import { MessageBubble } from '@/modules/shared/chat/components/message-bubble';
-
-
-interface ChatAreaProps {
-    conversation: Conversation;
-    messages: ChatMessage[];
-    onSendMessage: (text: string) => void;
-    onBack?: () => void;
-    connectionState: string;
-    isConnected: boolean;
-    messagesEndRef: React.RefObject<HTMLDivElement>;
-    isMobile?: boolean;
-}
+import Picker from '@emoji-mart/react'; // Importa el selector de emojis
+import data from '@emoji-mart/data'; // Importa los datos de emojis
 
 export function ChatArea({
     conversation,
@@ -31,6 +21,7 @@ export function ChatArea({
     isMobile = false
 }: ChatAreaProps) {
     const [messageText, setMessageText] = useState('');
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Estado para mostrar/ocultar el selector de emojis
     const { user } = useAuthStore();
 
     useEffect(() => {
@@ -50,6 +41,9 @@ export function ChatArea({
         }
     };
 
+    const handleEmojiSelect = (emoji: any) => {
+        setMessageText((prev) => prev + emoji.native); // Agrega el emoji al texto del mensaje
+    };
 
     const getInitials = (name: string) => {
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -96,6 +90,8 @@ export function ChatArea({
                     </div>
                 </div>
             </div>
+
+            {/* Mensajes */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -129,9 +125,22 @@ export function ChatArea({
                 )}
             </div>
 
-        
-            <div className="p-4 border-t border-border bg-card">
+            {/* Input de mensajes */}
+            <div className="p-4 border-t border-border bg-card relative">
+                {showEmojiPicker && (
+                    <div className="absolute bottom-16 left-4 z-10">
+                        <Picker data={data} onEmojiSelect={handleEmojiSelect} />
+                    </div>
+                )}
                 <div className="flex items-end gap-2">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowEmojiPicker((prev) => !prev)}
+                        className="text-muted-foreground hover:text-foreground"
+                    >
+                        <Smile className="h-5 w-5" />
+                    </Button>
                     <div className="flex-1">
                         <Textarea
                             placeholder="Escribe un mensaje..."
@@ -159,4 +168,3 @@ export function ChatArea({
         </div>
     );
 }
-
