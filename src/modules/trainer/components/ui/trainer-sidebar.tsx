@@ -2,7 +2,6 @@ import {
     Users,
     Calendar,
     ClipboardList,
-    Dumbbell,
     User,
     MessageSquare,
     LayoutDashboard,
@@ -21,7 +20,6 @@ const menuItems = [
     { title: 'Mi Calendario', icon: Calendar, href: '/trainer/calendar' },
     { title: 'Asistencia', icon: ClipboardList, href: '/trainer/attendance' },
     { title: 'Mis Alumnos', icon: Users, href: '/trainer/students' },
-    { title: 'Rutinas', icon: Dumbbell, href: '/trainer/workouts' },
     { title: 'Mensajes', icon: MessageSquare, href: '/trainer/messages' },
     { title: 'Configuración', icon: Settings, href: '/trainer/settings' },
 ];
