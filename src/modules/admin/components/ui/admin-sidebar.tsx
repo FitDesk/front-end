@@ -38,8 +38,7 @@ const menuItems = [
     { title: 'Clases', icon: Calendar, href: '/admin/classes' },
     { title: 'Ubicaciones', icon: MapPin, href: '/admin/locations' },
     { title: 'Facturación', icon: DollarSign, href: '/admin/billing' },
-    { title: 'Planes', icon: Shield, href: '/admin/plans' },
-    { title: 'Configuración', icon: Settings, href: '/admin/settings' },
+    { title: 'Planes', icon: Shield, href: '/admin/plans' }
 ];
 
 export const AdminSidebar = memo(() => {
