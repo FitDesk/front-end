@@ -2,20 +2,30 @@ import { Toaster } from '@/shared/components/ui/sonner';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
-import { BarChart2, MessageCircle, Calendar, CreditCard, Home, LogOut, Menu, Search, Settings, User, X } from 'lucide-react';
+import { MessageCircle, Calendar, CreditCard, Home, LogOut, Menu, Search, User, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Image } from '../components/ui/image';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/core/store/auth.store';
 import { MemberService } from '@/core/services/member.service';
-import { AuthService } from '@/core/services/auth.service';
+
 
 export default function ClientDashboardLayout() {
+
+
+  const dashboardPaths = [
+    { id: 'inicio', icon: Home, label: 'Inicio', path: '/client/dashboard' },
+    { id: 'clases', icon: Calendar, label: 'Clases', path: '/client/classes' },
+    { id: 'pagos', icon: CreditCard, label: 'Pagos', path: '/client/membership' },
+    { id: 'perfil', icon: User, label: 'Perfil', path: '/client/profile' },
+  ]
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+
+
   const handlePrefetch = (path: string) => {
     if (!user?.id) return;
 
@@ -45,7 +55,6 @@ export default function ClientDashboardLayout() {
   const getActiveTab = () => {
     const path = location.pathname;
     if (path.includes('classes')) return 'clases';
-    if (path.includes('history')) return 'historial';
     if (path.includes('membership')) return 'membresía';
     if (path.includes('profile')) return 'perfil';
     if (path.includes('messages')) return 'mensajes';
@@ -97,16 +106,14 @@ export default function ClientDashboardLayout() {
             <Button variant="ghost" size="icon" className="relative" asChild>
               <Link to="/client/messages">
                 <MessageCircle className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                  3
-                </span>
+
               </Link>
             </Button>
             <ThemeTogglerButton
               variant="ghost"
               size="icon"
               showLabel={false}
-              direction="ltr"
+              direction="top-right"
             />
             <Button
               variant="ghost"
@@ -121,13 +128,7 @@ export default function ClientDashboardLayout() {
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <nav className="space-y-2">
-            {[
-              { id: 'inicio', icon: Home, label: 'Inicio', path: '/client/dashboard' },
-              { id: 'clases', icon: Calendar, label: 'Clases', path: '/client/classes' },
-              { id: 'historial', icon: BarChart2, label: 'Historial', path: '/client/history' },
-              { id: 'pagos', icon: CreditCard, label: 'Pagos', path: '/client/membership' },
-              { id: 'perfil', icon: User, label: 'Perfil', path: '/client/profile' },
-            ].map((tab) => (
+            {dashboardPaths.map((tab) => (
               <Button
                 key={tab.id}
                 asChild
@@ -146,16 +147,15 @@ export default function ClientDashboardLayout() {
 
           <div className="pt-4 border-t space-y-2">
             <Button variant="ghost" className="w-full justify-start">
-              <Settings className="h-4 w-4 mr-2" />
-              Configuración
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
               <LogOut className="h-4 w-4 mr-2" />
               Cerrar sesión
             </Button>
           </div>
         </div>
       </div>
+
+
+      
       {/* Top Navigation Bar */}
       <header className="fixed top-0 left-0 right-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container max-w-7xl mx-auto flex flex-row h-16 items-center justify-between px-4 sm:px-6 md:px-8">
@@ -183,13 +183,7 @@ export default function ClientDashboardLayout() {
 
           {/* Desktop Navigation */}
           <nav className="hidden sm:flex flex-1 flex-row items-center justify-center mx-4 gap-1">
-            {[
-              { id: 'inicio', icon: Home, label: 'Inicio', path: '/client/dashboard' },
-              { id: 'clases', icon: Calendar, label: 'Clases', path: '/client/classes' },
-              { id: 'historial', icon: BarChart2, label: 'Historial', path: '/client/history' },
-              { id: 'pagos', icon: CreditCard, label: 'Membresia', path: '/client/membership' },
-              { id: 'perfil', icon: User, label: 'Perfil', path: '/client/profile' },
-            ].map((tab) => (
+            {dashboardPaths.map((tab) => (
               <Button
                 key={tab.id}
                 asChild
@@ -220,21 +214,15 @@ export default function ClientDashboardLayout() {
               <Button variant="ghost" size="icon" className="relative" asChild>
                 <Link to="/client/messages">
                   <MessageCircle className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                    3
-                  </span>
                 </Link>
               </Button>
               <ThemeTogglerButton
                 variant="ghost"
                 size="icon"
                 showLabel={false}
-                direction="top-left"
+                direction="top-right"
               />
-              <Button variant="ghost" size="icon" className="hidden md:inline-flex">
-                <Settings className="h-5 w-5" />
-                <span className="sr-only">Configuración</span>
-              </Button>
+
               <Button onClick={handleLogout} variant="ghost" size="icon" className="hidden md:inline-flex">
                 <LogOut className="h-5 w-5" />
                 <span className="sr-only">Cerrar sesión</span>
@@ -243,15 +231,12 @@ export default function ClientDashboardLayout() {
           </div>
         </div>
       </header>
-      {/* Main Content */}
       <main className="flex-1 pt-16">
         {location.pathname.includes('/messages') ? (
-          // Para la página de mensajes, ancho completo en móvil y tablet, contenedor en desktop
           <div className="w-full lg:container lg:max-w-7xl lg:mx-auto lg:px-4 xl:px-6 2xl:px-8">
             <Outlet />
           </div>
         ) : (
-          // Para otras páginas, con padding normal
           <div className="container max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6">
             <Outlet />
           </div>

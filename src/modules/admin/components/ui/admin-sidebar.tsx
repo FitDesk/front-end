@@ -1,10 +1,8 @@
 import {
     LayoutDashboard,
     Users,
-    BarChart3,
     DollarSign,
     Shield,
-    Zap,
     Settings,
     Calendar,
     MapPin,
@@ -25,11 +23,12 @@ import {
     SidebarRail,
     useSidebar,
 } from '@/shared/components/animated/sidebar';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
 import { User } from '@/shared/components/animated/icons/user';
 import { cn } from '@/core/lib/utils';
+import { useAuthStore } from '@/core/store/auth.store';
 
 const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
@@ -45,6 +44,13 @@ const menuItems = [
 
 export const AdminSidebar = memo(() => {
     const { state } = useSidebar();
+    const logout = useAuthStore((state) => state.logout);
+    const navigate = useNavigate();
+    const handleLogout = async () => {
+        logout();
+        navigate('/');
+    };
+
     const isCollapsed = state === 'collapsed';
     const togglerWrapperClass = cn(
         "p-0",
@@ -125,7 +131,7 @@ export const AdminSidebar = memo(() => {
                     <SidebarMenuItem>
                         {isCollapsed ? (
                             <SidebarMenuButton asChild>
-                                <Button variant="destructive" size="icon">
+                                <Button onClick={handleLogout} variant="destructive" size="icon">
                                     <LogOut className="h-4 w-4" />
                                     <span className="sr-only">Cerrar Sesión</span>
                                 </Button>
@@ -133,7 +139,7 @@ export const AdminSidebar = memo(() => {
 
                         ) : (
                             <SidebarMenuButton asChild>
-                                <Button variant={'destructive'}>
+                                <Button onClick={handleLogout} variant={'destructive'}>
                                     Cerrar Sesion
                                 </Button>
                             </SidebarMenuButton>

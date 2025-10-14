@@ -1,4 +1,3 @@
-import React, { use } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -6,12 +5,6 @@ import { Progress } from '@/shared/components/ui/progress';
 import {
   Dumbbell,
   Clock,
-  Trophy,
-  Zap,
-  Flame,
-  HeartPulse,
-  Award,
-  BarChart2,
   Calendar,
   CreditCard
 } from 'lucide-react';
@@ -27,7 +20,7 @@ import {
 import { useAuthStore } from '@/core/store/auth.store';
 import { useGetMemberQuery } from '../profile/query/useMemberQuery';
 
-// Dashboard stats data
+
 const stats = [
   {
     id: 1,
@@ -49,29 +42,8 @@ const stats = [
     bgColor: 'bg-blue-500/10',
     progress: 0
   },
-  {
-    id: 3,
-    title: 'Días Consecutivos',
-    value: '12',
-    description: 'Récord: 24 días',
-    icon: Flame,
-    color: 'text-red-500',
-    bgColor: 'bg-red-500/10',
-    progress: 50
-  },
-  {
-    id: 4,
-    title: 'Puntos',
-    value: '1,250',
-    description: 'Nivel Plata',
-    icon: Trophy,
-    color: 'text-yellow-500',
-    bgColor: 'bg-yellow-500/10',
-    progress: 65
-  }
 ];
 
-// Chart data
 const weeklyActivity = [
   { name: 'Lun', minutos: 65, calorias: 320 },
   { name: 'Mar', minutos: 59, calorias: 280 },
@@ -82,11 +54,7 @@ const weeklyActivity = [
   { name: 'Dom', minutos: 40, calorias: 200 },
 ];
 
-const achievements = [
-  { id: 1, title: 'Maratón de la Mañana', description: '5 días seguidos de entrenamiento matutino', icon: Award, progress: 3 / 5, color: 'bg-purple-500' },
-  { id: 2, title: 'Quemagrasas', description: 'Quema 5,000 calorías en una semana', icon: Flame, progress: 2.5 / 5, color: 'bg-red-500' },
-  { id: 3, title: 'Corazón de Acero', description: 'Completa 10 sesiones de cardio', icon: HeartPulse, progress: 7 / 10, color: 'bg-pink-500' },
-];
+
 
 const upcomingClasses = [
   {
@@ -111,12 +79,11 @@ const upcomingClasses = [
   },
 ];
 
-const ClientDashboard: React.FC = () => {
+const ClientDashboard = () => {
 
   const user = useAuthStore(state => state.user);
   const { data: member } = useGetMemberQuery(user?.id || '');
 
-  // Handlers
   const handleBookClass = () => {
     console.log('Reservar clase...');
   };
@@ -125,9 +92,6 @@ const ClientDashboard: React.FC = () => {
     console.log('Ver facturas...');
   };
 
-  const handleViewStats = () => {
-    console.log('Ver estadísticas...');
-  };
 
 
 
@@ -149,10 +113,6 @@ const ClientDashboard: React.FC = () => {
               ¡Bienvenido de nuevo a tu rutina de entrenamiento! 🚀
             </p>
           </div>
-          <Button variant="outline" className="hidden sm:flex items-center gap-2">
-            <Zap className="h-4 w-4 text-yellow-500" />
-            <span>Racha de 12 días</span>
-          </Button>
         </div>
       </motion.div>
 
@@ -320,51 +280,7 @@ const ClientDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Achievements */}
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Tus Logros</h2>
-            <Button variant="ghost" size="sm">Ver todos</Button>
-          </div>
-          <Card className="p-6">
-            <div className="space-y-6">
-              {achievements.map((achievement, index) => {
-                const Icon = achievement.icon;
-                return (
-                  <motion.div
-                    key={achievement.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                  >
-                    <div className="flex items-start">
-                      <div className={`mr-4 flex h-10 w-10 items-center justify-center rounded-full ${achievement.color} bg-opacity-20`}>
-                        <Icon className={`h-5 w-5 ${achievement.color.replace('bg-', 'text-')}`} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium">{achievement.title}</h3>
-                        <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                        <div className="mt-2">
-                          <div className="mb-1 flex justify-between text-xs">
-                            <span>Progreso</span>
-                            <span className="font-medium">
-                              {Math.round(achievement.progress * 100)}%
-                            </span>
-                          </div>
-                          <Progress
-                            value={achievement.progress * 100}
-                            className="h-2"
-                            indicatorClassName={achievement.color}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </Card>
-        </div>
+
       </div>
 
       {/* Quick Actions */}
@@ -396,20 +312,6 @@ const ClientDashboard: React.FC = () => {
             <div>
               <h3 className="font-medium">Ver Facturas</h3>
               <p className="text-sm text-muted-foreground">Revisa tu historial de pagos</p>
-            </div>
-          </Button>
-
-          <Button
-            variant="outline"
-            className="h-auto flex-col items-start gap-3 p-4 text-left"
-            onClick={handleViewStats}
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500">
-              <BarChart2 className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-medium">Ver Estadísticas</h3>
-              <p className="text-sm text-muted-foreground">Mira tu progreso detallado</p>
             </div>
           </Button>
         </div>
