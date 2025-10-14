@@ -29,65 +29,14 @@ export const SecuritySessionSchema = z.object({
   isCurrentSession: z.boolean(),
 });
 
-export const RecentEmailSchema = z.object({
-  id: z.string(),
-  subject: z.string(),
-  sender: z.string(),
-  date: z.string(),
-  type: z.enum(['PASSWORD_RESET', 'ACCOUNT_CHANGE', 'SECURITY_ALERT', 'NOTIFICATION']),
-  read: z.boolean(),
-});
 
-export const NotificationSettingsSchema = z.object({
-  emailNotifications: z.object({
-    newClasses: z.boolean(),
-    classCancellations: z.boolean(),
-    studentMessages: z.boolean(),
-    systemUpdates: z.boolean(),
-    weeklyReports: z.boolean(),
-  }),
-  pushNotifications: z.object({
-    classReminders: z.boolean(),
-    emergencyAlerts: z.boolean(),
-    newMessages: z.boolean(),
-  }),
-  smsNotifications: z.object({
-    urgentAlerts: z.boolean(),
-    classChanges: z.boolean(),
-  }),
-});
 
-export const AccessibilitySettingsSchema = z.object({
-  theme: z.enum(['LIGHT', 'DARK', 'AUTO']),
-  fontSize: z.enum(['SMALL', 'MEDIUM', 'LARGE']),
-  highContrast: z.boolean(),
-  reducedMotion: z.boolean(),
-  screenReader: z.boolean(),
-});
 
-export const PrivacySettingsSchema = z.object({
-  profileVisibility: z.enum(['PUBLIC', 'PRIVATE']),
-  showEmail: z.boolean(),
-  showPhone: z.boolean(),
-  showExperience: z.boolean(),
-  allowStudentContact: z.boolean(),
-});
 
-export const LanguageRegionSchema = z.object({
-  language: z.enum(['ES', 'EN']),
-  region: z.string(),
-  timezone: z.string(),
-  dateFormat: z.enum(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']),
-  timeFormat: z.enum(['12H', '24H']),
-  currency: z.enum(['PEN', 'USD']),
-});
+
 
 export const TrainerConfigurationSchema = z.object({
   personalData: TrainerPersonalDataSchema,
-  notificationSettings: NotificationSettingsSchema,
-  accessibilitySettings: AccessibilitySettingsSchema,
-  privacySettings: PrivacySettingsSchema,
-  languageRegion: LanguageRegionSchema,
 });
 
 

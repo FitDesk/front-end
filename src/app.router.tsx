@@ -4,8 +4,6 @@ import { Login } from "./modules/shared/auth/login";
 import { Register } from "./modules/shared/auth/register";
 import { ForgotPassword } from "./modules/shared/auth/forgot-password";
 import { PageLoader } from "./shared/components/page-loader";
-// Importaciones de entrenadores y miembros
-// Importación directa para evitar problemas con lazy loading
 import { TrainersPage } from "./modules/admin/trainers/pages/TrainersPage";
 import { TrainerFormPage } from "./modules/admin/trainers/pages/TrainerFormPage";
 import { TrainerDetailsPage } from "./modules/admin/trainers/pages/TrainerDetailsPage";
@@ -248,11 +246,6 @@ export const appRouter = createBrowserRouter([
             {
                 path: "students",
                 element: <Suspense fallback={<PageLoader />}><TrainerStudentsPage /></Suspense>
-            },
-            // Add more trainer routes as needed
-            {
-                path: "workouts",
-                element: <div className="p-6">Workouts Page</div>
             },
             {
                 path: "messages",
