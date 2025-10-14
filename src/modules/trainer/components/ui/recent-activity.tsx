@@ -1,8 +1,6 @@
-'use client';
-
 import { memo } from 'react';
 import { motion } from 'motion/react';
-import { UserPlus, Dumbbell, Calendar, MessageSquare } from 'lucide-react';
+import { UserPlus, Calendar, MessageSquare } from 'lucide-react';
 
 const activities = [
   {
@@ -18,13 +16,6 @@ const activities = [
     time: 'Hace 5 horas',
     icon: Calendar,
     color: 'text-green-500',
-  },
-  {
-    action: 'Rutina actualizada',
-    user: 'Rutina de fuerza',
-    time: 'Ayer',
-    icon: Dumbbell,
-    color: 'text-purple-500',
   },
   {
     action: 'Nuevo mensaje',

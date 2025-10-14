@@ -4,8 +4,6 @@ import { Login } from "./modules/shared/auth/login";
 import { Register } from "./modules/shared/auth/register";
 import { ForgotPassword } from "./modules/shared/auth/forgot-password";
 import { PageLoader } from "./shared/components/page-loader";
-// Importaciones de entrenadores y miembros
-// Importación directa para evitar problemas con lazy loading
 import { TrainersPage } from "./modules/admin/trainers/pages/TrainersPage";
 import { TrainerFormPage } from "./modules/admin/trainers/pages/TrainerFormPage";
 import { TrainerDetailsPage } from "./modules/admin/trainers/pages/TrainerDetailsPage";
@@ -24,7 +22,6 @@ import { MembershipPage } from "./modules/client/payments/membership-page";
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
 const DashboardPage = lazy(() => import("@/modules/admin/dashboard/DashboardPage"))
 const PlansPage = lazy(() => import("@/modules/admin/plans/pages/plans-page"))
-const PromotionsPage = lazy(() => import("@/modules/admin/promotions/pages/promotions-page"))
 const ClassesPage = lazy(() => import("@/modules/admin/classes/pages/classes-page"))
 const LocationsPage = lazy(() => import("@/modules/admin/classes/pages/locations-page"))
 const BillingPage = lazy(() => import("@/modules/admin/billing/pages/BillingPage"))
@@ -44,15 +41,12 @@ const TrainerStudentsPage = lazy(() => import("@/modules/trainer/students/pages/
 // Client
 const ClientLayout = lazy(() => import("@/shared/layouts/ClientLayout"))
 const ClientDashboardLayout = lazy(() => import("@/shared/layouts/ClientDashboardLayout"))
-const LandingPage = lazy(() => import("@/modules/client/landing/landing-page"))
+const LandingPage = lazy(() => import("@/modules/shared/landing/landing-page"))
 const ClientDashboard = lazy(() => import("@/modules/client/dashboard/ClientDashboard"))
 const ClientProfilePage = lazy(() => import("@/modules/client/profile/profile-page"))
 const ClientClassesPage = lazy(() => import("@/modules/client/classes/pages/client-classes-page"))
-const ClientHistoryPage = lazy(() => import("@/modules/client/history/pages/history-page"))
 const ClientPaymentsPage = lazy(() => import("@/modules/client/payments/payments-page"))
 const ReservaClasePage = lazy(() => import("@/modules/client/reserva-clase").then(m => ({ default: m.ReservaClasePage })))
-const SesionesPersonalizadasPage = lazy(() => import("@/modules/client/sesiones-personalizadas").then(m => ({ default: m.SesionesPersonalizadasPage })))
-const BlogPage = lazy(() => import("@/modules/client/blog").then(m => ({ default: m.BlogPage })))
 
 // Auth
 const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
@@ -79,18 +73,10 @@ export const appRouter = createBrowserRouter([
         ),
         children: [
             { index: true, element: <Suspense><LandingPage /></Suspense> },
-            { 
-                path: "reserva-clase", 
-                element: <Suspense fallback={<PageLoader />}><ReservaClasePage /></Suspense> 
-            },
-            { 
-                path: "sesiones-personalizadas", 
-                element: <Suspense fallback={<PageLoader />}><SesionesPersonalizadasPage /></Suspense> 
-            },
-            { 
-                path: "blog", 
-                element: <Suspense fallback={<PageLoader />}><BlogPage /></Suspense> 
-            },
+            {
+                path: "reserva-clase",
+                element: <Suspense fallback={<PageLoader />}><ReservaClasePage /></Suspense>
+            }
         ]
     },
     // Client Routes
@@ -118,10 +104,6 @@ export const appRouter = createBrowserRouter([
             {
                 path: "classes",
                 element: <Suspense><ClientClassesPage /></Suspense>
-            },
-            {
-                path: "history",
-                element: <Suspense><ClientHistoryPage /></Suspense>
             },
             {
                 path: "payments",
@@ -155,7 +137,7 @@ export const appRouter = createBrowserRouter([
     {
         path: "/admin",
         element: (
-          <AdminRoute>
+            <AdminRoute>
                 <Suspense fallback={<PageLoader />}>
                     <AdminLayout />
                 </Suspense>
@@ -166,10 +148,6 @@ export const appRouter = createBrowserRouter([
             {
                 path: "plans",
                 element: <Suspense fallback={<PageLoader />}><PlansPage /></Suspense>
-            },
-            {
-                path: "promotions",
-                element: <Suspense fallback={<PageLoader />}><PromotionsPage /></Suspense>
             },
             {
                 path: "classes",
@@ -225,7 +203,7 @@ export const appRouter = createBrowserRouter([
     {
         path: "/trainer",
         element: (
-           <TrainerRoute>
+            <TrainerRoute>
                 <Suspense fallback={<PageLoader />}>
                     <TrainerLayout />
                 </Suspense>
@@ -248,11 +226,6 @@ export const appRouter = createBrowserRouter([
             {
                 path: "students",
                 element: <Suspense fallback={<PageLoader />}><TrainerStudentsPage /></Suspense>
-            },
-            // Add more trainer routes as needed
-            {
-                path: "workouts",
-                element: <div className="p-6">Workouts Page</div>
             },
             {
                 path: "messages",

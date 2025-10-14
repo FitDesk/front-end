@@ -10,11 +10,3 @@ export interface DashboardStat {
   bgColor: string;
 }
 
-export interface QuickActionsProps {
-  onAddUser: () => void;
-  onExport: () => void;
-}
-
-export interface UsersTableProps {
-  onAddUser: () => void;
-}

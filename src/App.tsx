@@ -1,16 +1,16 @@
-import {RouterProvider} from "react-router"
-import {appRouter} from "./app.router"
+import { RouterProvider } from "react-router"
+import { appRouter } from "./app.router"
 import {
     QueryClient,
     QueryClientProvider,
 } from '@tanstack/react-query'
-import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
-import {ToastProvider} from "@/shared/components/ui/toast"
+import { ToastProvider } from "@/shared/components/ui/toast"
 
-import {MotionConfig} from "motion/react"
-import {ThemeProvider} from "./core/providers/theme-provider"
-import {CheckAuthProvider} from './core/providers/auth-provider';
+import { MotionConfig } from "motion/react"
+import { ThemeProvider } from "./core/providers/theme-provider"
+import { CheckAuthProvider } from './core/providers/auth-provider';
 
 
 const queryClient = new QueryClient()
@@ -23,11 +23,9 @@ export default function App() {
                 <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
                     <ToastProvider>
                         <CheckAuthProvider>
-                            <RouterProvider router={appRouter}/>
+                            <RouterProvider router={appRouter} />
                         </CheckAuthProvider>
-                        {/* <ChatButton /> */}
-                        {/* <ChatModal /> */}
-                        <ReactQueryDevtools initialIsOpen={false}/>
+                        <ReactQueryDevtools initialIsOpen={false} />
                     </ToastProvider>
                 </ThemeProvider>
             </QueryClientProvider>

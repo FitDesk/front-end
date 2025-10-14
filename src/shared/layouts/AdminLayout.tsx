@@ -1,14 +1,9 @@
-'use client';
-
 import { useState } from 'react';
 
 import { AdminSidebar } from '@/modules/admin/components/ui/admin-sidebar';
 import { DashboardHeader } from '@/modules/admin/components/ui/dashboard-header';
 import { Outlet } from 'react-router';
 import { SidebarInset, SidebarProvider } from '../components/animated/sidebar';
-
-
-
 
 
 export default function AdminDashboard() {
