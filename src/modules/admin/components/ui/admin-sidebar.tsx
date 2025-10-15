@@ -29,25 +29,35 @@ import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
 import { User } from '@/shared/components/animated/icons/user';
 import { cn } from '@/core/lib/utils';
 import { useAuthStore } from '@/core/store/auth.store';
+import { usePrefetchRoutes } from '@/core/routes/usePrefetchRoutes';
 
 const menuItems = [
-    { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-    { title: 'Miembros', icon: Users, href: '/admin/members' },
-    { title: 'Entrenadores', icon: Users, href: '/admin/trainers' },
-    { title: 'Roles', icon: Shield, href: '/admin/roles' },
-    { title: 'Clases', icon: Calendar, href: '/admin/classes' },
-    { title: 'Ubicaciones', icon: MapPin, href: '/admin/locations' },
-    { title: 'Facturación', icon: DollarSign, href: '/admin/billing' },
-    { title: 'Planes', icon: Shield, href: '/admin/plans' }
-];
-
+    { title: 'Dashboard', icon: LayoutDashboard, href: '/admin', prefetchKey: null },
+    { title: 'Miembros', icon: Users, href: '/admin/members', prefetchKey: 'prefetchMembers' },
+    { title: 'Entrenadores', icon: Users, href: '/admin/trainers', prefetchKey: 'prefetchTrainers' },
+    { title: 'Roles', icon: Shield, href: '/admin/roles', prefetchKey: 'prefetchRoles' },
+    { title: 'Clases', icon: Calendar, href: '/admin/classes', prefetchKey: 'prefetchClasses' },
+    { title: 'Ubicaciones', icon: MapPin, href: '/admin/locations', prefetchKey: 'prefetchLocations' },
+    { title: 'Facturación', icon: DollarSign, href: '/admin/billing', prefetchKey: 'prefetchBilling' },
+    { title: 'Planes', icon: Shield, href: '/admin/plans', prefetchKey: 'prefetchPlans' }
+] as const;
 export const AdminSidebar = memo(() => {
     const { state } = useSidebar();
     const logout = useAuthStore((state) => state.logout);
     const navigate = useNavigate();
+     const prefetchHooks = usePrefetchRoutes();
     const handleLogout = async () => {
         logout();
         navigate('/');
+    };
+
+    const handleMouseEnter = (prefetchKey: string | null) => {
+        if (prefetchKey && prefetchKey in prefetchHooks) {
+            const prefetchFn = prefetchHooks[prefetchKey as keyof typeof prefetchHooks];
+            if (typeof prefetchFn === 'function') {
+                prefetchFn();
+            }
+        }
     };
 
     const isCollapsed = state === 'collapsed';
@@ -97,7 +107,9 @@ export const AdminSidebar = memo(() => {
                             {menuItems.map((item) => {
                                 const Icon = item.icon;
                                 return (
-                                    <SidebarMenuItem key={item.href}>
+                                    <SidebarMenuItem 
+                                    onMouseOver={() => handleMouseEnter(item.prefetchKey)}
+                                    key={item.href}>
                                         <SidebarMenuButton asChild>
                                             <Link prefetch='none' to={item.href} viewTransition>
                                                 <Icon />
