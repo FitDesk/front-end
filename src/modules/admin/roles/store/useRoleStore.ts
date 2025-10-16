@@ -1,8 +1,7 @@
 import { create } from 'zustand';
-import { roleService } from '../services/role.service';
+
 import type { 
   UserWithRole, 
-  UserFilters,
   UserRole
 } from '../types';
 
@@ -10,7 +9,7 @@ interface RoleState {
   users: UserWithRole[];
   isLoading: boolean;
   error: string | null;
-  userFilters: UserFilters;
+
   pagination: {
     page: number;
     limit: number;
@@ -21,7 +20,6 @@ interface RoleState {
 
   fetchUsers: () => Promise<void>;
   updateUserRole: (data: { userId: string; role?: UserRole; status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' }) => Promise<{ user: UserWithRole; previousRole?: UserRole; notificationSent: boolean }>;
-  setUserFilters: (filters: Partial<UserFilters>) => void;
   setPagination: (page: number) => void;
   resetUserFilters: () => void;
 }
@@ -41,19 +39,10 @@ const useRoleStore = create<RoleState>((set, get) => ({
   fetchUsers: async () => {
     set({ isLoading: true, error: null });
     try {
-      const { userFilters, pagination } = get();
-      const response = await roleService.getUsersWithRoles(userFilters, {
-        page: pagination.page,
-        limit: pagination.limit,
-      });
+    
+    
       set({ 
-        users: response.data, 
-        isLoading: false,
-        pagination: {
-          ...pagination,
-          total: response.pagination.total,
-          totalPages: response.pagination.totalPages,
-        }
+        isLoading: false
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al cargar usuarios';
@@ -79,13 +68,6 @@ const useRoleStore = create<RoleState>((set, get) => ({
     };
   },
 
-  setUserFilters: (filters) => {
-    set(state => ({
-      userFilters: { ...state.userFilters, ...filters },
-      pagination: { ...state.pagination, page: 1 } 
-    }));
-  },
-
   setPagination: (page) => {
     set(state => ({
       pagination: { ...state.pagination, page }
@@ -94,7 +76,7 @@ const useRoleStore = create<RoleState>((set, get) => ({
 
   resetUserFilters: () => {
     set({ 
-      userFilters: {},
+
       pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
     });
   }
