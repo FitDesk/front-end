@@ -1,41 +1,24 @@
 import { Badge } from '@/shared/components/ui/badge';
-import { ArrowRight, Check, Shield, Sparkles, Star, Zap } from 'lucide-react';
-import { useEffect, useState } from 'react'
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { cn } from '@/core/lib/utils';
 import { Button } from '@/shared/components/ui/button';
-import { AnimatedNumber } from '@/shared/components/animated-number';
 import { useNavigate } from 'react-router';
 import { useActivePlans } from '@/modules/admin/plans';
 import type { PlanResponse } from '@/core/interfaces/plan.interface';
+import { Avatar, AvatarImage } from '@/shared/components/ui/avatar';
+import { AvatarFallback } from '@radix-ui/react-avatar';
 
 
 
 export const PriceSection = () => {
-
     const { data: plans } = useActivePlans()
-
-    const [frequency, setFrequency] = useState<string>('monthly');
-    const [mounted, setMounted] = useState(false);
     const navigate = useNavigate();
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    if (!mounted) return null;
     const handlePayment = (plan: PlanResponse) => {
-        navigate('/payments',{state:{selectedPlan:plan}});
+        navigate('/payments', { state: { selectedPlan: plan } });
     }
 
-
-    const getPlanIcon = (planName: string) => {
-        const name = planName.toLowerCase();
-        if (name.includes('1 mes') || name.includes('mensual')) return Star;
-        if (name.includes('3 meses') || name.includes('trimestral')) return Zap;
-        if (name.includes('1 año') || name.includes('anual')) return Shield;
-        return Star; // default icon
-    };
 
     return (
         <div className="not-prose relative flex w-full flex-col gap-16 overflow-hidden px-4 py-24 text-center sm:px-8">
@@ -104,15 +87,18 @@ export const PriceSection = () => {
                                 <CardHeader className={cn('pb-4', plan.isPopular && 'pt-8')}>
                                     <div className="flex items-center gap-2">
                                         <div
-                                            className={cn(
-                                                'flex h-8 w-8 items-center justify-center rounded-full',
-                                                plan.isPopular
-                                                    ? 'bg-primary/10 text-primary'
-                                                    : 'bg-secondary text-foreground',
-                                            )}
                                         >
-                                            
-                                            </div>
+                                            <Avatar>
+                                                <AvatarImage
+                                                    src={plan.planImageUrl}
+                                                    alt={plan.name}
+                                                    className="h-8 w-8 rounded-full"
+                                                />
+                                                <AvatarFallback>
+                                                    {plan.name.charAt(0)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </div>
                                         <CardTitle
                                             className={cn(
                                                 'text-xl font-bold',
@@ -125,36 +111,14 @@ export const PriceSection = () => {
                                     <CardDescription className="mt-3 space-y-2">
                                         <p className="text-sm">{plan.description}</p>
                                         <div className="pt-2">
-                                            {typeof plan.price[
-                                                frequency as keyof typeof plan.price
-                                            ] === 'number' ? (
-                                                <div className="flex items-baseline">
-                                                    <AnimatedNumber
-                                                        value={plan.price}
-                                                        className={cn(
-                                                            'text-3xl font-bold',
-                                                            plan.isPopular ? 'text-primary' : 'text-foreground',
-                                                        )}
-                                                        format={{
-                                                            style: 'currency',
-                                                            currency: 'PEN',
-                                                            maximumFractionDigits: 0
-                                                        }}
-                                                    />
-                                                    <span className="text-muted-foreground ml-1 text-sm">
-                                                        /mes, facturado {frequency === "monthly" ? "mensualmente" : "anualmente"}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <span
-                                                    className={cn(
-                                                        'text-2xl font-bold',
-                                                        plan.isPopular ? 'text-primary' : 'text-foreground',
-                                                    )}
-                                                >
-                                                    {plan.price}
-                                                </span>
-                                            )}
+                                            <span
+                                                className={cn(
+                                                    'text-2xl font-bold',
+                                                    plan.isPopular ? 'text-primary' : 'text-foreground',
+                                                )}
+                                            >
+                                                S/.{plan.price}
+                                            </span>
                                         </div>
                                     </CardDescription>
                                 </CardHeader>

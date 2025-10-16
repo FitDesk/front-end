@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { PlanService } from "../services/plan.service";
+import { PlanService } from "../../../../core/services/plan.service";
 import type {
   CreatePlanRequest,
   UpdatePlanRequest,
@@ -26,7 +26,7 @@ export const usePlanById = (id: string) => {
   return useQuery({
     queryKey: ["plans", id],
     queryFn: () => PlanService.getPlanById(id),
-    enabled: !!id, 
+    enabled: !!id,
   });
 };
 
