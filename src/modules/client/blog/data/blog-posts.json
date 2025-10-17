@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "title": "Guía completa de entrenamiento de fuerza para principiantes",
+    "description": "¿Quieres desarrollar músculo, tonificar tu cuerpo y sentirte más fuerte? El entrenamiento de fuerza es la base perfecta para empezar.",
+    "content": "En esta guía aprenderás cómo levantar pesas correctamente, la importancia del calentamiento, y cómo crear una rutina equilibrada.",
+    "image": "https://img.freepik.com/foto-gratis/hombre-entrenando-gimnasio-tiro-completo_23-2150007152.jpg?t=st=1760392726~exp=1760396326~hmac=29ea14d837047c93d34e2e29c0be84c37e333597acf227ef58cbd15df285b8a6&w=1060",
+    "date": "12 de Octubre, 2025",
+    "readTime": "5 min de lectura",
+    "category": "Entrenamiento",
+    "author": "Equipo FitDesk"
+  },
+  {
+    "id": 2,
+    "title": "Entrenamiento en pareja o grupo: motívate y alcanza tus metas juntos",
+    "description": "¿Cansado de entrenar solo? Entrenar en pareja o en grupo puede ser la clave para mantener la motivación y disfrutar el proceso.",
+    "content": "Ya sea con tu pareja, amigos o compañeros del gym, estos ejercicios combinan fuerza, cardio y diversión para todos los niveles.",
+    "image": "https://img.freepik.com/foto-gratis/hermosa-atletica-chica-ropa-deportiva-entrenando-gimnasio-su-novio_1157-13752.jpg?t=st=1760393217~exp=1760396817~hmac=8c805382b7d0ed603816e73f82f361e7d698282b4685425c518a7a0e7fa81c7d&w=1480",
+    "date": "10 de Octubre, 2025",
+    "readTime": "4 min de lectura",
+    "category": "Motivación",
+    "author": "Equipo FitDesk"
+  },
+  {
+    "id": 3,
+    "title": "12 ejercicios para adultos mayores: equilibrio, movilidad y fuerza",
+    "description": "Mantenerse activo a cualquier edad es esencial. Estos ejercicios están diseñados para mejorar la coordinación, la estabilidad y la fuerza muscular de los adultos mayores.",
+    "content": "Incluye movimientos simples como levantamientos de talones, sentadillas asistidas, caminata lateral y estiramientos de brazos.",
+    "image": "https://img.freepik.com/foto-gratis/mujer-que-ama-ejercicio-cardiovascular_329181-12905.jpg?t=st=1760393012~exp=1760396612~hmac=fa9ba66f0e0b06d4a9117e031f687eee89b6d9ed5b589cfd1ad790e04d3a5561&w=1480",
+    "date": "8 de Octubre, 2025",
+    "readTime": "6 min de lectura",
+   "categories": ["Salud", "Ejercicio"],
+    "author": "Equipo FitDesk"
+  }
+]

@@ -1,0 +1,212 @@
+[
+  {
+    "id": 1,
+    "title": "¿Qué es la sobrecarga progresiva? Guía para principiantes",
+    "image": "",
+    "tags": ["Guía de ejercicios", "Consejos para principiantes"],
+    "category": "Guía de ejercicios"
+  },
+  {
+    "id": 2,
+    "title": "Guía para principiantes de la máquina de prensado de piernas",
+    "image": "",
+    "tags": ["Guía de ejercicios", "Consejos para principiantes"],
+    "category": "Guía de ejercicios"
+  },
+  {
+    "id": 3,
+    "title": "Consejos para mantener la motivación y generar consistencia en el entrenamiento",
+    "image": "",
+    "tags": ["Motivación"],
+    "category": "Motivación"
+  },
+  {
+    "id": 4,
+    "title": "Encontrar un gimnasio asequible cerca de ti: Consideraciones antes de elegir",
+    "image": "",
+    "tags": ["Soporte en el gimnasio", "Beneficios para miembros"],
+    "category": "Soporte en el gimnasio"
+  },
+  {
+    "id": 5,
+    "title": "8 mejores ejercicios de hombro: Guía para principiantes",
+    "image": "",
+    "tags": ["Consejos para principiantes", "Guía de ejercicios"],
+    "category": "Guía de ejercicios"
+  },
+  {
+    "id": 6,
+    "title": "20 de las mejores canciones de entrenamiento para tu lista de reproducción",
+    "image": "",
+    "tags": ["Motivación"],
+    "category": "Motivación"
+  },
+  {
+    "id": 7,
+    "title": "14 prácticas de autocuidado que puede realizar hoy para mejorar la salud mental",
+    "image": "",
+    "tags": ["Salud Mental", "Educación y Consejo"],
+    "category": "Salud Mental"
+  },
+  {
+    "id": 8,
+    "title": "9 beneficios del ejercicio en su salud mental (más 3 formas de comenzar donde está)",
+    "image": "",
+    "tags": ["Salud Mental", "Motivación"],
+    "category": "Salud Mental"
+  },
+  {
+    "id": 9,
+    "title": "Nutrición pre y post entrenamiento: Qué comer para mejores resultados",
+    "image": "",
+    "tags": ["Nutrición", "Consejos para principiantes"],
+    "category": "Nutrición"
+  },
+  {
+    "id": 10,
+    "title": "Cómo evitar lesiones comunes en el gimnasio",
+    "image": "",
+    "tags": ["Salud Mental", "Consejos para principiantes"],
+    "category": "Educación y Consejo"
+  },
+  {
+    "id": 11,
+    "title": "Rutina de entrenamiento de cuerpo completo para ganar músculo",
+    "image": "",
+    "tags": ["Guía de ejercicios", "Consejos para principiantes"],
+    "category": "Guía de ejercicios"
+  },
+  {
+    "id": 12,
+    "title": "Beneficios de ser miembro: Acceso a clases exclusivas",
+    "image": "",
+    "tags": ["Beneficios para miembros"],
+    "category": "Beneficios para miembros"
+  },
+  {
+    "id": 13,
+    "title": "Guía completa de ejercicios para fortalecer el core",
+    "image": "",
+    "tags": ["Guía de ejercicios", "Consejos para principiantes"],
+    "category": "Guía de ejercicios"
+  },
+  {
+    "id": 14,
+    "title": "Los mejores estiramientos para hacer después del entrenamiento",
+    "image": "",
+    "tags": ["Educación y Consejo", "Consejos para principiantes"],
+    "category": "Educación y Consejo"
+  },
+  {
+    "id": 15,
+    "title": "Plan de nutrición para definición muscular",
+    "image": "",
+    "tags": ["Nutrición"],
+    "category": "Nutrición"
+  },
+  {
+    "id": 16,
+    "title": "Cómo establecer metas de fitness realistas y alcanzables",
+    "image": "",
+    "tags": ["Motivación", "Educación y Consejo"],
+    "category": "Motivación"
+  },
+  {
+    "id": 17,
+    "title": "Entrenamientos HIIT: Quema calorías en menos tiempo",
+    "image": "",
+    "tags": ["Guía de ejercicios"],
+    "category": "Guía de ejercicios"
+  },
+  {
+    "id": 18,
+    "title": "La importancia del descanso en tu rutina de entrenamiento",
+    "image": "",
+    "tags": ["Salud Mental", "Educación y Consejo"],
+    "category": "Salud Mental"
+  },
+  {
+    "id": 19,
+    "title": "Suplementos deportivos: ¿Cuáles realmente necesitas?",
+    "image": "",
+    "tags": ["Nutrición", "Educación y Consejo"],
+    "category": "Nutrición"
+  },
+  {
+    "id": 20,
+    "title": "Ejercicios de cardio para quemar grasa efectivamente",
+    "image": "",
+    "tags": ["Guía de ejercicios", "Consejos para principiantes"],
+    "category": "Guía de ejercicios"
+  },
+  {
+    "id": 21,
+    "title": "Cómo superar una meseta en el gimnasio",
+    "image": "",
+    "tags": ["Motivación", "Educación y Consejo"],
+    "category": "Motivación"
+  },
+  {
+    "id": 22,
+    "title": "Técnicas de respiración para mejorar tu rendimiento",
+    "image": "",
+    "tags": ["Salud Mental", "Educación y Consejo"],
+    "category": "Salud Mental"
+  },
+  {
+    "id": 23,
+    "title": "Guía de equipamiento esencial para tu gimnasio en casa",
+    "image": "",
+    "tags": ["Soporte en el gimnasio", "Consejos para principiantes"],
+    "category": "Soporte en el gimnasio"
+  },
+  {
+    "id": 24,
+    "title": "Los mejores horarios para entrenar según tu objetivo",
+    "image": "",
+    "tags": ["Educación y Consejo"],
+    "category": "Educación y Consejo"
+  },
+  {
+    "id": 25,
+    "title": "Rutina de entrenamiento para principiantes: Primera semana",
+    "image": "",
+    "tags": ["Consejos para principiantes", "Guía de ejercicios"],
+    "category": "Guía de ejercicios"
+  },
+  {
+    "id": 26,
+    "title": "Alimentación antes de una competencia deportiva",
+    "image": "",
+    "tags": ["Nutrición"],
+    "category": "Nutrición"
+  },
+  {
+    "id": 27,
+    "title": "Cómo medir tu progreso más allá de la báscula",
+    "image": "",
+    "tags": ["Motivación", "Educación y Consejo"],
+    "category": "Motivación"
+  },
+  {
+    "id": 28,
+    "title": "Entrenamiento de fuerza para mujeres: Mitos y realidades",
+    "image": "",
+    "tags": ["Educación y Consejo", "Guía de ejercicios"],
+    "category": "Educación y Consejo"
+  },
+  {
+    "id": 29,
+    "title": "Descuentos y promociones exclusivas para miembros premium",
+    "image": "",
+    "tags": ["Beneficios para miembros"],
+    "category": "Beneficios para miembros"
+  },
+  {
+    "id": 30,
+    "title": "Ejercicios funcionales para mejorar tu vida diaria",
+    "image": "",
+    "tags": ["Guía de ejercicios", "Educación y Consejo"],
+    "category": "Guía de ejercicios"
+  }
+]
