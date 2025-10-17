@@ -26,14 +26,18 @@ export default function AdminDashboard() {
         <SidebarProvider>
             <AdminSidebar />
             <SidebarInset>
-                <DashboardHeader
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    onRefresh={handleRefresh}
-                    onExport={handleExport}
-                    isRefreshing={isRefreshing}
-                />
-                <Outlet />
+                <div className="px-4 md:px-6 py-4">
+                    <DashboardHeader
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        onRefresh={handleRefresh}
+                        onExport={handleExport}
+                        isRefreshing={isRefreshing}
+                    />
+                    <main className="mt-6">
+                        <Outlet />
+                    </main>
+                </div>
             </SidebarInset>
         </SidebarProvider>
     );

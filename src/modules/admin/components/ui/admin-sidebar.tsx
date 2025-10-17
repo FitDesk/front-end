@@ -3,7 +3,6 @@ import {
     Users,
     DollarSign,
     Shield,
-    Settings,
     Calendar,
     MapPin,
     LogOut,
@@ -133,7 +132,7 @@ export const AdminSidebar = memo(() => {
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
-                            <Link prefetch='none' to="#profile" viewTransition>
+                            <Link prefetch='none' to="/admin/profile" viewTransition>
                                 <User animateOnHover />
                                 <span>Perfil Administrador</span>
                             </Link>

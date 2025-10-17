@@ -26,7 +26,7 @@ const ClassesPage = lazy(() => import("@/modules/admin/classes/pages/classes-pag
 const LocationsPage = lazy(() => import("@/modules/admin/classes/pages/locations-page"))
 const BillingPage = lazy(() => import("@/modules/admin/billing/pages/BillingPage"))
 const UserRolesPage = lazy(() => import("@/modules/admin/roles/pages/UserRolesPage"))
-
+const AdminProfilePage = lazy(() => import("@/modules/admin/profile/pages/AdminProfilePage").then(m => ({ default: m.default })))
 
 //Trainer
 const TrainerLayout = lazy(() => import("@/shared/layouts/TrainerLayout"))
@@ -134,7 +134,7 @@ export const appRouter = createBrowserRouter([
                 <Suspense fallback={<PageLoader />}>
                     <AuthLayout />
                 </Suspense>
-            </NotAuthenticatedRoute>
+             </NotAuthenticatedRoute>
 
         ),
         children: [
@@ -151,7 +151,7 @@ export const appRouter = createBrowserRouter([
                 <Suspense fallback={<PageLoader />}>
                     <AdminLayout />
                 </Suspense>
-            </AdminRoute>
+             </AdminRoute>
         ),
         children: [
             { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
@@ -206,6 +206,10 @@ export const appRouter = createBrowserRouter([
             {
                 path: "roles",
                 element: <Suspense fallback={<PageLoader />}><UserRolesPage /></Suspense>,
+            },
+            {
+                path: "profile",
+                element: <Suspense fallback={<PageLoader />}><AdminProfilePage /></Suspense>,
             }
         ]
     },
