@@ -47,6 +47,8 @@ const ClientProfilePage = lazy(() => import("@/modules/client/profile/profile-pa
 const ClientClassesPage = lazy(() => import("@/modules/client/classes/pages/client-classes-page"))
 const ClientPaymentsPage = lazy(() => import("@/modules/client/payments/payments-page"))
 const ReservaClasePage = lazy(() => import("@/modules/client/reserva-clase").then(m => ({ default: m.ReservaClasePage })))
+const SesionesPersonalizadasPage = lazy(() => import("@/modules/client/sesiones-personalizadas/pages/sesiones-personalizadas-page"))
+const BlogPage = lazy(() => import("@/modules/client/blog/pages/blog-page"))
 
 // Auth
 const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
@@ -76,6 +78,14 @@ export const appRouter = createBrowserRouter([
             {
                 path: "reserva-clase",
                 element: <Suspense fallback={<PageLoader />}><ReservaClasePage /></Suspense>
+            },
+            {
+                path: "sesiones-personalizadas",
+                element: <Suspense fallback={<PageLoader />}><SesionesPersonalizadasPage /></Suspense>
+            },
+            {
+                path: "blog",
+                element: <Suspense fallback={<PageLoader />}><BlogPage /></Suspense>
             }
         ]
     },
