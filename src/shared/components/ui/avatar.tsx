@@ -37,6 +37,7 @@ function AvatarFallback({
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
   return (
+    
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(

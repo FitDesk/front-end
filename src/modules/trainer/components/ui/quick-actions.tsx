@@ -28,13 +28,6 @@ const defaultActions = [
     action: 'analytics',
   },
   {
-    icon: Dumbbell,
-    label: 'Crear Rutina',
-    color: 'purple',
-    shortcut: 'Ctrl+R',
-    action: 'createRoutine',
-  },
-  {
     icon: Calendar,
     label: 'Programar Clase',
     color: 'orange',
@@ -52,9 +45,6 @@ export const QuickActions = memo(
           break;
         case 'analytics':
           console.log('Viendo estadísticas...');
-          break;
-        case 'createRoutine':
-          console.log('Creando rutina...');
           break;
         case 'scheduleClass':
           console.log('Programando clase...');

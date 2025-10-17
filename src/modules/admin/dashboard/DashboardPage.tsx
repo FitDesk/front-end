@@ -2,7 +2,6 @@ import { DashboardCard } from '../components/ui/dashboard-card'
 import { RevenueChart } from '../components/ui/revenue-chart'
 import { UsersTable } from '../components/ui/users-table'
 import { QuickActions } from '../components/ui/quick-actions'
-import { SystemStatus } from '../components/ui/system-status'
 import { RecentActivity } from '../components/ui/recent-activity'
 import { dashboardStats } from './store/dashboard-data'
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts'
@@ -48,7 +47,7 @@ const DashboardPage = () => {
                                 onAddUser={handleAddUser}
                                 onExport={() => alert("Exportar")}
                             />
-                            <SystemStatus />
+                        
                             <RecentActivity />
                         </div>
                     </div>

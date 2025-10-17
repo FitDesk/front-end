@@ -2,11 +2,9 @@ import { DashboardCard } from '../components/ui/dashboard-card';
 import { RevenueChart } from '../components/ui/revenue-chart';
 import { UsersTable } from '../components/ui/users-table';
 import { QuickActions } from '../components/ui/quick-actions';
-import { SystemStatus } from '../components/ui/system-status';
 import { RecentActivity } from '../components/ui/recent-activity';
-import { Dumbbell, Users, Calendar, Clock } from 'lucide-react';
+import { Users, Calendar } from 'lucide-react';
 
-// Dashboard stats data
 const stats = [
     {
         title: 'Alumnos Activos',
@@ -25,25 +23,7 @@ const stats = [
         icon: Calendar,
         color: 'text-green-500',
         bgColor: 'bg-green-500/10',
-    },
-    {
-        title: 'Horas Entrenadas',
-        value: '32',
-        change: '+15%',
-        changeType: 'positive' as const,
-        icon: Clock,
-        color: 'text-purple-500',
-        bgColor: 'bg-purple-500/10',
-    },
-    {
-        title: 'Rutinas Activas',
-        value: '24',
-        change: '+3 nuevas',
-        changeType: 'positive' as const,
-        icon: Dumbbell,
-        color: 'text-orange-500',
-        bgColor: 'bg-orange-500/10',
-    },
+    }
 ];
 
 const handleAddStudent = () => {
@@ -75,13 +55,13 @@ const DashboardTrainer = () => {
                     <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-3">
                         {/* Charts Section */}
                         <div className="space-y-4 sm:space-y-6 xl:col-span-2">
-                            <RevenueChart 
-                                title="Progreso de Alumnos" 
+                            <RevenueChart
+                                title="Progreso de Alumnos"
                                 subtitle="Rendimiento general de la semana"
                             />
-                            <UsersTable 
-                                title="Mis Alumnos Recientes" 
-                                onAddUser={handleAddStudent} 
+                            <UsersTable
+                                title="Mis Alumnos Recientes"
+                                onAddUser={handleAddStudent}
                             />
                         </div>
 
@@ -90,10 +70,8 @@ const DashboardTrainer = () => {
                             <QuickActions
                                 title="Acciones Rápidas"
                             />
-                            <SystemStatus 
-                                title="Estado del Sistema"
-                            />
-                            <RecentActivity 
+
+                            <RecentActivity
                                 title="Actividad Reciente"
                             />
                         </div>

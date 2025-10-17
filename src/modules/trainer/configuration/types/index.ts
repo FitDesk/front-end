@@ -2,11 +2,6 @@ import { z } from 'zod';
 import {
   TrainerPersonalDataSchema,
   SecuritySessionSchema,
-  RecentEmailSchema,
-  NotificationSettingsSchema,
-  AccessibilitySettingsSchema,
-  PrivacySettingsSchema,
-  LanguageRegionSchema,
   TrainerConfigurationSchema,
 } from '@/core/zod';
 
@@ -14,11 +9,6 @@ import {
 
 export type TrainerPersonalData = z.infer<typeof TrainerPersonalDataSchema>;
 export type SecuritySession = z.infer<typeof SecuritySessionSchema>;
-export type RecentEmail = z.infer<typeof RecentEmailSchema>;
-export type NotificationSettings = z.infer<typeof NotificationSettingsSchema>;
-export type AccessibilitySettings = z.infer<typeof AccessibilitySettingsSchema>;
-export type PrivacySettings = z.infer<typeof PrivacySettingsSchema>;
-export type LanguageRegion = z.infer<typeof LanguageRegionSchema>;
 export type TrainerConfiguration = z.infer<typeof TrainerConfigurationSchema>;
 
 
@@ -40,22 +30,6 @@ export interface DeleteAccountDTO {
   feedback?: string;
 }
 
-export interface UpdateNotificationSettingsDTO {
-  settings: NotificationSettings;
-}
-
-export interface UpdateAccessibilitySettingsDTO {
-  settings: AccessibilitySettings;
-}
-
-export interface UpdatePrivacySettingsDTO {
-  settings: PrivacySettings;
-}
-
-export interface UpdateLanguageRegionDTO {
-  settings: LanguageRegion;
-}
-
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -72,14 +46,11 @@ export interface SecurityCheckResponse {
 }
 
 
-export type ConfigurationSection = 
+export type ConfigurationSection =
   | 'personal-data'
-  | 'account-control' 
+  | 'account-control'
   | 'password-security'
-  | 'accessibility'
-  | 'notifications'
-  | 'language-region'
-  | 'profile-privacy';
+  ;
 
 export interface ConfigurationTab {
   id: ConfigurationSection;

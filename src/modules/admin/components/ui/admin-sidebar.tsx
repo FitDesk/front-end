@@ -1,10 +1,8 @@
 import {
     LayoutDashboard,
     Users,
-    BarChart3,
     DollarSign,
     Shield,
-    Zap,
     Settings,
     Calendar,
     MapPin,
@@ -25,28 +23,43 @@ import {
     SidebarRail,
     useSidebar,
 } from '@/shared/components/animated/sidebar';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
 import { User } from '@/shared/components/animated/icons/user';
 import { cn } from '@/core/lib/utils';
+import { useAuthStore } from '@/core/store/auth.store';
+import { usePrefetchRoutes } from '@/core/routes/usePrefetchRoutes';
 
 const menuItems = [
-    { title: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-    { title: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
-    { title: 'Miembros', icon: Users, href: '/admin/members' },
-    { title: 'Entrenadores', icon: Users, href: '/admin/trainers' },
-    { title: 'Roles', icon: Shield, href: '/admin/roles' },
-    { title: 'Clases', icon: Calendar, href: '/admin/classes' },
-    { title: 'Ubicaciones', icon: MapPin, href: '/admin/locations' },
-    { title: 'Facturación', icon: DollarSign, href: '/admin/billing' },
-    { title: 'Planes', icon: Shield, href: '/admin/plans' },
-    { title: 'Promociones', icon: Zap, href: '/admin/promotions' },
-    { title: 'Configuración', icon: Settings, href: '/admin/settings' },
-];
-
+    { title: 'Dashboard', icon: LayoutDashboard, href: '/admin', prefetchKey: null },
+    { title: 'Miembros', icon: Users, href: '/admin/members', prefetchKey: 'prefetchMembers' },
+    { title: 'Entrenadores', icon: Users, href: '/admin/trainers', prefetchKey: 'prefetchTrainers' },
+    { title: 'Roles', icon: Shield, href: '/admin/roles', prefetchKey: 'prefetchRoles' },
+    { title: 'Clases', icon: Calendar, href: '/admin/classes', prefetchKey: 'prefetchClasses' },
+    { title: 'Ubicaciones', icon: MapPin, href: '/admin/locations', prefetchKey: 'prefetchLocations' },
+    { title: 'Facturación', icon: DollarSign, href: '/admin/billing', prefetchKey: 'prefetchBilling' },
+    { title: 'Planes', icon: Shield, href: '/admin/plans', prefetchKey: 'prefetchPlans' }
+] as const;
 export const AdminSidebar = memo(() => {
     const { state } = useSidebar();
+    const logout = useAuthStore((state) => state.logout);
+    const navigate = useNavigate();
+     const prefetchHooks = usePrefetchRoutes();
+    const handleLogout = async () => {
+        logout();
+        navigate('/');
+    };
+
+    const handleMouseEnter = (prefetchKey: string | null) => {
+        if (prefetchKey && prefetchKey in prefetchHooks) {
+            const prefetchFn = prefetchHooks[prefetchKey as keyof typeof prefetchHooks];
+            if (typeof prefetchFn === 'function') {
+                prefetchFn();
+            }
+        }
+    };
+
     const isCollapsed = state === 'collapsed';
     const togglerWrapperClass = cn(
         "p-0",
@@ -94,7 +107,9 @@ export const AdminSidebar = memo(() => {
                             {menuItems.map((item) => {
                                 const Icon = item.icon;
                                 return (
-                                    <SidebarMenuItem key={item.href}>
+                                    <SidebarMenuItem 
+                                    onMouseOver={() => handleMouseEnter(item.prefetchKey)}
+                                    key={item.href}>
                                         <SidebarMenuButton asChild>
                                             <Link prefetch='none' to={item.href} viewTransition>
                                                 <Icon />
@@ -127,7 +142,7 @@ export const AdminSidebar = memo(() => {
                     <SidebarMenuItem>
                         {isCollapsed ? (
                             <SidebarMenuButton asChild>
-                                <Button variant="destructive" size="icon">
+                                <Button onClick={handleLogout} variant="destructive" size="icon">
                                     <LogOut className="h-4 w-4" />
                                     <span className="sr-only">Cerrar Sesión</span>
                                 </Button>
@@ -135,7 +150,7 @@ export const AdminSidebar = memo(() => {
 
                         ) : (
                             <SidebarMenuButton asChild>
-                                <Button variant={'destructive'}>
+                                <Button onClick={handleLogout} variant={'destructive'}>
                                     Cerrar Sesion
                                 </Button>
                             </SidebarMenuButton>

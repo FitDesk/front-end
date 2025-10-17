@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, type LucideIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface DashboardCardProps {
@@ -8,7 +8,7 @@ interface DashboardCardProps {
         value: string;
         change: string;
         changeType: 'positive' | 'negative';
-        icon: any;
+        icon: LucideIcon;
         color: string;
         bgColor: string;
     };
@@ -37,8 +37,8 @@ export const DashboardCard = memo(({ stat, index }: DashboardCardProps) => {
 
                         <div
                             className={`flex items-center gap-1 text-sm font-medium ${stat.changeType === 'positive'
-                                    ? 'text-green-500'
-                                    : 'text-red-500'
+                                ? 'text-green-500'
+                                : 'text-red-500'
                                 }`}
                         >
                             <TrendingUp

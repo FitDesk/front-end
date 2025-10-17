@@ -11,20 +11,10 @@ interface ConfigurationState {
   showDeleteAccountModal: boolean;
   showSessionsModal: boolean;
   showRecentEmailsModal: boolean;
-  
- 
+
   setActiveSection: (section: ConfigurationSection) => void;
   openChangePasswordModal: () => void;
   closeChangePasswordModal: () => void;
-  openDeactivateAccountModal: () => void;
-  closeDeactivateAccountModal: () => void;
-  openDeleteAccountModal: () => void;
-  closeDeleteAccountModal: () => void;
-  openSessionsModal: () => void;
-  closeSessionsModal: () => void;
-  openRecentEmailsModal: () => void;
-  closeRecentEmailsModal: () => void;
-  resetModals: () => void;
 }
 
 
@@ -39,61 +29,30 @@ const configurationStore = (set: (fn: (state: ConfigurationState) => void) => vo
   setActiveSection: (section: ConfigurationSection) => set((state: ConfigurationState) => {
     state.activeSection = section;
   }),
-  
+
 
   openChangePasswordModal: () => set((state: ConfigurationState) => {
     state.showChangePasswordModal = true;
   }),
-  
+
   closeChangePasswordModal: () => set((state: ConfigurationState) => {
     state.showChangePasswordModal = false;
   }),
-  
-  openDeactivateAccountModal: () => set((state: ConfigurationState) => {
-    state.showDeactivateAccountModal = true;
-  }),
-  
-  closeDeactivateAccountModal: () => set((state: ConfigurationState) => {
-    state.showDeactivateAccountModal = false;
-  }),
-  
-  openDeleteAccountModal: () => set((state: ConfigurationState) => {
-    state.showDeleteAccountModal = true;
-  }),
-  
-  closeDeleteAccountModal: () => set((state: ConfigurationState) => {
-    state.showDeleteAccountModal = false;
-  }),
-  
-  openSessionsModal: () => set((state: ConfigurationState) => {
-    state.showSessionsModal = true;
-  }),
-  
-  closeSessionsModal: () => set((state: ConfigurationState) => {
-    state.showSessionsModal = false;
-  }),
-  
-  openRecentEmailsModal: () => set((state: ConfigurationState) => {
-    state.showRecentEmailsModal = true;
-  }),
-  
-  closeRecentEmailsModal: () => set((state: ConfigurationState) => {
-    state.showRecentEmailsModal = false;
-  }),
-  
-  resetModals: () => set((state: ConfigurationState) => {
-    state.showChangePasswordModal = false;
-    state.showDeactivateAccountModal = false;
-    state.showDeleteAccountModal = false;
-    state.showSessionsModal = false;
-    state.showRecentEmailsModal = false;
-  }),
+
+
+
+
+
+
 });
+
+
 
 
 export const useConfigurationStore = create<ConfigurationState>()(
   persist(
-    devtools(immer(configurationStore), { name: 'configuration-store' }),
+    devtools(
+      immer(configurationStore), { name: 'configuration-store' }),
     {
       name: 'fitdesk-trainer-configuration',
       partialize: (state) => ({

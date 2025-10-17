@@ -19,9 +19,10 @@ import {
   FormLabel, 
   FormMessage 
 } from '@/shared/components/ui/form';
-import { ChangePasswordDTOSchema } from '@/core/zod';
+
 import { useChangePassword } from '../../hooks/use-configuration';
 import type { ChangePasswordDTO } from '../../types';
+import { ChangePasswordDTOSchema } from '@/core/zod/trainer-configuration.schemas';
 
 interface ChangePasswordModalProps {
   open: boolean;
@@ -35,7 +36,6 @@ const ChangePasswordModal = memo(({ open, onClose }: ChangePasswordModalProps) =
   
   const changePasswordMutation = useChangePassword();
 
-  // ✅ React Hook Form con validación Zod automática
   const form = useForm<ChangePasswordDTO>({
     resolver: zodResolver(ChangePasswordDTOSchema),
     defaultValues: {

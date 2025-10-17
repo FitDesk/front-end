@@ -59,7 +59,7 @@ export function usePaymentForm(options: {
   };
 
   const formatCcv = (value: string) => value.replace(/\D/g, "").slice(0, 3);
-  const formatDni = (value: string) => value.replace(/\D/g, "").slice(0, 8);
+  const formatDni = (value: string) => value.replace(/\D/g, "").slice(0, 9);
 
   const onExpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatExpDate(e.target.value);

@@ -2,7 +2,6 @@ import {
     Users,
     Calendar,
     ClipboardList,
-    Dumbbell,
     User,
     MessageSquare,
     LayoutDashboard,
@@ -10,18 +9,18 @@ import {
     LogOut,
 } from 'lucide-react';
 import { memo } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, useSidebar } from '@/shared/components/animated/sidebar';
 import { ThemeTogglerButton } from '@/shared/components/animated/theme-toggler';
 import { cn } from '@/core/lib/utils';
+import { useAuthStore } from '@/core/store/auth.store';
 
 const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, href: '/trainer' },
     { title: 'Mi Calendario', icon: Calendar, href: '/trainer/calendar' },
     { title: 'Asistencia', icon: ClipboardList, href: '/trainer/attendance' },
     { title: 'Mis Alumnos', icon: Users, href: '/trainer/students' },
-    { title: 'Rutinas', icon: Dumbbell, href: '/trainer/workouts' },
     { title: 'Mensajes', icon: MessageSquare, href: '/trainer/messages' },
     { title: 'Configuración', icon: Settings, href: '/trainer/settings' },
 ];
@@ -29,6 +28,12 @@ const menuItems = [
 
 const TrainerSidebar = memo(() => {
     const { state, } = useSidebar()
+    const logout = useAuthStore((state) => state.logout);
+    const navigate = useNavigate();
+    const handleLogout = async () => {
+        logout();
+        navigate('/');
+    };
     const isCollapsed = state === 'collapsed'
     const togglerWrapperClass = cn(
         "p-0",
@@ -111,7 +116,7 @@ const TrainerSidebar = memo(() => {
                     <SidebarMenuItem>
                         {isCollapsed ? (
                             <SidebarMenuButton asChild>
-                                <Button variant="destructive" size="icon">
+                                <Button onClick={handleLogout} variant="destructive" size="icon">
                                     <LogOut className="h-4 w-4" />
                                     <span className="sr-only">Cerrar Sesión</span>
                                 </Button>
@@ -119,7 +124,7 @@ const TrainerSidebar = memo(() => {
 
                         ) : (
                             <SidebarMenuButton asChild>
-                                <Button variant={'destructive'}>
+                                <Button onClick={handleLogout} variant={'destructive'}>
                                     Cerrar Sesion
                                 </Button>
                             </SidebarMenuButton>

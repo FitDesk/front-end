@@ -238,8 +238,8 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
                       onClick={hideBackCard}
                       value={formData.dni}
                       onChange={onDniChange}
-                      maxLength={8}
-                      placeholder="12345678"
+                      maxLength={9}
+                      placeholder="123456789"
                       required
                     />
                   </Field>
@@ -251,21 +251,6 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
               >
-                <Field>
-                  <FieldLabel htmlFor="card-comments" className="font-medium">
-                    Comentarios (opcional)
-                  </FieldLabel>
-                  <Textarea
-                    id="card-comments"
-                    onFocus={hideBackCard}
-                    onClick={hideBackCard}
-                    value={formData.comments}
-                    onChange={(e) => setFormData(prev => ({ ...prev, comments: e.target.value }))}
-                    placeholder="Agrega cualquier comentario o instrucción especial..."
-                    rows={2}
-                    className="resize-none"
-                  />
-                </Field>
               </motion.div>
             </div>
 
