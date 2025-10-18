@@ -44,8 +44,8 @@ export function useConfirmAttendance() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (classId: string) => 
-      ClientClassesService.confirmAttendance(classId),
+    mutationFn: (reservationId: string) => 
+      ClientClassesService.confirmAttendance(reservationId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: clientClassesKeys.all });
       
@@ -90,6 +90,23 @@ export function useBookClass() {
     },
     onError: (error: unknown) => {
       console.error('Error booking class:', error);
+      toast.error(getErrorMessage(error));
+    }
+  });
+}
+
+export function useCompleteReservation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (reservationId: string) => 
+      ClientClassesService.completeReservation(reservationId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: clientClassesKeys.all });
+      toast.success(data.message || 'Clase completada correctamente');
+    },
+    onError: (error: unknown) => {
+      console.error('Error completing reservation:', error);
       toast.error(getErrorMessage(error));
     }
   });

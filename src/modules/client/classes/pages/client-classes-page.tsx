@@ -16,6 +16,7 @@ export default function ClientClassesPage() {
   
   const allClasses = classesResponse?.data || [];
 
+
   const upcomingClasses = allClasses.filter((cls: ClientClass) => cls.status === 'upcoming');
   const pendingClasses = allClasses.filter((cls: ClientClass) => cls.status === 'pending');
   const completedClasses = allClasses.filter((cls: ClientClass) => cls.status === 'completed');
@@ -85,7 +86,7 @@ export default function ClientClassesPage() {
               <ClassesList
                 classes={upcomingClasses}
                 title="Próximas Clases"
-                emptyMessage="No tienes clases próximas programadas"
+                emptyMessage="No tienes reservas próximas. ¡Reserva tu primera clase!"
                 isLoading={isLoading}
               />
             </TabsContent>
@@ -94,7 +95,7 @@ export default function ClientClassesPage() {
               <ClassesList
                 classes={pendingClasses}
                 title="Clases Pendientes"
-                emptyMessage="No tienes clases pendientes"
+                emptyMessage="No tienes clases pendientes de confirmación"
                 isLoading={isLoading}
               />
             </TabsContent>
@@ -103,7 +104,7 @@ export default function ClientClassesPage() {
               <ClassesList
                 classes={completedClasses}
                 title="Clases Completadas"
-                emptyMessage="No tienes clases completadas aún"
+                emptyMessage="Aún no has completado ninguna clase"
                 isLoading={isLoading}
               />
             </TabsContent>

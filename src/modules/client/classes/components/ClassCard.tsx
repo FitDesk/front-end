@@ -2,11 +2,11 @@ import { motion } from 'motion/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
-import { Calendar, Clock, MapPin, User } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { ClientClass } from '../types';
-import { useConfirmAttendance, useCancelClass } from '../hooks/use-client-classes';
+import { useConfirmAttendance, useCancelClass, useCompleteReservation } from '../hooks/use-client-classes';
 
 interface ClassCardProps {
   classItem: ClientClass;
@@ -16,6 +16,7 @@ interface ClassCardProps {
 export function ClassCard({ classItem, index }: ClassCardProps) {
   const confirmAttendanceMutation = useConfirmAttendance();
   const cancelClassMutation = useCancelClass();
+  const completeReservationMutation = useCompleteReservation();
 
  
   const formattedDate = format(parseISO(classItem.date), 'EEEE', { locale: es });
@@ -34,11 +35,19 @@ export function ClassCard({ classItem, index }: ClassCardProps) {
 
 
   const handleConfirmAttendance = () => {
-    confirmAttendanceMutation.mutate(classItem.id);
+    if (classItem.reservationId) {
+      confirmAttendanceMutation.mutate(classItem.reservationId);
+    }
   };
 
   const handleCancelClass = () => {
     cancelClassMutation.mutate(classItem.id);
+  };
+
+  const handleCompleteReservation = () => {
+    if (classItem.reservationId) {
+      completeReservationMutation.mutate(classItem.reservationId);
+    }
   };
 
   const getStatusConfig = (status: string) => {
@@ -123,6 +132,12 @@ export function ClassCard({ classItem, index }: ClassCardProps) {
             <Clock className="h-4 w-4" />
             <span>{formattedTime}</span>
           </div>
+
+          {/* Información de capacidad */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            <span>{classItem.currentParticipants}/{classItem.maxParticipants} inscritos</span>
+          </div>
         </div>
 
         {/* Botones de acción */}
@@ -146,18 +161,54 @@ export function ClassCard({ classItem, index }: ClassCardProps) {
                 onClick={handleCancelClass}
                 disabled={cancelClassMutation.isPending}
               >
-                {cancelClassMutation.isPending ? 'Cancelando...' : 'Cancelar Clase'}
+                {cancelClassMutation.isPending ? 'Cancelando...' : 'Cancelar Reserva'}
               </Button>
             )}
           </div>
         )}
 
-        {/* Badge especial para clases pendientes */}
-        {/* Alerta para clases pendientes */}
+        {/* Botones para clases pendientes */}
         {classItem.status === 'pending' && (
-          <div className="mt-3 p-2 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
-            <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20">
-              ⚠️ Pendiente
+          <div className="flex gap-2 pt-2">
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleCancelClass}
+              disabled={cancelClassMutation.isPending}
+            >
+              {cancelClassMutation.isPending ? 'Cancelando...' : 'Cancelar Reserva'}
+            </Button>
+          </div>
+        )}
+
+        {/* Botones para clases pendientes */}
+        {classItem.status === 'pending' && (
+          <div className="flex gap-2 pt-2">
+            <Button
+              size="sm"
+              onClick={handleCompleteReservation}
+              disabled={completeReservationMutation.isPending}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {completeReservationMutation.isPending ? 'Completando...' : 'Marcar como Completada'}
+            </Button>
+            
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleCancelClass}
+              disabled={cancelClassMutation.isPending}
+            >
+              {cancelClassMutation.isPending ? 'Cancelando...' : 'Cancelar Reserva'}
+            </Button>
+          </div>
+        )}
+
+        {/* Información para clases completadas */}
+        {classItem.status === 'completed' && (
+          <div className="mt-3 p-2 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+            <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+              ✅ Completada
             </Badge>
           </div>
         )}

@@ -8,7 +8,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from '@/shared/components/ui/dropdown-menu';
 import { useLocations } from '../hooks/use-locations';
 import { LocationForm } from '../components/location-form';
-import type { Location } from '../types/location';
+import type { Location, LocationRequest } from '../types/location';
 
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -80,15 +80,14 @@ export default function LocationsPage() {
   };
 
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: LocationRequest) => {
     try {
       if (selectedLocation?.id) {
        
-        const updateData = {
+        await updateLocation({
           id: selectedLocation.id,
-          ...data
-        };
-        await updateLocation(updateData);
+          data
+        });
         toast({
           title: 'Ubicación actualizada',
           description: 'La ubicación ha sido actualizada correctamente',

@@ -100,7 +100,7 @@ export function TrainerDetailsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-4">
                 <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                  {trainer.profileImage ? (
+                  {trainer.profileImage && typeof trainer.profileImage === 'string' ? (
                     <img
                       src={trainer.profileImage}
                       alt={`${trainer.firstName} ${trainer.lastName}`}

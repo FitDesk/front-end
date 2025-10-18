@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ClaseTabla {
@@ -13,19 +12,25 @@ interface ClaseTabla {
     estado: 'disponible' | 'lleno' | 'cancelado';
 }
 
-interface ClassesTableProps {
-    clases: ClaseTabla[];
-    onReservar: () => void;
+interface PaginatedData {
+    content: ClaseTabla[];
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    first: boolean;
+    last: boolean;
 }
 
-export const ClassesTable = ({ clases, onReservar }: ClassesTableProps) => {
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
-    
-    const totalPages = Math.ceil(clases.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentClases = clases.slice(startIndex, endIndex);
+interface ClassesTableProps {
+    data: PaginatedData;
+    onReservar: (classId: string) => void;
+    onPageChange: (page: number) => void;
+    currentPage: number;
+}
+
+export const ClassesTable = ({ data, onReservar, onPageChange, currentPage }: ClassesTableProps) => {
+    const { content: clases, totalPages, totalElements, size } = data;
 
     const getActionText = (estado: string) => {
         switch (estado) {
@@ -54,7 +59,7 @@ export const ClassesTable = ({ clases, onReservar }: ClassesTableProps) => {
     };
 
     const handlePageChange = (page: number) => {
-        setCurrentPage(page);
+        onPageChange(page);
     };
 
     return (
@@ -72,7 +77,7 @@ export const ClassesTable = ({ clases, onReservar }: ClassesTableProps) => {
 
             {/* Rows */}
             <div className="divide-y divide-border/20">
-                {currentClases.map((clase, index) => (
+                {clases.map((clase, index) => (
                     <div 
                         key={clase.id} 
                         className={`grid grid-cols-5 gap-6 px-6 py-4 hover:bg-muted/20 transition-colors duration-150 ${
@@ -106,7 +111,7 @@ export const ClassesTable = ({ clases, onReservar }: ClassesTableProps) => {
                         {/* Acción */}
                         <div className="flex items-center">
                             <span
-                                onClick={() => clase.estado !== 'cancelado' && onReservar()}
+                                onClick={() => clase.estado !== 'cancelado' && onReservar(clase.id)}
                                 className={`text-sm font-semibold transition-colors duration-150 ${
                                     getActionColor(clase.estado)
                                 }`}
@@ -123,18 +128,18 @@ export const ClassesTable = ({ clases, onReservar }: ClassesTableProps) => {
                 <div className="bg-muted/20 border-t border-border/30 px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="text-sm text-foreground">
-                            Mostrando {startIndex + 1} a {Math.min(endIndex, clases.length)} de {clases.length} clases
+                            Mostrando {currentPage * size + 1} a {Math.min((currentPage + 1) * size, totalElements)} de {totalElements} clases
                         </div>
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
+                                disabled={currentPage === 0}
                                 className="p-2 rounded-lg border border-border bg-background text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronLeft className="h-4 w-4" />
                             </button>
                             
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            {Array.from({ length: totalPages }, (_, i) => i).map((page) => (
                                 <button
                                     key={page}
                                     onClick={() => handlePageChange(page)}
@@ -144,13 +149,13 @@ export const ClassesTable = ({ clases, onReservar }: ClassesTableProps) => {
                                             : 'bg-background border border-border text-foreground hover:bg-muted'
                                     }`}
                                 >
-                                    {page}
+                                    {page + 1}
                                 </button>
                             ))}
                             
                             <button
                                 onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages}
+                                disabled={currentPage === totalPages - 1}
                                 className="p-2 rounded-lg border border-border bg-background text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronRight className="h-4 w-4" />
@@ -162,7 +167,7 @@ export const ClassesTable = ({ clases, onReservar }: ClassesTableProps) => {
 
             {clases.length === 0 && (
                 <div className="p-12 text-center">
-                    <div className="text-muted-foreground text-lg">No hay clases disponibles para esta fecha.</div>
+                    <div className="text-muted-foreground text-lg">No hay clases disponibles.</div>
                 </div>
             )}
         </div>

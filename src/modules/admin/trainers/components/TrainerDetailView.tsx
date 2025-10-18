@@ -90,7 +90,7 @@ export const TrainerDetailView: React.FC<TrainerDetailViewProps> = ({
           <div className="flex items-start gap-6">
             <div className="flex-shrink-0">
               <div className="h-24 w-24 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
-                {trainer.profileImage ? (
+                {trainer.profileImage && typeof trainer.profileImage === 'string' ? (
                   <img
                     src={trainer.profileImage}
                     alt={`${trainer.firstName} ${trainer.lastName}`}

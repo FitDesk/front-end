@@ -14,67 +14,36 @@ const showToast = {
     console.error(`[ERROR] ${data.title}: ${data.description}`);
   }
 } as const;
-import { useClasses } from '../hooks/use-classes';
+
+import { useClasses, useCreateClass, useUpdateClass, useDeleteClass } from '../hooks/use-classes';
 import type { CalendarEvent } from '../components/weekly-calendar';
 import { WeeklyCalendar } from '../components/weekly-calendar';
 import { ClassForm } from '../components/class-form';
 
-import type { Class, CreateClassDTO, DayOfWeek, Location } from '../types/class';
-
-interface ClassType extends Omit<Class, 'createdAt' | 'updatedAt'> {
-  id: string;
-  name: string;
-  trainerId: string;
-  dayOfWeek: DayOfWeek;
-  startTime: string;
-  duration: number;
-  capacity: number;
-  location: Location;
-  description?: string;
-  isActive: boolean;
-}
+import type { Class, ClassRequest } from '../types/class';
 
 export default function ClassesPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedClass, setSelectedClass] = useState<ClassType | null>(null);
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+  
   const { data: classes = [], isLoading } = useClasses();
-  
-  
-  const createClass = {
-    mutateAsync: async (data: Omit<ClassType, 'id'>) => {
-      console.log('Creating class:', data);
-      
-      return Promise.resolve({ ...data, id: Date.now().toString() });
-    },
-    isPending: false
-  };
-  
-  const updateClass = {
-    mutateAsync: async (data: ClassType) => {
-      console.log('Updating class:', data);
-     
-      return Promise.resolve(data);
-    },
-    isPending: false
-  };
-  
- 
-
+  const createClassMutation = useCreateClass();
+  const updateClassMutation = useUpdateClass();
+  const deleteClassMutation = useDeleteClass();
   
   const events = useMemo<CalendarEvent[]>(() => {
     return classes.map(cls => ({
       id: cls.id || '',
-      title: cls.name || 'Clase sin nombre',
-      start: new Date(cls.startTime || new Date()),
-      end: new Date(new Date(cls.startTime || new Date()).getTime() + (cls.duration || 60) * 60000),
-      location: cls.location || 'Sala no especificada',
-      capacity: cls.capacity || 0,
-      trainer: cls.trainerId || 'Entrenador no asignado'
+      title: cls.className || 'Clase sin nombre',
+      start: new Date(cls.classDate || new Date()),
+      end: new Date(new Date(cls.classDate || new Date()).getTime() + (cls.duration || 60) * 60000),
+      location: cls.locationName || 'Sala no especificada',
+      capacity: cls.maxCapacity || 0,
+      trainer: cls.trainerName || 'Entrenador no asignado'
     }));
   }, [classes]);
 
-  
   const dayEvents = useMemo(
     () => events.filter(event => isSameDay(event.start, selectedDate)),
     [events, selectedDate]
@@ -90,22 +59,9 @@ export default function ClassesPage() {
   }, []);
 
   const handleEdit = useCallback((event: CalendarEvent) => {
-   
     const originalClass = classes.find(c => c.id === event.id);
     if (originalClass) {
-      const classData: ClassType = {
-        id: originalClass.id || '', 
-        name: originalClass.name || '',
-        trainerId: originalClass.trainerId || '',
-        dayOfWeek: originalClass.dayOfWeek as DayOfWeek,
-        startTime: originalClass.startTime || '',
-        duration: originalClass.duration || 60,
-        capacity: originalClass.capacity || 0,
-        location: originalClass.location as Location,
-        description: originalClass.description,
-        isActive: originalClass.isActive ?? true
-      };
-      setSelectedClass(classData);
+      setSelectedClass(originalClass);
       setIsFormOpen(true);
     }
   }, [classes]);
@@ -115,7 +71,7 @@ export default function ClassesPage() {
     
     if (window.confirm('¿Estás seguro de que deseas eliminar esta clase?')) {
       try {
-        
+        await deleteClassMutation.mutateAsync(event.id);
         showToast.success({
           title: 'Clase eliminada',
           description: 'La clase ha sido eliminada correctamente',
@@ -127,37 +83,28 @@ export default function ClassesPage() {
         });
       }
     }
-  }, []);
+  }, [deleteClassMutation]);
 
-  const handleSubmit = async (formData: CreateClassDTO) => {
+  const handleSubmit = async (formData: ClassRequest) => {
     try {
-      
-      const classData: CreateClassDTO = {
-        ...formData,
-        isActive: formData.isActive ?? true
-      };
-      
-      
-      delete (classData as any).date;
-      delete (classData as any).time;
-
       if (selectedClass?.id) {
-        await updateClass.mutateAsync({
-          ...classData,
-          id: selectedClass.id
+        await updateClassMutation.mutateAsync({
+          id: selectedClass.id,
+          data: formData
         });
         showToast.success({
           title: 'Clase actualizada',
           description: 'La clase ha sido actualizada correctamente',
         });
       } else {
-        await createClass.mutateAsync(classData);
+        await createClassMutation.mutateAsync(formData);
         showToast.success({
           title: 'Clase creada',
           description: 'La clase ha sido creada correctamente',
         });
       }
       setIsFormOpen(false);
+      setSelectedClass(null);
     } catch (error) {
       console.error('Error saving class:', error);
       showToast.error({
@@ -230,7 +177,7 @@ export default function ClassesPage() {
                       <h3 className="font-medium text-lg">{event.title}</h3>
                       <div className="flex items-center mt-2 text-sm text-muted-foreground">
                         <Clock className="mr-2 h-4 w-4" />
-                        {format(event.start, 'HH:mm')} - {format(event.end, 'HH:mm')}
+                        {event.start.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {event.end.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                       </div>
                       <div className="flex items-center mt-1 text-sm text-muted-foreground">
                         <MapPin className="mr-2 h-4 w-4" />
@@ -253,6 +200,7 @@ export default function ClassesPage() {
                         variant="destructive" 
                         size="sm" 
                         onClick={() => handleDelete(event)}
+                        disabled={deleteClassMutation.isPending}
                       >
                         Eliminar
                       </Button>
@@ -287,7 +235,7 @@ export default function ClassesPage() {
                   setIsFormOpen(false);
                   setSelectedClass(null);
                 }}
-                isSubmitting={createClass.isPending || updateClass.isPending}
+                isSubmitting={createClassMutation.isPending || updateClassMutation.isPending}
               />
             </div>
           </DialogContent>

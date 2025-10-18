@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
+import { Link } from 'react-router';
 import {
   Dumbbell,
   Clock,
@@ -232,8 +233,10 @@ const ClientDashboard = () => {
         {/* Upcoming Classes */}
         <div>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Próximas Clases</h2>
-            <Button variant="ghost" size="sm">Ver todas</Button>
+            <h2 className="text-lg font-semibold">Mis Reservas</h2>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/client/classes">Ver todas</Link>
+            </Button>
           </div>
           <div className="space-y-4">
             {upcomingClasses.map((classItem, index) => (
@@ -270,7 +273,9 @@ const ClientDashboard = () => {
                         <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                           {classItem.spots} cupos disponibles
                         </span>
-                        <Button size="sm">Reservar</Button>
+                        <Button size="sm" asChild>
+                          <Link to="/client/classes">Gestionar</Link>
+                        </Button>
                       </div>
                     </div>
                   </div>

@@ -139,7 +139,7 @@ export function TrainersTable({ trainers, onEdit, onDelete, onViewDetails }: Tra
                   <TableCell className="py-3">
                     <div className="flex items-center space-x-3">
                       <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
-                        {trainer.profileImage ? (
+                        {trainer.profileImage && typeof trainer.profileImage === 'string' ? (
                           <img
                             src={trainer.profileImage}
                             alt={`${trainer.firstName} ${trainer.lastName}`}
