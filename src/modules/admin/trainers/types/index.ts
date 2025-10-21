@@ -10,7 +10,7 @@ export const TrainerSchema = z.object({
   phone: z.string().min(9, 'El teléfono debe tener al menos 9 caracteres'),
   email: z.string().email('Correo electrónico inválido'),
   address: z.string().min(5, 'La dirección debe tener al menos 5 caracteres'),
-  profileImage: z.union([z.string(), z.instanceof(File)]).optional(),
+  profileImage: z.union([z.string(), z.instanceof(File), z.null()]).optional(),
   specialties: z.string().min(5, 'Especifica al menos una especialidad'),
   yearsOfExperience: z.number().min(0, 'La experiencia no puede ser negativa'),
   certifications: z.string().optional(),

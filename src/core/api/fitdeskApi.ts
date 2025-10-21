@@ -24,6 +24,7 @@ class FitdeskApiClient {
       withCredentials: true
     });
 
+    this.initializeRequestInterceptor();
     this.initializeResponseInterceptor();
   }
 
@@ -66,6 +67,17 @@ class FitdeskApiClient {
   }
 
 
+
+  private initializeRequestInterceptor() {
+    this.instance.interceptors.request.use(
+      (config) => {
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+  }
 
   private initializeResponseInterceptor() {
     this.instance.interceptors.response.use(

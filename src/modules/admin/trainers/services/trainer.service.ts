@@ -26,34 +26,46 @@ interface TrainerResponseDTO {
 }
 
 function mapTrainerResponse(response: TrainerResponseDTO): Trainer {
-  return {
+  const mapped = {
     id: response.id,
     firstName: response.firstName,
     lastName: response.lastName,
     documentNumber: response.dni,
     birthDate: response.birthDate,
-    gender: response.gender === 'MASCULINO' ? 'MALE' : response.gender === 'FEMENINO' ? 'FEMALE' : 'OTHER',
+    gender: response.gender === 'MASCULINO' ? 'MALE' as const : response.gender === 'FEMENINO' ? 'FEMALE' as const : 'OTHER' as const,
     phone: response.phone,
     email: response.email,
     address: response.address,
     profileImage: response.profileImageUrl,
     specialties: response.specialties,
     yearsOfExperience: response.yearsOfExperience,
-    certifications: response.certifications.join(', '),
-    certificationImages: response.certifications,
-    availability: response.availability.reduce((acc, day) => {
-      acc[day.toLowerCase()] = true;
+    certifications: response.certifications ? response.certifications.join(', ') : '',
+    certificationImages: response.certifications || [],
+    availability: response.availability ? response.availability.reduce((acc, day) => {
+    
+      const dayMap: Record<string, string> = {
+        'LUNES': 'Lunes',
+        'MARTES': 'Martes', 
+        'MIERCOLES': 'Miércoles',
+        'JUEVES': 'Jueves',
+        'VIERNES': 'Viernes',
+        'SABADO': 'Sábado',
+        'DOMINGO': 'Domingo'
+      };
+      const mappedDay = dayMap[day] || day.charAt(0).toUpperCase() + day.slice(1).toLowerCase();
+      acc[mappedDay] = true;
       return acc;
-    }, {} as Record<string, boolean>),
+    }, {} as Record<string, boolean>) : {},
     joinDate: response.hireDate,
-    status: response.status === 'ACTIVO' ? 'ACTIVE' : response.status === 'INACTIVO' ? 'INACTIVE' : 'SUSPENDED',
-    contractType: response.contractType === 'TIEMPO_COMPLETO' ? 'FULL_TIME' : 
-                  response.contractType === 'MEDIO_TIEMPO' ? 'PART_TIME' :
-                  response.contractType === 'INDEPENDIENTE' ? 'FREELANCE' : 'PER_HOUR',
+    status: response.status === 'ACTIVO' ? 'ACTIVE' as const : response.status === 'INACTIVO' ? 'INACTIVE' as const : 'SUSPENDED' as const,
+    contractType: response.contractType === 'TIEMPO_COMPLETO' ? 'FULL_TIME' as const : 
+                  response.contractType === 'MEDIO_TIEMPO' ? 'PART_TIME' as const :
+                  response.contractType === 'INDEPENDIENTE' ? 'FREELANCE' as const : 'PER_HOUR' as const,
     salary: response.salaryPerClass,
     bankInfo: response.bankInfo,
     notes: response.notes
   };
+  return mapped;
 }
 
 interface TrainerFilters {
@@ -80,7 +92,7 @@ export const trainerService = {
     const params = new URLSearchParams();
     
     if (filters.page !== undefined) {
-      params.append('page', (filters.page - 1).toString()); // Backend usa 0-based indexing
+      params.append('page', (filters.page - 1).toString());
     }
     if (filters.limit !== undefined) {
       params.append('size', filters.limit.toString());
@@ -94,7 +106,7 @@ export const trainerService = {
 
     const response = await fitdeskApi.get(`/classes/trainers?${params.toString()}`);
     
-    // El backend ahora devuelve una respuesta paginada
+    
     const pageData = response.data as {
       content: TrainerResponseDTO[];
       number: number;
@@ -107,7 +119,7 @@ export const trainerService = {
     return {
       data: trainers,
       pagination: {
-        page: pageData.number + 1, // Convertir de 0-based a 1-based
+        page: pageData.number + 1,
         limit: pageData.size,
         total: pageData.totalElements,
         totalPages: pageData.totalPages
@@ -132,7 +144,7 @@ export const trainerService = {
   async update(id: string, trainer: Partial<TrainerFormData> | FormData): Promise<Trainer> {
     const isFormData = trainer instanceof FormData;
     
-    const response = await fitdeskApi.patch(
+    const response = await fitdeskApi.put(
       `/classes/trainers/${id}`,
       trainer,
       {
