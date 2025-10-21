@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { trainerService } from '../services/trainer.service';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
@@ -79,7 +78,7 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
         joinDate: trainer.joinDate ? trainer.joinDate.split('T')[0] : new Date().toISOString().split('T')[0],
       };
       reset(formattedTrainer);
-      if (trainer.profileImage) {
+      if (trainer.profileImage && typeof trainer.profileImage === 'string') {
         setPreviewImage(trainer.profileImage);
       }
     }
@@ -97,22 +96,19 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
     setIsUploading(true);
     
     try {
-      
+      // Crear preview local de la imagen
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
       };
       reader.readAsDataURL(file);
 
-      
-      const { url } = await trainerService.uploadFile(file, 'profile');
-      
-      
-      setValue('profileImage', url);
-      toast.success('Imagen subida exitosamente');
+      // La imagen se subirá junto con el formulario cuando se envíe
+      setValue('profileImage', file);
+      toast.success('Imagen seleccionada correctamente');
     } catch (error) {
-      console.error('Error al subir la imagen:', error);
-      toast.error('Error al subir la imagen');
+      console.error('Error al procesar la imagen:', error);
+      toast.error('Error al procesar la imagen');
     } finally {
       setIsUploading(false);
     }

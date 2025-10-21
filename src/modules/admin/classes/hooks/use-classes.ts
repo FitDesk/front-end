@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ClassService } from '../services/class.service';
-import type { Class, CreateClassDTO, UpdateClassDTO } from '../types/class';
+import type { Class, ClassRequest } from '../types/class';
 
 export const useClasses = () => {
   return useQuery<Class[]>({
@@ -29,7 +29,7 @@ export const useClass = (id: string) => {
 export const useCreateClass = () => {
   const queryClient = useQueryClient();
   
-  return useMutation<Class, Error, CreateClassDTO>({
+  return useMutation<Class, Error, ClassRequest>({
     mutationFn: ClassService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classes'] });
@@ -40,8 +40,8 @@ export const useCreateClass = () => {
 export const useUpdateClass = () => {
   const queryClient = useQueryClient();
   
-  return useMutation<Class, Error, UpdateClassDTO>({
-    mutationFn: ClassService.update,
+  return useMutation<Class, Error, { id: string; data: Partial<ClassRequest> }>({
+    mutationFn: ({ id, data }) => ClassService.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['class', id] });

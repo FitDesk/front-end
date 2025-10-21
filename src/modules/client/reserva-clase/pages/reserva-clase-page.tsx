@@ -7,34 +7,44 @@ import { es } from 'date-fns/locale';
 import { FeaturedClassCard } from '../components/featured-class-card';
 import { ClassesTable } from '../components/classes-table';
 import clasesDestacadasData from '../data/clases-destacadas.json';
-import { useClasesPorFecha, useClasesDestacadas, useReservarClase, useBuscarClases } from '../hooks/useClasses';
+import { useReservarClase, useClasesPaginated } from '../hooks/useClasses';
+import { toast } from 'sonner';
 
 export default function ReservaClasePage() {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [searchQuery, setSearchQuery] = useState('');
-    
+    const [currentPage, setCurrentPage] = useState(0);
+    const pageSize = 10;
 
-    const { data: clasesPorFecha, isLoading: loadingClases } = useClasesPorFecha();
-    const { data: clasesDestacadas, isLoading: loadingDestacadas } = useClasesDestacadas();
-    const { data: resultadosBusqueda } = useBuscarClases();
+    const { data: clasesPaginated, isLoading: loadingClases } = useClasesPaginated(currentPage, pageSize, searchQuery);
     const reservarClaseMutation = useReservarClase();
-
-
 
     const { clasesDestacadas: clasesDestacadasFicticias, estadisticas } = clasesDestacadasData;
 
-    const handleReservar = async () => {
+
+
+
+    const handleReservar = async (classId: string) => {
         try {
-            await reservarClaseMutation.mutateAsync();
-        } catch (error) {
+            await reservarClaseMutation.mutateAsync(classId);
+            toast.success('¡Clase reservada exitosamente! Ve a tu dashboard para confirmar tu asistencia.');
+            setTimeout(() => {
+                window.location.href = '/client/classes';
+            }, 2000);
+        } catch (error: any) {
             console.error('Error al reservar clase:', error);
+            toast.error(error.message || 'Error al reservar la clase');
         }
     };
 
- 
-    const clasesAMostrar = searchQuery.trim() 
-        ? (Array.isArray(resultadosBusqueda) ? resultadosBusqueda : [])
-        : (Array.isArray(clasesPorFecha) ? clasesPorFecha : []);
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    const handleSearchChange = (query: string) => {
+        setSearchQuery(query);
+        setCurrentPage(0);
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -76,7 +86,7 @@ export default function ReservaClasePage() {
                                         autoComplete="off"
                                         placeholder="Buscar clases..."
                                         value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={(e) => handleSearchChange(e.target.value)}
                                         className="text-foreground peer min-w-0 grow appearance-none truncate bg-transparent text-base/6 outline-none placeholder:text-muted-foreground md:text-lg/6"
                                     />
                                     <button 
@@ -139,28 +149,46 @@ export default function ReservaClasePage() {
             </div>
 
             {/* Main Content - Calendar and Classes */}
-            <div className="container mx-auto px-4 py-16">
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="container mx-auto px-4 py-16"
+            >
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Calendar Section */}
-                    <div className="lg:col-span-1">
-                        <div className="sticky top-24">
-                            <h2 className="text-2xl font-bold mb-6">Horario de Clases</h2>
-                            <p className="text-muted-foreground mb-4">
-                                Filtra por fecha del mes y haz clic para encontrar la clase perfecta para ti.
-                            </p>
-                            
-                            <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={(date) => date && setSelectedDate(date)}
-                                locale={es}
-                                className="w-full"
-                            />
+                    <motion.div 
+                        initial={{ opacity: 0, x: -30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                        className="lg:col-span-1"
+                    >
+                        <div className="sticky top-24 space-y-8">
+                            <div>
+                                <h2 className="text-2xl font-bold mb-6">Horario de Clases</h2>
+                                <p className="text-muted-foreground mb-4">
+                                    Filtra por fecha del mes y haz clic para encontrar la clase perfecta para ti.
+                                </p>
+                                
+                                <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={(date) => date && setSelectedDate(date)}
+                                    locale={es}
+                                    className="w-full"
+                                />
+                            </div>
+
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Classes List */}
-                    <div className="lg:col-span-2">
+                    <motion.div 
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6, delay: 0.5 }}
+                        className="lg:col-span-2"
+                    >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold">Próximas clases</h2>
                             <p className="text-muted-foreground">
@@ -171,44 +199,75 @@ export default function ReservaClasePage() {
                         {loadingClases ? (
                             <div className="space-y-4">
                                 {[1, 2, 3].map((i) => (
-                                    <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
+                                    <motion.div 
+                                        key={i} 
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.4, delay: 0.1 * i }}
+                                        className="h-16 bg-muted animate-pulse rounded-lg" 
+                                    />
                                 ))}
                             </div>
+                        ) : clasesPaginated ? (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.6 }}
+                            >
+                                <ClassesTable
+                                    data={clasesPaginated}
+                                    onReservar={handleReservar}
+                                    onPageChange={handlePageChange}
+                                    currentPage={currentPage}
+                                />
+                            </motion.div>
                         ) : (
-                            <ClassesTable
-                                clases={Array.isArray(clasesAMostrar) ? clasesAMostrar : []}
-                                onReservar={handleReservar}
-                            />
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.6 }}
+                                className="p-12 text-center"
+                            >
+                                <div className="text-muted-foreground text-lg">No hay clases disponibles.</div>
+                            </motion.div>
                         )}
-                    </div>
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Divider */}
             <div className="border-t border-border"></div>
 
-            {/* Featured Classes */}
-            <div className="py-16">
+            {/* Featured Classes - Solo diseño visual */}
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.7 }}
+                className="py-16"
+            >
                 <div className="container mx-auto px-4">
-                    <div className="text-center mb-12">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.8 }}
+                        className="text-center mb-12"
+                    >
                         <h2 className="text-3xl font-bold mb-4">Clases destacadas</h2>
                         <p className="text-muted-foreground max-w-2xl mx-auto">
                             Descubre nuestras clases más populares y únete a miles de personas 
                             que ya están transformando sus vidas.
                         </p>
-                    </div>
+                    </motion.div>
 
-                    {loadingDestacadas ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="h-96 bg-muted animate-pulse rounded-lg" />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {(Array.isArray(clasesDestacadas) ? clasesDestacadas : clasesDestacadasFicticias).map((clase) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {clasesDestacadasFicticias.map((clase, index) => (
+                            <motion.div
+                                key={clase.id}
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.9 + (index * 0.1) }}
+                            >
                                 <FeaturedClassCard
-                                    key={clase.id}
                                     nombre={clase.nombre}
                                     instructor={clase.instructor}
                                     rating={clase.rating}
@@ -216,11 +275,11 @@ export default function ReservaClasePage() {
                                     descripcion={clase.descripcion}
                                     etiquetas={(clase as any).etiquetas}
                                 />
-                            ))}
-                        </div>
-                    )}
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

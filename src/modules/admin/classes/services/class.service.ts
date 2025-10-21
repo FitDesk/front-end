@@ -1,36 +1,86 @@
 import { fitdeskApi } from '@/core/api/fitdeskApi';
-import type { Class, CreateClassDTO, UpdateClassDTO } from '../types/class';
+import type { ClassRequest, ClassResponse, Class } from '../types/class';
 
 export class ClassService {
   private static readonly ENDPOINT = '/classes';
 
   static async getAll(): Promise<Class[]> {
-    const { data } = await fitdeskApi.get<Class[]>(this.ENDPOINT);
-    return data;
+    try {
+      const { data } = await fitdeskApi.get<ClassResponse[]>(this.ENDPOINT);
+      return data.map(this.mapResponseToClass);
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+      throw error;
+    }
   }
 
   static async getById(id: string): Promise<Class> {
-    const { data } = await fitdeskApi.get<Class>(`${this.ENDPOINT}/${id}`);
-    return data;
+    try {
+      const { data } = await fitdeskApi.get<ClassResponse>(`${this.ENDPOINT}/${id}`);
+      return this.mapResponseToClass(data);
+    } catch (error) {
+      console.error('Error fetching class:', error);
+      throw error;
+    }
   }
 
-  static async create(classData: CreateClassDTO): Promise<Class> {
-    const { data } = await fitdeskApi.post<Class>(this.ENDPOINT, classData);
-    return data;
+  static async create(classData: ClassRequest): Promise<Class> {
+    try {
+      const { data } = await fitdeskApi.post<ClassResponse>(this.ENDPOINT, classData);
+      return this.mapResponseToClass(data);
+    } catch (error) {
+      console.error('Error creating class:', error);
+      throw error;
+    }
   }
 
-  static async update({ id, ...updateData }: UpdateClassDTO): Promise<Class> {
-    const { data } = await fitdeskApi.patch<Class>(`${this.ENDPOINT}/${id}`, updateData);
-    return data;
+  static async update(id: string, updateData: Partial<ClassRequest>): Promise<Class> {
+    try {
+      const { data } = await fitdeskApi.put<ClassResponse>(`${this.ENDPOINT}/${id}`, updateData);
+      return this.mapResponseToClass(data);
+    } catch (error) {
+      console.error('Error updating class:', error);
+      throw error;
+    }
   }
 
   static async delete(id: string): Promise<void> {
-    await fitdeskApi.delete(`${this.ENDPOINT}/${id}`);
+    try {
+      await fitdeskApi.delete(`${this.ENDPOINT}/${id}`);
+    } catch (error) {
+      console.error('Error deleting class:', error);
+      throw error;
+    }
   }
 
-  
-  static async getTrainers(): Promise<{ id: string; name: string }[]> {
-    const { data } = await fitdeskApi.get<{ id: string; name: string }[]>('/trainers');
-    return data;
+
+  private static mapResponseToClass(response: ClassResponse): Class {
+    return {
+      id: response.id,
+      className: response.className,
+      locationName: response.locationName,
+      trainerName: response.trainerName,
+      classDate: response.classDate,
+      duration: response.duration,
+      maxCapacity: response.maxCapacity,
+      schedule: response.schedule,
+      active: response.active,
+      description: response.description,
+    };
+  }
+
+  static mapClassToRequest(classData: Partial<Class>): ClassRequest {
+    return {
+      className: classData.className || '',
+      locationId: '',
+      trainerId: '',
+      classDate: classData.classDate || '',
+      duration: classData.duration || 60,
+      maxCapacity: classData.maxCapacity || 1,
+      startTime: '',
+      endTime: '',
+      active: classData.active ?? true,
+      description: classData.description,
+    };
   }
 }

@@ -14,12 +14,10 @@ import {
   FormMessage,
   FormDescription
 } from '@/shared/components/ui/form';
-import type { Location, CreateLocationDTO } from '../types/location';
+import type { Location, LocationRequest } from '../types/location';
 import { LocationSchema } from '../types/location';
 
-type LocationFormData = Omit<CreateLocationDTO, 'isActive'> & {
-  isActive: boolean;
-};
+type LocationFormData = LocationRequest;
 
 type LocationFormValues = LocationFormData;
 
@@ -40,10 +38,10 @@ export function LocationForm({
     defaultValues: {
       name: '',
       description: '',
-      capacity: 1,
-      isActive: true,
+      ability: 1,
+      active: true,
     },
-    resolver: zodResolver(LocationSchema.omit({ id: true, createdAt: true, updatedAt: true })) as any
+    resolver: zodResolver(LocationSchema as any)
   });
 
   
@@ -54,15 +52,15 @@ export function LocationForm({
       form.reset({
         name: initialData.name || '',
         description: initialData.description || '',
-        capacity: initialData.capacity || 1,
-        isActive: initialData.isActive ?? true,
+        ability: initialData.capacity || 1, 
+        active: initialData.isActive ?? true, 
       });
     } else {
       form.reset({
         name: '',
         description: '',
-        capacity: 1,
-        isActive: true,
+        ability: 1,
+        active: true,
       });
     }
   }, [initialData, form]);
@@ -118,7 +116,7 @@ export function LocationForm({
 
           <FormField
             control={form.control}
-            name="capacity"
+            name="ability"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Capacidad</FormLabel>
@@ -141,7 +139,7 @@ export function LocationForm({
 
           <FormField
             control={form.control}
-            name="isActive"
+            name="active"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">

@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { MemberFilters } from "../interfaces/member.interface";
 import { memberKeys } from "../queries/useMemberQuery";
 import { MemberService } from "../services/member.service";
+import { PlanService } from "../services/plan.service";
 
 export const usePrefetchRoutes = () => {
     const queryClient = useQueryClient();
@@ -32,7 +33,11 @@ export const usePrefetchRoutes = () => {
     };
 
     const prefetchPlans = () => {
-        // Implementa el prefetch de planes
+        queryClient.prefetchQuery({
+            queryKey: ["plans", "all"],
+            queryFn: () => PlanService.getAllPlans(),
+            staleTime: 5 * 60 * 1000,
+        })
     };
 
     const prefetchClasses = () => {

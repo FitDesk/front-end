@@ -1,6 +1,11 @@
 import { FileText, TrendingUp, Dumbbell } from 'lucide-react';
+import { motion, useInView } from 'motion/react';
+import { useRef } from 'react';
 
 const SesionesBanner = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  
   const features = [
     {
       icon: FileText,
@@ -20,11 +25,22 @@ const SesionesBanner = () => {
   ];
 
   return (
-    <div className="pt-16 lg:pt-24 pb-8 lg:pb-16">
+    <motion.div 
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ duration: 0.6 }}
+      className="pt-16 lg:pt-24 pb-8 lg:pb-16"
+    >
       <div className="container mx-auto px-4 flex flex-col-reverse lg:flex-row-reverse justify-center items-center">
         
         {/* Right Section - Images */}
-        <div className="flex relative w-full lg:w-1/2 flex-col lg:pl-0 pb-0">
+        <motion.div 
+          initial={{ opacity: 0, x: 50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex relative w-full lg:w-1/2 flex-col lg:pl-0 pb-0"
+        >
           <div className="relative min-h-[420px] sm:min-h-[520px]">
             
             {/* Decorative SVG Background */}
@@ -72,10 +88,15 @@ const SesionesBanner = () => {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Left Section - Content */}
-        <div className="w-full lg:w-1/2 flex-col items-center text-center lg:text-left lg:pr-12 pb-10">
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="w-full lg:w-1/2 flex-col items-center text-center lg:text-left lg:pr-12 pb-10"
+        >
           <div className="max-w-[800px] m-auto">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center lg:text-left">
               <span className="block">Conecta con los mejores</span>
@@ -104,14 +125,25 @@ const SesionesBanner = () => {
               </a>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Feature Cards Section */}
-      <div className="container mx-auto px-4 py-16">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+        className="container mx-auto px-4 py-16"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div key={index} className="transition duration-200 border rounded-lg p-8 hover:shadow-lg">
+            <motion.div 
+              key={index} 
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.6, delay: 0.5 + (index * 0.1) }}
+              className="transition duration-200 border rounded-lg p-8 hover:shadow-lg"
+            >
               <div>
                 <div className="flex-shrink-0 mb-4">
                   <svg width="0" height="0">
@@ -134,11 +166,11 @@ const SesionesBanner = () => {
                   {feature.description}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

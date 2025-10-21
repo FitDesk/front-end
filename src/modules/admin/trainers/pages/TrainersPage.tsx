@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { Plus, Search, Loader2, User } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { TrainersTable } from '../components/TrainersTable';
 import { TrainerDetailView } from '../components/TrainerDetailView';
 import { PageHeader } from '@/shared/components/page-header';
@@ -29,6 +30,7 @@ function useDebounce<T>(value: T, delay: number): T {
 export function TrainersPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
   const [showDetailView, setShowDetailView] = useState(false);
@@ -38,9 +40,10 @@ export function TrainersPage() {
   
   const filters = useMemo(() => ({
     searchTerm: debouncedSearchQuery || undefined,
+    status: statusFilter === 'all' ? undefined : statusFilter,
     page: currentPage,
     limit: 10,
-  }), [debouncedSearchQuery, currentPage]);
+  }), [debouncedSearchQuery, statusFilter, currentPage]);
   
   const { trainers, pagination, isLoading, error, deleteTrainer } = useTrainers(filters);
 
@@ -62,6 +65,11 @@ export function TrainersPage() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
     setCurrentPage(1);
   };
 
@@ -117,6 +125,17 @@ export function TrainersPage() {
               onChange={handleSearchChange}
             />
           </div>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Filtrar por estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="ACTIVE">Activo</SelectItem>
+              <SelectItem value="INACTIVE">Inactivo</SelectItem>
+              <SelectItem value="SUSPENDED">Suspendido</SelectItem>
+            </SelectContent>
+          </Select>
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Nuevo Entrenador
@@ -143,12 +162,39 @@ export function TrainersPage() {
             onViewDetails={handleViewDetails}
           />
           
-          {/* Información de paginación */}
+          {/* Información de paginación y controles */}
           {pagination && pagination.total > 0 && (
-            <div className="mt-4 text-sm text-muted-foreground">
-              <p>
-                Mostrando {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-{Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} entrenadores
-              </p>
+            <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="text-sm text-muted-foreground">
+                <p>
+                  Mostrando {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-{Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} entrenadores
+                </p>
+              </div>
+              
+              {/* Controles de paginación */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage <= 1}
+                >
+                  Anterior
+                </Button>
+                
+                <span className="text-sm text-muted-foreground">
+                  Página {currentPage} de {pagination.totalPages}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(pagination.totalPages, currentPage + 1))}
+                  disabled={currentPage >= pagination.totalPages}
+                >
+                  Siguiente
+                </Button>
+              </div>
             </div>
           )}
         </div>

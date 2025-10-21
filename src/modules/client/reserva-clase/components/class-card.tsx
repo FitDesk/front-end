@@ -14,7 +14,7 @@ interface ClassCardProps {
     inscritos: number;
     ubicacion: string;
     estado: 'disponible' | 'lleno' | 'cancelado';
-    onReservar: (id: string) => void;
+    onReservar: (classId: string) => void;
 }
 
 export const ClassCard = ({

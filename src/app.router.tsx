@@ -134,7 +134,7 @@ export const appRouter = createBrowserRouter([
                 <Suspense fallback={<PageLoader />}>
                     <AuthLayout />
                 </Suspense>
-             </NotAuthenticatedRoute>
+            </NotAuthenticatedRoute>
 
         ),
         children: [
@@ -151,7 +151,7 @@ export const appRouter = createBrowserRouter([
                 <Suspense fallback={<PageLoader />}>
                     <AdminLayout />
                 </Suspense>
-             </AdminRoute>
+            </AdminRoute>
         ),
         children: [
             { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },

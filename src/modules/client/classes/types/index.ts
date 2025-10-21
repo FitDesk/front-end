@@ -13,6 +13,7 @@ export type ClassStatusType = typeof ClassStatus[keyof typeof ClassStatus];
 
 export const ClientClassSchema = z.object({
   id: z.string(),
+  reservationId: z.string().optional(),
   title: z.string(),
   description: z.string().optional(),
   trainer: z.object({

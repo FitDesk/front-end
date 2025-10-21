@@ -7,14 +7,15 @@ export interface PlanResponse {
   currency: string;
   isActive: boolean;
   isPopular: boolean;
+  planImageUrl?: string;
   features: string[];
 }
 
 export interface CreatePlanRequest {
-  name: string;
+  name?: string;
   description?: string;
-  price: number;
-  durationMonths: number;
+  price?: number;
+  durationMonths?: number;
   currency?: string;
   isActive?: boolean;
   isPopular?: boolean;
@@ -22,6 +23,9 @@ export interface CreatePlanRequest {
 }
 
 export interface UpdatePlanRequest extends CreatePlanRequest {}
+
+
+
 
 export interface Membership {
   id: string;

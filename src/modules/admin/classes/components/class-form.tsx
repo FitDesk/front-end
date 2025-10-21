@@ -31,26 +31,26 @@ import {
   DURATION_OPTIONS, 
   ClassSchema,
   type Class, 
-  type CreateClassDTO, 
-  type DayOfWeek
+  type ClassRequest
 } from '../types/class';
-import { useTrainers } from '../../trainers/hooks/use-trainers';
+import { useTrainersForSelect } from '../../trainers/hooks/use-trainers';
 import { useLocations } from '../hooks/use-locations';
 
-export type ClassFormValues = Omit<CreateClassDTO, 'id' | 'createdAt' | 'updatedAt' | 'dayOfWeek' | 'startTime'> & {
+export type ClassFormValues = Omit<ClassRequest, 'locationId' | 'trainerId' | 'startTime' | 'endTime'> & {
   date: Date;
-  time: string;
-  name: string;
+  startTime: string;
+  endTime: string;
+  className: string;
   trainerId: string;
-  location: string;
+  locationId: string;
   duration: number;
-  isActive: boolean;
+  active: boolean;
   description?: string;
 };
 
 type ClassFormProps = {
   initialData?: Class | null;
-  onSubmit: (data: CreateClassDTO) => void;
+  onSubmit: (data: ClassRequest) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 };
@@ -61,57 +61,49 @@ export function ClassForm({
   onCancel, 
   isSubmitting 
 }: ClassFormProps) {
-  const { trainers = [], isLoading: isLoadingTrainers, error: trainersError } = useTrainers();
+  const { trainers = [], isLoading: isLoadingTrainers, error: trainersError } = useTrainersForSelect();
   const { locations = [], isLoading: isLoadingLocations } = useLocations();
   
   const form = useForm<ClassFormValues>({
     resolver: zodResolver(ClassSchema as any),
     defaultValues: initialData ? {
-      ...initialData,
-      date: new Date(initialData.startTime ? parseISO(initialData.startTime) : addDays(new Date(), 1)),
-      time: initialData.startTime ? format(parseISO(initialData.startTime), 'HH:mm') : '09:00',
+      className: initialData.className || '',
+      description: initialData.description || '',
+      trainerId: '', 
+      locationId: '', 
+      date: initialData.classDate ? parseISO(initialData.classDate) : addDays(new Date(), 1),
+      startTime: initialData.schedule ? initialData.schedule.split(' - ')[0] : '09:00',
+      endTime: initialData.schedule ? initialData.schedule.split(' - ')[1] : '10:00',
+      duration: initialData.duration || 60,
+      active: initialData.active ?? true,
     } : {
-      name: '',
+      className: '',
       description: '',
       trainerId: '',
-      location: '',
+      locationId: '',
       date: new Date(),
-      time: '09:00',
+      startTime: '09:00',
+      endTime: '10:00',
       duration: 60,
-      isActive: true,
+      active: true,
     },
   });
 
   const handleFormSubmit = (formData: ClassFormValues) => {
-    const [hours, minutes] = formData.time.split(':').map(Number);
-    const startTime = new Date(formData.date);
-    startTime.setHours(hours, minutes, 0, 0);
-
-    const selectedLocation = locations.find(loc => loc.id === formData.location);
-    
-    if (!selectedLocation) {
-      console.error('No se encontró la ubicación seleccionada');
-      return;
-    }
-
-    
-    const classData: CreateClassDTO = {
-      ...formData,
-      startTime: startTime.toISOString(),
-      dayOfWeek: getDayOfWeek(startTime.getDay()),
-      capacity: selectedLocation.capacity,
+    const classData: ClassRequest = {
+      className: formData.className,
+      locationId: formData.locationId,
+      trainerId: formData.trainerId,
+      classDate: format(formData.date, 'dd-MM-yyyy'),
+      duration: formData.duration,
+      maxCapacity: locations.find(loc => loc.id === formData.locationId)?.capacity || 1,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      active: formData.active,
+      description: formData.description,
     };
 
-
-    delete (classData as any).date;
-    delete (classData as any).time;
-
     onSubmit(classData);
-  };
-
-  const getDayOfWeek = (day: number): DayOfWeek => {
-    const days: DayOfWeek[] = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    return days[day];
   };
 
   const generateTimeOptions = () => {
@@ -122,10 +114,9 @@ export function ClassForm({
     return times;
   };
 
-  const selectedLocation = locations.find(loc => loc.id === form.watch('location'));
+  const selectedLocation = locations.find(loc => loc.id === form.watch('locationId'));
   const capacity = selectedLocation?.capacity || 0;
 
- 
   const renderFormButtons = () => (
     <div className="flex justify-end space-x-4">
       <Button 
@@ -151,7 +142,7 @@ export function ClassForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="name"
+            name="className"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nombre de la Clase</FormLabel>
@@ -186,7 +177,7 @@ export function ClassForm({
                     ) : Array.isArray(trainers) && trainers.length > 0 ? (
                       trainers.map((trainer) => (
                         <SelectItem key={trainer.id} value={trainer.id || ''}>
-                          {`${trainer.firstName || ''} ${trainer.lastName || ''}`.trim()}
+                          {trainer.name}
                         </SelectItem>
                       ))
                     ) : (
@@ -201,7 +192,7 @@ export function ClassForm({
 
           <FormField
             control={form.control}
-            name="location"
+            name="locationId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ubicación</FormLabel>
@@ -368,10 +359,38 @@ export function ClassForm({
 
           <FormField
             control={form.control}
-            name="time"
+            name="startTime"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Hora de Inicio</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona una hora" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {generateTimeOptions().map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="endTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Hora de Fin</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value}
@@ -424,7 +443,7 @@ export function ClassForm({
 
           <FormField
             control={form.control}
-            name="isActive"
+            name="active"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
