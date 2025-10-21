@@ -92,7 +92,7 @@ export const trainerService = {
       params.append('status', filters.status);
     }
 
-    const response = await fitdeskApi.get(`/trainers?${params.toString()}`);
+    const response = await fitdeskApi.get(`/classes/trainers?${params.toString()}`);
     
     // El backend ahora devuelve una respuesta paginada
     const pageData = response.data as {
@@ -116,12 +116,12 @@ export const trainerService = {
   },
 
   async getById(id: string): Promise<Trainer> {
-    const response = await fitdeskApi.get(`/trainers/${id}`);
+    const response = await fitdeskApi.get(`/classes/trainers/${id}`);
     return mapTrainerResponse(response.data as TrainerResponseDTO);
   },
 
   async create(trainer: FormData): Promise<Trainer> {
-    const response = await fitdeskApi.post('/trainers', trainer, {
+    const response = await fitdeskApi.post('/classes/trainers', trainer, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -133,7 +133,7 @@ export const trainerService = {
     const isFormData = trainer instanceof FormData;
     
     const response = await fitdeskApi.patch(
-      `/trainers/${id}`,
+      `/classes/trainers/${id}`,
       trainer,
       {
         headers: isFormData 
@@ -145,7 +145,7 @@ export const trainerService = {
   },
 
   async delete(id: string): Promise<void> {
-    await fitdeskApi.delete(`/trainers/${id}`);
+    await fitdeskApi.delete(`/classes/trainers/${id}`);
   },
 
 };
