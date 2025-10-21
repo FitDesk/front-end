@@ -1,7 +1,7 @@
 import { fitdeskApi } from '@/core/api/fitdeskApi';
 import type { LocationRequest, LocationResponse, Location } from '../types/location';
 
-const BASE_URL = '/locations';
+const BASE_URL = '/classes/locations';
 
 interface LocationFilters {
   searchTerm?: string;
