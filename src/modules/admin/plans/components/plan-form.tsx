@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -16,7 +17,7 @@ import { Textarea } from '@/shared/components/ui/textarea';
 import { Switch } from '@/shared/components/ui/switch';
 import { Plus, X } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
-import type { Plan } from './plans-columns';
+import type { PlanResponse } from '@/core/interfaces/plan.interface';
 
 declare global {
   interface Window {
@@ -34,17 +35,17 @@ const formSchema = z.object({
   price: z.number().min(0, {
     message: 'El precio no puede ser negativo.',
   }),
-  duration: z.number().min(1, {
+  durationMonths: z.number().min(1, {
     message: 'La duración debe ser de al menos 1 mes.',
   }),
   isActive: z.boolean().default(true),
   isPopular: z.boolean().default(false),
-  currency: z.string().default('USD'),
+  currency: z.string().default('PEN'),
   features: z.array(z.string().min(1, 'La característica no puede estar vacía')).min(1, 'Debe agregar al menos una característica'),
 });
 
 type PlanFormProps = {
-  plan?: Plan;
+  plan?: PlanResponse;
   onSubmit: (values: FormValues) => void;
   isLoading?: boolean;
 };
@@ -53,14 +54,14 @@ export type FormValues = z.infer<typeof formSchema>;
 
 export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
   const [featureInput, setFeatureInput] = useState('');
-  
+
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any, 
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: plan?.name || '',
       description: plan?.description || '',
       price: plan?.price || 0,
-      duration: plan?.duration || 1,
+      durationMonths: plan?.durationMonths || 1,
       isActive: plan?.isActive ?? true,
       isPopular: plan?.isPopular ?? false,
       currency: plan?.currency || 'USD',
@@ -154,7 +155,7 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
 
           <FormField
             control={form.control}
-            name="duration"
+            name="durationMonths"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Duración (meses)</FormLabel>
@@ -182,7 +183,7 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
               <FormItem>
                 <FormLabel>Activo</FormLabel>
                 <FormControl>
-                  <Switch 
+                  <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
@@ -199,7 +200,7 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
               <FormItem>
                 <FormLabel>Popular</FormLabel>
                 <FormControl>
-                  <Switch 
+                  <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
@@ -243,7 +244,7 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
               <Plus className="h-4 w-4" />
             </Button>
           </div>
-          
+
           {features.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {features.map((feature, index) => (

@@ -7,18 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
+import type { UpdatePlanRequest } from '@/core/interfaces/plan.interface';
 
-export type Promotion = {
-  id: string;
-  title: string;
-  description: string;
-  discount: number;
-  startDate: string;
-  endDate: string;
-  isActive: boolean;
-  target: 'all' | 'members' | 'trainers';
-  code?: string;
-};
 
 export type Plan = {
   id: string;
@@ -30,11 +20,10 @@ export type Plan = {
   features: string[];
   isPopular?: boolean;
   currency?: string;
-  promotions?: Promotion[];
 };
 
 type ColumnsProps = (
-  handleEdit: (plan: Plan) => void,
+  handleEdit: (plan: UpdatePlanRequest) => void,
   handleDelete: (id: string) => void
 ) => ColumnDef<Plan>[];
 

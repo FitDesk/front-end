@@ -1,12 +1,11 @@
 /** biome-ignore-all lint/complexity/noStaticOnlyClass: <> */
 /** biome-ignore-all lint/suspicious/noExplicitAny: <> */
-import { fitdeskApi } from "../../../../core/api/fitdeskApi";
+import { fitdeskApi } from "../api/fitdeskApi";
 import type {
   PlanResponse,
   CreatePlanRequest,
   UpdatePlanRequest,
-  UserMemberships,
-} from "../../../../core/interfaces/plan.interface";
+} from "../interfaces/plan.interface";
 
 export class PlanService {
   static async getActivePlans(): Promise<PlanResponse[]> {
@@ -43,13 +42,24 @@ export class PlanService {
     }
   }
 
-  static async createPlan(planData: CreatePlanRequest): Promise<PlanResponse> {
+  static async createPlan(planData: CreatePlanRequest, billingImage?: File): Promise<PlanResponse> {
     try {
+
+      const formData = new FormData();
+      formData.append("plan", new Blob([JSON.stringify(planData)], { type: 'application/json' }));
+      if (billingImage) {
+        formData.append("billingImage", billingImage);
+      }
+
       const response = await fitdeskApi.post<PlanResponse>(
         `/billing/plans`,
-        planData
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
       );
-      console.log("✅ Plan creado exitosamente:", response.data);
       return response.data;
     } catch (error: any) {
       console.error("Error creando plan:", error);
@@ -59,14 +69,27 @@ export class PlanService {
 
   static async updatePlan(
     id: string,
-    planData: UpdatePlanRequest
+    planData?: UpdatePlanRequest,
+    billingImage?: File
   ): Promise<PlanResponse> {
     try {
-      const response = await fitdeskApi.put<PlanResponse>(
+      const formData = new FormData();
+      if (planData) {
+        formData.append("planReq", new Blob([JSON.stringify(planData)], { type: 'application/json' }));
+      }
+      if (billingImage) {
+        formData.append("billingImage", billingImage);
+      }
+
+      const response = await fitdeskApi.patch<PlanResponse>(
         `/billing/plans/${id}`,
-        planData
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
       );
-      console.log("✅ Plan actualizado exitosamente:", response.data);
       return response.data;
     } catch (error: any) {
       console.error(`Error actualizando plan con ID ${id}:`, error);
@@ -77,7 +100,6 @@ export class PlanService {
   static async deletePlan(id: string): Promise<void> {
     try {
       await fitdeskApi.delete(`/billing/plans/${id}`);
-      console.log("✅ Plan eliminado exitosamente");
     } catch (error: any) {
       console.error(`Error eliminando plan con ID ${id}:`, error);
       throw new Error(error.message || "Error al eliminar el plan");
@@ -119,5 +141,35 @@ export class PlanService {
     }
   }
 
+  static async uploadPlanImage(planId: string, file: File) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
+      const response = await fitdeskApi.post<{ url: string }>(
+        `/billing/plans/${planId}/image`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error subiendo imagen para plan ${planId}:`, error);
+      throw new Error(error.message || "Error al subir imagen del plan");
+    }
+  }
+
+  static async deletePlanImage(planId: string): Promise<boolean> {
+    try {
+      const res = await fitdeskApi.delete(`/billing/plans/${planId}/image`);
+      return res.status === 204 || res.status === 200;
+    } catch (error: any) {
+      console.error(`Error eliminando imagen del plan ${planId}:`, error);
+      return false;
+    }
+  }
 }

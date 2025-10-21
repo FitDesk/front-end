@@ -6,20 +6,24 @@ import { toast } from 'sonner';
 
 import { PlanModal } from '../components/plan-modal';
 import { PlanCard } from '../components/plan-card';
-import { useCreatePlan, useUpdatePlan, useDeletePlan, useAllPlans } from '../hooks/usePlansQuery';
-import { usePlanStore } from '../store/usePlanStore';
-import type { Plan } from '../types';
+import { useDeletePlan, useAllPlans, useUpdatePlan, useCreatePlan } from '../hooks/usePlansQuery';
+import type { PlanResponse } from '@/core/interfaces/plan.interface';
+import type { FormValues } from '../components/plan-form';
 
 const PlansPage = () => {
-  const { filters } = usePlanStore();
+
+
   const { data: plans, isLoading, error } = useAllPlans()
+  console.log(plans)
+  const createPlan = useCreatePlan();
+  const updatePlan = useUpdatePlan();
   const deletePlan = useDeletePlan();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<Plan | undefined>(undefined);
+  const [selectedPlan, setSelectedPlan] = useState<PlanResponse | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleEdit = (plan: Plan) => {
+  const handleEdit = (plan: PlanResponse) => {
     setSelectedPlan(plan);
     setIsModalOpen(true);
   };
@@ -28,12 +32,25 @@ const PlansPage = () => {
     setSelectedPlan(undefined);
     setIsModalOpen(true);
   };
-
-  const handleSubmit = async (values: Omit<Plan, 'id' | 'promotions'> & { id?: string }) => {
+  const handleSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-
+    try {
+      if (selectedPlan?.id) {
+        await updatePlan.mutateAsync({ id: selectedPlan.id, data: values });
+        toast.success('El plan se ha actualizado correctamente');
+      } else {
+        await createPlan.mutateAsync(values);
+        toast.success('El plan se ha creado correctamente');
+      }
+      setIsModalOpen(false);
+      setSelectedPlan(undefined);
+    } catch (error) {
+      console.error('Error saving plan:', error);
+      toast.error('Ha ocurrido un error al guardar el plan');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
   const handleDelete = async (id: string) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este plan?')) {
       return;
