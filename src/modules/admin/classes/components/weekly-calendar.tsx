@@ -17,6 +17,7 @@ export interface CalendarEvent {
 interface WeeklyCalendarProps {
   events: CalendarEvent[];
   onDateClick?: (date: Date) => void;
+  onEventClick?: (event: CalendarEvent) => void;
   onNewEvent?: () => void;
   className?: string;
 }
@@ -24,6 +25,7 @@ interface WeeklyCalendarProps {
 export function WeeklyCalendar({
   events = [],
   onDateClick,
+  onEventClick,
   onNewEvent,
   className,
 }: WeeklyCalendarProps) {
@@ -125,7 +127,11 @@ export function WeeklyCalendar({
                 {dayEvents.map((event) => (
                   <div 
                     key={event.id}
-                    className="text-xs p-2 rounded bg-primary/5 border border-primary/20 text-left space-y-2"
+                    className="text-xs p-2 rounded bg-primary/5 border border-primary/20 text-left space-y-2 cursor-pointer hover:bg-primary/10 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEventClick?.(event);
+                    }}
                   >
                     <div className="font-medium text-sm">{event.title}</div>
                     <div className="flex items-center gap-2 text-muted-foreground">

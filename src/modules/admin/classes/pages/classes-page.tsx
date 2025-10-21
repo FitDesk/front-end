@@ -1,7 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Plus, Clock, Users, MapPin } from 'lucide-react';
-import { format, isSameDay } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Dialog, DialogContent } from '@/shared/components/animated/dialog';
@@ -19,12 +17,13 @@ import { useClasses, useCreateClass, useUpdateClass, useDeleteClass } from '../h
 import type { CalendarEvent } from '../components/weekly-calendar';
 import { WeeklyCalendar } from '../components/weekly-calendar';
 import { ClassForm } from '../components/class-form';
+import { ClassDetailModal } from '../components/class-detail-modal';
 
 import type { Class, ClassRequest } from '../types/class';
 
 export default function ClassesPage() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   
   const { data: classes = [], isLoading } = useClasses();
@@ -44,38 +43,36 @@ export default function ClassesPage() {
     }));
   }, [classes]);
 
-  const dayEvents = useMemo(
-    () => events.filter(event => isSameDay(event.start, selectedDate)),
-    [events, selectedDate]
-  );
-
   const handleNewClass = useCallback(() => {
     setSelectedClass(null);
     setIsFormOpen(true);
   }, []);
 
-  const handleDateClick = useCallback((date: Date) => {
-    setSelectedDate(date);
-  }, []);
-
-  const handleEdit = useCallback((event: CalendarEvent) => {
+  const handleEventClick = useCallback((event: CalendarEvent) => {
     const originalClass = classes.find(c => c.id === event.id);
     if (originalClass) {
       setSelectedClass(originalClass);
-      setIsFormOpen(true);
+      setIsDetailModalOpen(true);
     }
   }, [classes]);
 
-  const handleDelete = useCallback(async (event: CalendarEvent) => {
-    if (!event.id) return;
+  const handleEditFromDetail = useCallback(() => {
+    setIsDetailModalOpen(false);
+    setIsFormOpen(true);
+  }, []);
+
+  const handleDeleteFromDetail = useCallback(async () => {
+    if (!selectedClass?.id) return;
     
     if (window.confirm('¿Estás seguro de que deseas eliminar esta clase?')) {
       try {
-        await deleteClassMutation.mutateAsync(event.id);
+        await deleteClassMutation.mutateAsync(selectedClass.id);
         showToast.success({
           title: 'Clase eliminada',
           description: 'La clase ha sido eliminada correctamente',
         });
+        setIsDetailModalOpen(false);
+        setSelectedClass(null);
       } catch (error) {
         showToast.error({
           title: 'Error',
@@ -83,7 +80,7 @@ export default function ClassesPage() {
         });
       }
     }
-  }, [deleteClassMutation]);
+  }, [selectedClass, deleteClassMutation]);
 
   const handleSubmit = async (formData: ClassRequest) => {
     try {
@@ -105,6 +102,7 @@ export default function ClassesPage() {
       }
       setIsFormOpen(false);
       setSelectedClass(null);
+      setIsDetailModalOpen(false);
     } catch (error) {
       console.error('Error saving class:', error);
       showToast.error({
@@ -128,7 +126,7 @@ export default function ClassesPage() {
         <h1 className="text-2xl font-bold">Calendario de Clases</h1>
       </div>
 
-      <Card className="mb-6">
+      <Card>
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
             <CardTitle>Horario Semanal</CardTitle>
@@ -141,78 +139,27 @@ export default function ClassesPage() {
         <CardContent>
           <WeeklyCalendar
             events={events}
-            onDateClick={handleDateClick}
+            onEventClick={handleEventClick}
             onNewEvent={handleNewClass}
             className="h-[600px]"
           />
         </CardContent>
       </Card>
 
-      {/* Selected Day Events */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Clases para {format(selectedDate, 'EEEE d \'de\' MMMM', { locale: es })}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {dayEvents.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No hay clases programadas para este día</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={handleNewClass}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Crear nueva clase
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {dayEvents.map((event) => (
-                <div key={event.id} className="border rounded-lg p-4 hover:bg-accent/10 transition-colors">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-lg">{event.title}</h3>
-                      <div className="flex items-center mt-2 text-sm text-muted-foreground">
-                        <Clock className="mr-2 h-4 w-4" />
-                        {event.start.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {event.end.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                      <div className="flex items-center mt-1 text-sm text-muted-foreground">
-                        <MapPin className="mr-2 h-4 w-4" />
-                        {event.location}
-                      </div>
-                      <div className="flex items-center mt-1 text-sm text-muted-foreground">
-                        <Users className="mr-2 h-4 w-4" />
-                        Capacidad: {event.capacity} personas
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleEdit(event)}
-                      >
-                        Editar
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        onClick={() => handleDelete(event)}
-                        disabled={deleteClassMutation.isPending}
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Modal de detalles de la clase */}
+      <ClassDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedClass(null);
+        }}
+        classData={selectedClass}
+        onEdit={handleEditFromDetail}
+        onDelete={handleDeleteFromDetail}
+        isDeleting={deleteClassMutation.isPending}
+      />
 
+      {/* Modal de formulario de clase */}
       {isFormOpen && (
         <Dialog 
           open={isFormOpen} 
