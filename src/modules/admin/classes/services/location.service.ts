@@ -35,14 +35,14 @@ interface SpringPageResponse<T> {
 export const locationService = {
   async getAll(filters: LocationFilters = {}): Promise<{ data: Location[]; pagination: any }> {
     try {
-      const response = await fitdeskApi.get<SpringPageResponse<LocationResponse>>(BASE_URL, {
-        params: {
-          page: filters.page || 0,
-          size: filters.limit || 10,
-          search: filters.searchTerm || undefined,
-          active: filters.status === 'active' ? true : filters.status === 'inactive' ? false : undefined,
-        },
-      });
+      const params = new URLSearchParams();
+      if (filters.page !== undefined) params.append('page', (filters.page - 1).toString());
+      if (filters.limit !== undefined) params.append('size', filters.limit.toString());
+      if (filters.searchTerm) params.append('search', filters.searchTerm);
+      if (filters.status === 'active') params.append('active', 'true');
+      if (filters.status === 'inactive') params.append('active', 'false');
+
+      const response = await fitdeskApi.get<SpringPageResponse<LocationResponse>>(`${BASE_URL}?${params.toString()}`);
       
       return {
         data: response.data.content.map(this.mapResponseToLocation),
