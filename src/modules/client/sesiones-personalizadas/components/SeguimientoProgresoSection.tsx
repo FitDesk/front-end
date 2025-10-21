@@ -1,7 +1,19 @@
 
+import { motion, useInView } from 'motion/react';
+import { useRef } from 'react';
+
 const SeguimientoProgresoSection = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
-  <div className="relative pt-8 lg:pt-16 pb-8 lg:pb-16 bg-gray-100 dark:bg-transparent overflow-hidden">
+  <motion.div 
+    ref={ref}
+    initial={{ opacity: 0, y: 30 }}
+    animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+    transition={{ duration: 0.6 }}
+    className="relative pt-8 lg:pt-16 pb-8 lg:pb-16 bg-gray-100 dark:bg-transparent overflow-hidden"
+  >
       {/* Top Wave */}
   <div className="absolute top-0 left-0 w-full overflow-hidden leading-[0] text-white dark:hidden">
         <svg className="relative block w-full h-[60px] sm:h-[80px]" viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -19,7 +31,12 @@ const SeguimientoProgresoSection = () => {
       <div className="container mx-auto px-4 flex flex-col lg:flex-row justify-center items-center relative z-10">
         
         {/* Left Section - Images */}
-        <div className="flex relative w-full lg:w-1/2 flex-col lg:pr-0 pb-6">
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex relative w-full lg:w-1/2 flex-col lg:pr-0 pb-6"
+        >
           <div className="relative w-[472px] sm:w-[608px] lg:w-full m-auto my-6 lg:my-0 min-h-[352px] sm:min-h-[456px]">
             
             {/* Decorative SVG Background */}
@@ -80,10 +97,13 @@ const SeguimientoProgresoSection = () => {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Section - Content Box */}
-        <a 
+        <motion.a 
+          initial={{ opacity: 0, x: 50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
           href="/es/form" 
           className="p-4 sm:p-8 pt-2 lg:p-12 w-full transition duration-200 group lg:hover:bg-[#3e1326] lg:hover:text-white cursor-pointer rounded-2xl lg:w-1/2 flex flex-col items-center lg:pl-12 lg:ml-4"
         >
@@ -141,9 +161,9 @@ const SeguimientoProgresoSection = () => {
               </svg>
             </a>
           </div>
-        </a>
+        </motion.a>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

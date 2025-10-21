@@ -149,10 +149,20 @@ export default function ReservaClasePage() {
             </div>
 
             {/* Main Content - Calendar and Classes */}
-            <div className="container mx-auto px-4 py-16">
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="container mx-auto px-4 py-16"
+            >
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Calendar Section */}
-                    <div className="lg:col-span-1">
+                    <motion.div 
+                        initial={{ opacity: 0, x: -30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                        className="lg:col-span-1"
+                    >
                         <div className="sticky top-24 space-y-8">
                             <div>
                                 <h2 className="text-2xl font-bold mb-6">Horario de Clases</h2>
@@ -170,10 +180,15 @@ export default function ReservaClasePage() {
                             </div>
 
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Classes List */}
-                    <div className="lg:col-span-2">
+                    <motion.div 
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6, delay: 0.5 }}
+                        className="lg:col-span-2"
+                    >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold">Próximas clases</h2>
                             <p className="text-muted-foreground">
@@ -184,54 +199,87 @@ export default function ReservaClasePage() {
                         {loadingClases ? (
                             <div className="space-y-4">
                                 {[1, 2, 3].map((i) => (
-                                    <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
+                                    <motion.div 
+                                        key={i} 
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.4, delay: 0.1 * i }}
+                                        className="h-16 bg-muted animate-pulse rounded-lg" 
+                                    />
                                 ))}
                             </div>
                         ) : clasesPaginated ? (
-                            <ClassesTable
-                                data={clasesPaginated}
-                                onReservar={handleReservar}
-                                onPageChange={handlePageChange}
-                                currentPage={currentPage}
-                            />
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.6 }}
+                            >
+                                <ClassesTable
+                                    data={clasesPaginated}
+                                    onReservar={handleReservar}
+                                    onPageChange={handlePageChange}
+                                    currentPage={currentPage}
+                                />
+                            </motion.div>
                         ) : (
-                            <div className="p-12 text-center">
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.6 }}
+                                className="p-12 text-center"
+                            >
                                 <div className="text-muted-foreground text-lg">No hay clases disponibles.</div>
-                            </div>
+                            </motion.div>
                         )}
-                    </div>
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Divider */}
             <div className="border-t border-border"></div>
 
             {/* Featured Classes - Solo diseño visual */}
-            <div className="py-16">
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.7 }}
+                className="py-16"
+            >
                 <div className="container mx-auto px-4">
-                    <div className="text-center mb-12">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.8 }}
+                        className="text-center mb-12"
+                    >
                         <h2 className="text-3xl font-bold mb-4">Clases destacadas</h2>
                         <p className="text-muted-foreground max-w-2xl mx-auto">
                             Descubre nuestras clases más populares y únete a miles de personas 
                             que ya están transformando sus vidas.
                         </p>
-                    </div>
+                    </motion.div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {clasesDestacadasFicticias.map((clase) => (
-                            <FeaturedClassCard
+                        {clasesDestacadasFicticias.map((clase, index) => (
+                            <motion.div
                                 key={clase.id}
-                                nombre={clase.nombre}
-                                instructor={clase.instructor}
-                                rating={clase.rating}
-                                imagen={clase.imagen}
-                                descripcion={clase.descripcion}
-                                etiquetas={(clase as any).etiquetas}
-                            />
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.9 + (index * 0.1) }}
+                            >
+                                <FeaturedClassCard
+                                    nombre={clase.nombre}
+                                    instructor={clase.instructor}
+                                    rating={clase.rating}
+                                    imagen={clase.imagen}
+                                    descripcion={clase.descripcion}
+                                    etiquetas={(clase as any).etiquetas}
+                                />
+                            </motion.div>
                         ))}
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

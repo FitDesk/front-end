@@ -1,6 +1,6 @@
 import { fitdeskApi } from "@/core/api/fitdeskApi";
 
-
+// Interfaces que coinciden exactamente con el backend msvc-classes
 export interface ClassResponse {
     id: string;
     className: string;
@@ -33,7 +33,6 @@ export interface PaginatedClassResponse {
     first: boolean;
     last: boolean;
 }
-
 
 export interface ClassReservationRequest {
     classId: string;
@@ -113,7 +112,6 @@ export class ClassesService {
             }
             
             const response = await fitdeskApi.get<BackendPaginatedClassResponse>(`/classes/paginated?${params.toString()}`);
-            
             
             const mappedContent = response.data.content
                 .filter(clase => clase.active)

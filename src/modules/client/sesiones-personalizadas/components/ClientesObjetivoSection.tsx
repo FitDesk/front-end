@@ -1,11 +1,28 @@
 
+import { motion, useInView } from 'motion/react';
+import { useRef } from 'react';
+
 const ClientesObjetivoSection = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
-    <div className="pt-24 lg:pt-32 pb-16 lg:pb-24">
+    <motion.div 
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ duration: 0.6 }}
+      className="pt-24 lg:pt-32 pb-16 lg:pb-24"
+    >
       <div className="container mx-auto px-4 flex flex-col lg:flex-row-reverse justify-center items-center">
         
         {/* Right Section - Images */}
-        <div className="flex relative w-full lg:w-1/2 flex-col lg:pl-0 pb-6">
+        <motion.div 
+          initial={{ opacity: 0, x: 50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex relative w-full lg:w-1/2 flex-col lg:pl-0 pb-6"
+        >
           <div className="relative w-[472px] sm:w-[608px] lg:w-full m-auto my-6 lg:my-0 min-h-[352px] sm:min-h-[456px]">
             
             {/* Decorative SVG Background */}
@@ -66,10 +83,13 @@ const ClientesObjetivoSection = () => {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Left Section - Content Box */}
-        <a 
+        <motion.a 
+          initial={{ opacity: 0, x: -50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
           href="/es/form" 
           className="p-4 sm:p-8 pt-2 lg:p-12 w-full transition duration-200 group lg:hover:bg-[#3e1326] lg:hover:text-white cursor-pointer rounded-3xl lg:w-1/2 flex-col items-center lg:pr-12 lg:mr-4"
         >
@@ -130,9 +150,9 @@ const ClientesObjetivoSection = () => {
               </div>
             </div>
           </div>
-        </a>
+        </motion.a>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

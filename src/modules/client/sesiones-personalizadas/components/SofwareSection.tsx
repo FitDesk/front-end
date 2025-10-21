@@ -1,5 +1,7 @@
 import React from "react";
 import { Wallet, Users, MessageSquare, BarChart2, UserCheck, Calendar } from 'lucide-react';
+import { motion, useInView } from 'motion/react';
+import { useRef } from 'react';
 import featuresData from '../data/softwareFeatures.json';
 
 
@@ -13,6 +15,8 @@ const iconComponents: { [key: string]: React.ComponentType<any> } = {
 };
 
 const SoftwareSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
  
   const features = featuresData.map(feature => ({
     ...feature,
@@ -20,21 +24,35 @@ const SoftwareSection: React.FC = () => {
   }));
 
   return (
-    <section className="pt-section-md lg:pt-section-desktop-md pb-section-md lg:pb-section-desktop-md bg-skin-fill text-skin-base">
+    <motion.section 
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ duration: 0.6 }}
+      className="pt-section-md lg:pt-section-desktop-md pb-section-md lg:pb-section-desktop-md bg-skin-fill text-skin-base"
+    >
       <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center justify-center pb-12 text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex flex-col items-center justify-center pb-12 text-center"
+        >
           <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-skin-heading pb-4 max-w-3xl leading-tight">
-            <span>Tu Software de Fitness </span>
+            <span>Tu Software de FitDesk </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-br from-orange-500 to-pink-500">
               todo en uno
             </span>
           </h3>
-        </div>
+        </motion.div>
 
         <div className="hidden lg:grid lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {features.map((feature) => (
-            <a
+          {features.map((feature, index) => (
+            <motion.a
               key={feature.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.6, delay: 0.3 + (index * 0.1) }}
               href={feature.href}
               className="group relative flex flex-col justify-between transition-all duration-300 border border-skin-border cursor-pointer rounded-2xl p-6 pb-2 bg-skin-card/40 shadow-sm hover:shadow-lg hover:bg-[#3e1326] hover:text-white"
             >
@@ -79,11 +97,11 @@ const SoftwareSection: React.FC = () => {
                   </svg>
                 </div>
               </div>
-            </a>
+            </motion.a>
           ))}
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

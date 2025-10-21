@@ -76,6 +76,7 @@ export const useCompletarReserva = () => {
         mutationFn: (reservationId: string) => ClassesService.completarReserva(reservationId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["reservations"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
         },
     });
 };

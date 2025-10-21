@@ -7,7 +7,8 @@ import {
   Dumbbell,
   Clock,
   Calendar,
-  CreditCard
+  CreditCard,
+  Loader2
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -20,30 +21,9 @@ import {
 } from 'recharts';
 import { useAuthStore } from '@/core/store/auth.store';
 import { useGetMemberQuery } from '../profile/query/useMemberQuery';
+import { useDashboardMember } from './hooks/useDashboard';
+import { useMisReservas } from '../reserva-clase/hooks/useClasses';
 
-
-const stats = [
-  {
-    id: 1,
-    title: 'Clases Restantes',
-    value: '8/12',
-    description: 'Este mes',
-    icon: Dumbbell,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10',
-    progress: 67
-  },
-  {
-    id: 2,
-    title: 'Próxima Clase',
-    value: 'Hoy',
-    description: '06:00 PM - Spinning',
-    icon: Clock,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-500/10',
-    progress: 0
-  },
-];
 
 const weeklyActivity = [
   { name: 'Lun', minutos: 65, calorias: 320 },
@@ -57,33 +37,12 @@ const weeklyActivity = [
 
 
 
-const upcomingClasses = [
-  {
-    id: 1,
-    title: 'Spinning Intenso',
-    time: 'Hoy, 06:00 PM - 07:00 PM',
-    instructor: 'Carlos M.',
-    level: 'Intermedio',
-    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
-    category: 'Cardio',
-    spots: 5
-  },
-  {
-    id: 2,
-    title: 'Yoga Matutino',
-    time: 'Mañana, 07:00 AM - 08:00 AM',
-    instructor: 'Ana P.',
-    level: 'Principiante',
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1220&q=80',
-    category: 'Yoga',
-    spots: 12
-  },
-];
-
 const ClientDashboard = () => {
-
   const user = useAuthStore(state => state.user);
   const { data: member } = useGetMemberQuery(user?.id || '');
+ 
+  const { data: dashboardData } = useDashboardMember();
+  const { data: myReservations, isLoading: reservationsLoading } = useMisReservas(false); // Solo reservas activas
 
   const handleBookClass = () => {
     console.log('Reservar clase...');
@@ -92,6 +51,43 @@ const ClientDashboard = () => {
   const handleViewInvoices = () => {
     console.log('Ver facturas...');
   };
+
+
+  const calculatedStats = [
+    {
+      id: 1,
+      title: 'Clases Restantes',
+      value: dashboardData ? `${dashboardData.remainingClasses || 0}` : '0',
+      description: 'Este mes',
+      icon: Dumbbell,
+      color: 'text-orange-500',
+      bgColor: 'bg-orange-500/10',
+      progress: dashboardData ? Math.round((dashboardData.remainingClasses || 0) * 10) : 0
+    },
+    {
+      id: 2,
+      title: 'Próxima Clase',
+      value: dashboardData?.nextClassName || 'Ninguna',
+      description: dashboardData?.nextClassTime || 'No programada',
+      icon: Clock,
+      color: 'text-blue-500',
+      bgColor: 'bg-blue-500/10',
+      progress: 0
+    },
+  ];
+
+
+  const mappedUpcomingClasses = myReservations?.slice(0, 3).map((reservation: any) => ({
+    id: reservation.reservationId,
+    title: reservation.className,
+    time: reservation.schedule,
+    instructor: reservation.trainerName,
+    level: 'Intermedio',
+    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
+    category: 'Fitness',
+    spots: 5,
+    status: reservation.action
+  })) || [];
 
 
 
@@ -119,7 +115,7 @@ const ClientDashboard = () => {
 
       {/* Stats Cards */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => {
+        {calculatedStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <motion.div
@@ -230,7 +226,7 @@ const ClientDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Upcoming Classes */}
+        {/* Mis Reservas */}
         <div>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Mis Reservas</h2>
@@ -239,49 +235,67 @@ const ClientDashboard = () => {
             </Button>
           </div>
           <div className="space-y-4">
-            {upcomingClasses.map((classItem, index) => (
-              <motion.div
-                key={classItem.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <Card className="overflow-hidden transition-all hover:shadow-md">
-                  <div className="flex">
-                    <div className="h-24 w-24 flex-shrink-0">
-                      <img
-                        src={classItem.image}
-                        alt={classItem.title}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-medium">{classItem.title}</h3>
-                          <p className="text-sm text-muted-foreground">{classItem.time}</p>
-                          <p className="mt-1 text-sm">
-                            <span className="text-muted-foreground">Instructor:</span>{' '}
-                            <span className="font-medium">{classItem.instructor}</span>
-                          </p>
+            {reservationsLoading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Cargando reservas...</span>
+              </div>
+            ) : mappedUpcomingClasses.length > 0 ? (
+              mappedUpcomingClasses.map((classItem, index) => (
+                <motion.div
+                  key={classItem.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <Card className="overflow-hidden transition-all hover:shadow-md">
+                    <div className="flex">
+                      <div className="h-24 w-24 flex-shrink-0">
+                        <img
+                          src={classItem.image}
+                          alt={classItem.title}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 p-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-medium">{classItem.title}</h3>
+                            <p className="text-sm text-muted-foreground">{classItem.time}</p>
+                            <p className="mt-1 text-sm">
+                              <span className="text-muted-foreground">Instructor:</span>{' '}
+                              <span className="font-medium">{classItem.instructor}</span>
+                            </p>
+                          </div>
+                          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                            {classItem.status}
+                          </span>
                         </div>
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                          {classItem.level}
-                        </span>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between">
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                          {classItem.spots} cupos disponibles
-                        </span>
-                        <Button size="sm" asChild>
-                          <Link to="/client/classes">Gestionar</Link>
-                        </Button>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            {classItem.spots} cupos disponibles
+                          </span>
+                          <Button size="sm" asChild>
+                            <Link to="/client/classes">Gestionar</Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
+                  </Card>
+                </motion.div>
+              ))
+            ) : (
+              <Card className="p-8 text-center">
+                <div className="text-muted-foreground">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">No tienes reservas activas</h3>
+                  <p className="text-sm mb-4">¡Reserva tu primera clase y comienza tu rutina de entrenamiento!</p>
+                  <Button asChild>
+                    <Link to="/client/reserva-clase">Reservar Clase</Link>
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
         </div>
 
@@ -330,12 +344,21 @@ const ClientDashboard = () => {
               <div className="mb-4 text-center md:mb-0 md:text-left">
                 <h3 className="text-lg font-medium">Tu Membresía</h3>
                 <p className="text-muted-foreground">
-                  Has completado el <span className="font-medium text-foreground">75%</span> de tu membresía mensual
+                  {dashboardData?.consecutiveDays ? (
+                    <>
+                      Has asistido <span className="font-medium text-foreground">{dashboardData.consecutiveDays}</span> días consecutivos
+                    </>
+                  ) : (
+                    'Comienza tu rutina de entrenamiento'
+                  )}
                 </p>
               </div>
-              <Progress value={75} className="h-2 w-full max-w-md" />
-              <Button variant="ghost" size="sm" className="mt-4 md:mt-0 md:ml-4">
-                Actualizar
+              <Progress 
+                value={dashboardData?.consecutiveDays ? Math.min((dashboardData.consecutiveDays / 30) * 100, 100) : 0} 
+                className="h-2 w-full max-w-md" 
+              />
+              <Button variant="ghost" size="sm" className="mt-4 md:mt-0 md:ml-4" asChild>
+                <Link to="/client/reserva-clase">Reservar Clase</Link>
               </Button>
             </div>
           </div>
