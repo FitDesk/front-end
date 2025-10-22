@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { locationService } from '../services/location.service';
-import type { LocationRequest } from '../types/location';
+import type { LocationRequest, Location } from '../types/location';
 
 interface LocationFilters {
   searchTerm?: string;
@@ -11,30 +12,64 @@ interface LocationFilters {
   sortOrder?: 'asc' | 'desc';
 }
 
+interface LocationResponse {
+  data: Location[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export function useLocations(filters: LocationFilters = {}) {
   const queryClient = useQueryClient();
 
+
+  const prefetchLocations = async (page: number) => {
+    const nextPageFilters = { ...filters, page };
+    await queryClient.prefetchQuery<LocationResponse>({
+      queryKey: ['locations', nextPageFilters],
+      queryFn: () => locationService.getAll(nextPageFilters),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+
+  useEffect(() => {
+    const nextPage = (filters.page || 1) + 1;
+    prefetchLocations(nextPage).catch(console.error);
+  }, [filters, prefetchLocations]);
+
   const { 
-    data: response, 
+    data: response = { 
+      data: [], 
+      pagination: { 
+        page: 1, 
+        limit: 10, 
+        total: 0, 
+        totalPages: 0 
+      } 
+    }, 
     isLoading, 
-    error 
-  } = useQuery({
+    error
+  } = useQuery<LocationResponse>({
     queryKey: ['locations', filters],
     queryFn: async () => {
       try {
         console.log('Fetching locations from API with filters:', filters);
         const result = await locationService.getAll(filters);
-        console.log('API Response:', result);
         return result;
       } catch (error) {
         console.error('Error fetching locations:', error);
-        return { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
+        throw error;
       }
-    }
+    },
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
   });
   
-  const locations = Array.isArray(response?.data) ? response.data : [];
-  const pagination = response?.pagination || { page: 1, limit: 10, total: 0, totalPages: 0 };
+  const { data: locations = [], pagination } = response;
 
   const createMutation = useMutation({
     mutationFn: async (data: LocationRequest) => {

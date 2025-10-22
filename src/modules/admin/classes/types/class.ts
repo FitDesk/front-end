@@ -27,6 +27,20 @@ export interface ClassResponse {
   description?: string;
 }
 
+export interface CalendarClassDTO {
+  id: string;
+  className: string;
+  trainerName: string;
+  classDate: string;
+  startTime: string;
+  endTime: string;
+  schedule: string;
+  locationName: string;
+  currentStudents: number;
+  maxCapacity: number;
+  action: string;
+}
+
 
 export interface Class {
   id: string;
@@ -58,17 +72,32 @@ export const DAYS_OF_WEEK = Object.values(DayOfWeekEnum);
 export const DURATION_OPTIONS = [30, 45, 60, 90] as const;
 export type DurationOption = typeof DURATION_OPTIONS[number];
 
-// Schema para validación del formulario-luego limpio
 
+
+// Schema 
 export const ClassSchema = z.object({
   className: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
-  locationId: z.string().min(1, 'Selecciona una ubicación'),
-  trainerId: z.string().min(1, 'Selecciona un entrenador'),
+  locationId: z.string().uuid('Selecciona una ubicación válida').min(1, 'Selecciona una ubicación'),
+  trainerId: z.string().uuid('Selecciona un entrenador válido').min(1, 'Selecciona un entrenador'),
   classDate: z.string().min(1, 'Selecciona una fecha'),
   duration: z.number().min(30, 'La duración mínima es de 30 minutos'),
   maxCapacity: z.number().min(1, 'La capacidad debe ser mayor a 0'),
-  startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida'),
-  endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida'),
+  startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida (formato HH:mm)'),
+  endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida (formato HH:mm)'),
+  active: z.boolean().default(true),
+  description: z.string().optional(),
+});
+
+
+export const ClassFormSchema = z.object({
+  className: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+  locationId: z.string().min(1, 'Selecciona una ubicación'),
+  trainerId: z.string().min(1, 'Selecciona un entrenador'),
+  date: z.date(),
+  duration: z.number().min(30, 'La duración mínima es de 30 minutos'),
+  maxCapacity: z.number().min(1, 'La capacidad debe ser mayor a 0'),
+  startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida (formato HH:mm)'),
+  endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida (formato HH:mm)'),
   active: z.boolean().default(true),
   description: z.string().optional(),
 });

@@ -1,5 +1,5 @@
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { format, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
@@ -29,21 +29,21 @@ import { Switch } from '@/shared/components/ui/switch';
 
 import { 
   DURATION_OPTIONS, 
-  ClassSchema,
   type Class, 
   type ClassRequest
 } from '../types/class';
 import { useTrainersForSelect } from '../../trainers/hooks/use-trainers';
 import { useLocations } from '../hooks/use-locations';
 
-export type ClassFormValues = Omit<ClassRequest, 'locationId' | 'trainerId' | 'startTime' | 'endTime'> & {
+export type ClassFormValues = {
+  className: string;
+  locationId: string;
+  trainerId: string;
   date: Date;
+  duration: number;
+  maxCapacity: number;
   startTime: string;
   endTime: string;
-  className: string;
-  trainerId: string;
-  locationId: string;
-  duration: number;
   active: boolean;
   description?: string;
 };
@@ -63,40 +63,97 @@ export function ClassForm({
 }: ClassFormProps) {
   const { trainers = [], isLoading: isLoadingTrainers, error: trainersError } = useTrainersForSelect();
   const { locations = [], isLoading: isLoadingLocations } = useLocations();
+  const [dataLoaded, setDataLoaded] = useState(false);
   
   const form = useForm<ClassFormValues>({
-    resolver: zodResolver(ClassSchema as any),
     defaultValues: initialData ? {
       className: initialData.className || '',
       description: initialData.description || '',
       trainerId: '', 
       locationId: '', 
-      date: initialData.classDate ? parseISO(initialData.classDate) : addDays(new Date(), 1),
+      date: initialData.classDate ? (() => {
+
+        let parsedDate: Date;
+        if (typeof initialData.classDate === 'string' && initialData.classDate.includes('-')) {
+          const [day, month, year] = initialData.classDate.split('-');
+          parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else {
+          parsedDate = parseISO(initialData.classDate);
+        }
+        
+        if (isNaN(parsedDate.getTime())) {
+          console.error('Invalid date in form:', initialData.classDate);
+          return addDays(new Date(), 1);
+        }
+        
+        return parsedDate;
+      })() : addDays(new Date(), 1),
       startTime: initialData.schedule ? initialData.schedule.split(' - ')[0] : '09:00',
       endTime: initialData.schedule ? initialData.schedule.split(' - ')[1] : '10:00',
       duration: initialData.duration || 60,
+      maxCapacity: initialData.maxCapacity || 1,
       active: initialData.active ?? true,
     } : {
       className: '',
       description: '',
       trainerId: '',
       locationId: '',
-      date: new Date(),
+      date: addDays(new Date(), 1),
       startTime: '09:00',
       endTime: '10:00',
       duration: 60,
+      maxCapacity: 1,
       active: true,
     },
   });
 
   const handleFormSubmit = (formData: ClassFormValues) => {
+
+    if (!formData.className || formData.className.length < 3) {
+      form.setError('className', {
+        type: 'manual',
+        message: 'El nombre debe tener al menos 3 caracteres'
+      });
+      return;
+    }
+
+    if (!formData.locationId) {
+      form.setError('locationId', {
+        type: 'manual',
+        message: 'Selecciona una ubicación'
+      });
+      return;
+    }
+
+    if (!formData.trainerId) {
+      form.setError('trainerId', {
+        type: 'manual',
+        message: 'Selecciona un entrenador'
+      });
+      return;
+    }
+
+
+    const [startHour, startMin] = formData.startTime.split(':').map(Number);
+    const [endHour, endMin] = formData.endTime.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    
+    if (endMinutes <= startMinutes) {
+      form.setError('endTime', {
+        type: 'manual',
+        message: 'La hora de fin debe ser posterior a la hora de inicio'
+      });
+      return;
+    }
+
     const classData: ClassRequest = {
       className: formData.className,
       locationId: formData.locationId,
       trainerId: formData.trainerId,
       classDate: format(formData.date, 'dd-MM-yyyy'),
       duration: formData.duration,
-      maxCapacity: locations.find(loc => loc.id === formData.locationId)?.capacity || 1,
+      maxCapacity: formData.maxCapacity,
       startTime: formData.startTime,
       endTime: formData.endTime,
       active: formData.active,
@@ -114,8 +171,34 @@ export function ClassForm({
     return times;
   };
 
-  const selectedLocation = locations.find(loc => loc.id === form.watch('locationId'));
+  const selectedLocationId = form.watch('locationId');
+  const selectedLocation = locations.find(loc => loc.id === selectedLocationId);
   const capacity = selectedLocation?.capacity || 0;
+
+
+  useEffect(() => {
+    if (initialData && trainers.length > 0 && locations.length > 0 && !dataLoaded) {
+      // Buscar el entrenador por nombre
+      const trainer = trainers.find(t => t.name === initialData.trainerName);
+      if (trainer?.id) {
+        form.setValue('trainerId', trainer.id);
+      }
+      
+      const location = locations.find(l => l.name === initialData.locationName);
+      if (location?.id) {
+        form.setValue('locationId', location.id);
+      }
+      
+      setDataLoaded(true);
+    }
+  }, [initialData?.id, trainers.length, locations.length]);
+
+
+  useEffect(() => {
+    if (selectedLocation?.capacity) {
+      form.setValue('maxCapacity', selectedLocation.capacity);
+    }
+  }, [selectedLocationId]);
 
   const renderFormButtons = () => (
     <div className="flex justify-end space-x-4">
