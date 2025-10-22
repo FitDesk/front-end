@@ -65,7 +65,7 @@ export class PaymentService {
       console.log("✅ Token creado exitosamente:", cardToken.id);
       return cardToken;
     } catch (error: any) {
-      console.error("❌ Error detallado creando token:", error);
+      console.error(" Error detallado creando token:", error);
 
       // Manejo específico de errores de MP
       if (error.message?.includes("primary field")) {
