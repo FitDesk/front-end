@@ -9,6 +9,7 @@ export default function PaymentsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const selectedPlan = location.state?.selectedPlan;
+  const isUpgrade = location.state?.isUpgrade ?? false; 
   const user = useAuthStore((state) => state.user);
   const authStatus = useAuthStore((state) => state.authStatus);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -33,7 +34,6 @@ export default function PaymentsPage() {
     );
   }
 
-  // Si no hay plan seleccionado, redirigir a la página de planes
   if (!selectedPlan) {
     return (
       <div className="space-y-6">
@@ -59,6 +59,7 @@ export default function PaymentsPage() {
       userEmail={user?.email ?? ""}
       onPaymentSuccess={handlePaymentSuccess}
       isProcessingPayment={isProcessing}
+      isUpgrade={isUpgrade}
     />
   );
 }
