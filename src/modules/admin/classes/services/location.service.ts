@@ -108,10 +108,22 @@ export const locationService = {
   async toggleStatus(id: string, isActive: boolean): Promise<Location | null> {
     if (!id) return null;
     try {
-      const response = await fitdeskApi.put<LocationResponse>(`${BASE_URL}/${id}`, { active: isActive });
+      // Primero obtener los datos actuales de la ubicación
+      const currentLocation = await this.getById(id);
+      if (!currentLocation) return null;
+      
+      // Actualizar solo el estado activo, manteniendo los demás campos
+      const updateData = {
+        name: currentLocation.name,
+        description: currentLocation.description,
+        ability: currentLocation.capacity, // Mantener la capacidad actual
+        active: isActive // Solo esto cambia
+      };
+      
+      const response = await fitdeskApi.put<LocationResponse>(`${BASE_URL}/${id}`, updateData);
       return this.mapResponseToLocation(response.data);
     } catch (error) {
-      console.error(`Failed to toggle status for location ${id}:`, error);
+      console.error(`Error al cambiar estado de la ubicación ${id}:`, error);
       return null;
     }
   },

@@ -3,18 +3,12 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Dialog, DialogContent } from '@/shared/components/animated/dialog';
+import { toast } from 'sonner';
+import DeleteConfirmationModal from '../components/delete-confirmation-modal';
 
-const showToast = {
-  success: (data: { title: string; description: string }) => {
-    console.log(`[SUCCESS] ${data.title}: ${data.description}`);
-  },
-  error: (data: { title: string; description: string }) => {
-    console.error(`[ERROR] ${data.title}: ${data.description}`);
-  }
-} as const;
-
-import { useClasses, useCreateClass, useUpdateClass, useDeleteClass } from '../hooks/use-classes';
-import type { CalendarEvent } from '../components/weekly-calendar';
+import { useClasses, useClassesForCalendar, useCreateClass, useUpdateClass, useDeleteClass } from '../hooks/use-classes';
+import type { CalendarEvent } from '../lib/calendar-utils';
+import { convertClassesToEvents } from '../lib/calendar-utils';
 import { WeeklyCalendar } from '../components/weekly-calendar';
 import { ClassForm } from '../components/class-form';
 import { ClassDetailModal } from '../components/class-detail-modal';
@@ -25,28 +19,37 @@ export default function ClassesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   
-  const { data: classes = [], isLoading } = useClasses();
+  const { data: classes = [], isLoading, refetch: refetchClasses } = useClasses();
+  const { data: calendarClasses = [], refetch: refetchCalendarClasses, isFetching: isRefreshing } = useClassesForCalendar();
   const createClassMutation = useCreateClass();
   const updateClassMutation = useUpdateClass();
   const deleteClassMutation = useDeleteClass();
   
   const events = useMemo<CalendarEvent[]>(() => {
-    return classes.map(cls => ({
-      id: cls.id || '',
-      title: cls.className || 'Clase sin nombre',
-      start: new Date(cls.classDate || new Date()),
-      end: new Date(new Date(cls.classDate || new Date()).getTime() + (cls.duration || 60) * 60000),
-      location: cls.locationName || 'Sala no especificada',
-      capacity: cls.maxCapacity || 0,
-      trainer: cls.trainerName || 'Entrenador no asignado'
-    }));
-  }, [classes]);
+    const classesToUse = calendarClasses.length > 0 ? calendarClasses : classes;
+    console.log('Classes to use for calendar:', classesToUse);
+    console.log('Calendar classes:', calendarClasses);
+    console.log('Regular classes:', classes);
+    
+    const events = convertClassesToEvents(classesToUse);
+    console.log('Generated events for calendar:', events);
+    return events;
+  }, [classes, calendarClasses]);
 
   const handleNewClass = useCallback(() => {
     setSelectedClass(null);
     setIsFormOpen(true);
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      await Promise.all([refetchClasses(), refetchCalendarClasses()]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    }
+  }, [refetchClasses, refetchCalendarClasses]);
 
   const handleEventClick = useCallback((event: CalendarEvent) => {
     const originalClass = classes.find(c => c.id === event.id);
@@ -64,21 +67,18 @@ export default function ClassesPage() {
   const handleDeleteFromDetail = useCallback(async () => {
     if (!selectedClass?.id) return;
     
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta clase?')) {
-      try {
-        await deleteClassMutation.mutateAsync(selectedClass.id);
-        showToast.success({
-          title: 'Clase eliminada',
-          description: 'La clase ha sido eliminada correctamente',
-        });
-        setIsDetailModalOpen(false);
-        setSelectedClass(null);
-      } catch (error) {
-        showToast.error({
-          title: 'Error',
-          description: 'No se pudo eliminar la clase',
-        });
-      }
+    try {
+      await deleteClassMutation.mutateAsync(selectedClass.id);
+      toast.success('Clase eliminada', {
+        description: 'La clase ha sido eliminada correctamente y ya no aparecerá en el calendario'
+      });
+      setIsDetailModalOpen(false);
+      setSelectedClass(null);
+      setShowDeleteModal(false);
+    } catch (error) {
+      toast.error('Error al eliminar la clase', {
+        description: 'No se pudo eliminar la clase. Inténtalo de nuevo.'
+      });
     }
   }, [selectedClass, deleteClassMutation]);
 
@@ -89,15 +89,13 @@ export default function ClassesPage() {
           id: selectedClass.id,
           data: formData
         });
-        showToast.success({
-          title: 'Clase actualizada',
-          description: 'La clase ha sido actualizada correctamente',
+        toast.success('Clase actualizada', {
+          description: 'La clase ha sido actualizada correctamente'
         });
       } else {
         await createClassMutation.mutateAsync(formData);
-        showToast.success({
-          title: 'Clase creada',
-          description: 'La clase ha sido creada correctamente',
+        toast.success('Clase creada', {
+          description: 'La clase ha sido creada correctamente y aparecerá en el calendario'
         });
       }
       setIsFormOpen(false);
@@ -105,9 +103,8 @@ export default function ClassesPage() {
       setIsDetailModalOpen(false);
     } catch (error) {
       console.error('Error saving class:', error);
-      showToast.error({
-        title: 'Error',
-        description: 'No se pudo guardar la clase',
+      toast.error('Error al guardar la clase', {
+        description: 'No se pudo guardar la clase. Inténtalo de nuevo.'
       });
     }
   };
@@ -141,6 +138,8 @@ export default function ClassesPage() {
             events={events}
             onEventClick={handleEventClick}
             onNewEvent={handleNewClass}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
             className="h-[600px]"
           />
         </CardContent>
@@ -155,7 +154,7 @@ export default function ClassesPage() {
         }}
         classData={selectedClass}
         onEdit={handleEditFromDetail}
-        onDelete={handleDeleteFromDetail}
+        onDelete={() => setShowDeleteModal(true)}
         isDeleting={deleteClassMutation.isPending}
       />
 
@@ -188,6 +187,16 @@ export default function ClassesPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Modal de confirmación de eliminación */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteFromDetail}
+        isDeleting={deleteClassMutation.isPending}
+        title="¿Eliminar clase?"
+        description={selectedClass ? `¿Estás seguro de que deseas eliminar la clase "${selectedClass.className}"? Esta acción no se puede deshacer y la clase desaparecerá del calendario permanentemente.` : ''}
+      />
     </div>
   );
 }

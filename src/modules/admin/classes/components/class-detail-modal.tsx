@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Clock, Users, MapPin, User, Calendar, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/compo
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { Class } from '../types/class';
+import DeleteConfirmationModal from './delete-confirmation-modal';
 
 interface ClassDetailModalProps {
   isOpen: boolean;
@@ -25,9 +26,25 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
   onDelete,
   isDeleting = false
 }) => {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   if (!classData) return null;
 
-  const classDate = new Date(classData.classDate);
+  // Parsear la fecha correctamente desde formato DD-MM-YYYY
+  let classDate: Date;
+  if (typeof classData.classDate === 'string' && classData.classDate.includes('-')) {
+    const [day, month, year] = classData.classDate.split('-');
+    classDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  } else {
+    classDate = new Date(classData.classDate);
+  }
+  
+  // Validar que la fecha sea válida
+  if (isNaN(classDate.getTime())) {
+    console.error('Invalid date:', classData.classDate);
+    classDate = new Date(); // Fallback a fecha actual
+  }
+  
   const [startTime, endTime] = classData.schedule.split(' - ');
 
   return (
@@ -119,16 +136,29 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
             </Button>
             <Button 
               variant="destructive" 
-              onClick={onDelete}
+              onClick={() => setShowDeleteModal(true)}
               disabled={isDeleting}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-destructive/90 transition-all duration-200 hover:scale-105"
             >
               <Trash2 className="h-4 w-4" />
-              {isDeleting ? 'Eliminando...' : 'Eliminar'}
+              Eliminar
             </Button>
           </div>
         </div>
       </DialogContent>
+      
+      {/* Modal de confirmación de eliminación */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          onDelete();
+          setShowDeleteModal(false);
+        }}
+        isDeleting={isDeleting}
+        title="¿Eliminar clase?"
+        description={`¿Estás seguro de que deseas eliminar la clase "${classData.className}"? Esta acción no se puede deshacer y la clase desaparecerá del calendario permanentemente.`}
+      />
     </Dialog>
   );
 };
