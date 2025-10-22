@@ -53,17 +53,7 @@ export function useBillingPageQuery() {
     setFilters(prev => ({ ...prev, page }));
   };
 
-  const handleForceRenewal = async (paymentId: string) => {
-    await forceRenewalMutation.mutateAsync(paymentId);
-  };
 
-
-  const handleRefundClick = (paymentId: string) => {
-    const payment = payments.find((p) => p.id === paymentId);
-    if (payment) {
-      setSelectedPaymentId(paymentId);
-    }
-  };
 
 
 
@@ -73,11 +63,6 @@ export function useBillingPageQuery() {
 
   const handleViewInvoice = async (paymentId: string) => {
     await getInvoiceMutation.mutateAsync(paymentId);
-  };
-
-
-  const handleViewMemberDetails = (memberId: string) => {
-    openMemberModal(memberId);
   };
 
 
@@ -137,13 +122,8 @@ export function useBillingPageQuery() {
     togglePaymentSelection,
     selectAllPayments,
     handlePageChange,
-    handleForceRenewal,
-    handleRefundClick,
-
     handleExport,
     handleViewInvoice,
-
-    handleViewMemberDetails,
 
     openMemberModal,
     closeMemberModal,

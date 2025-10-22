@@ -17,19 +17,19 @@ export interface CardData {
 }
 
 export interface CreatePaymentRequest {
-    externalReference: string;
-    userId: string;
-    planId: string;
-    amount: number;
-    payerEmail: string;
-    payerFirstName: string;
-    payerLastName: string;
-    description: string;
-    token: string;
-    installments: number;
-    paymentMethodId: string;
-    identificationType: string;
-    identificationNumber: string;
+  externalReference: string;
+  userId: string;
+  planId: string;
+  amount: number;
+  payerEmail: string;
+  payerFirstName: string;
+  payerLastName: string;
+  description: string;
+  token: string;
+  installments: number;
+  paymentMethodId: string;
+  identificationType: string;
+  identificationNumber: string;
 }
 
 export interface PaymentResponse {
