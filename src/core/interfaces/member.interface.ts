@@ -78,3 +78,9 @@ export interface MemberSecurityData {
     provider: string;
     membership: Membership | null;
 }
+export interface ImageUploadResponseDto {
+  url: string;
+  publicId: string;
+  version: string;
+  signature: string;
+}

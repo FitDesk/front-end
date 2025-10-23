@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/complexity/noStaticOnlyClass: <> */
 import { fitdeskApi } from "../api/fitdeskApi";
-import type { MemberFilters, MemberPageResponse, MemberRequest, MemberResponse, MemberSecurityData } from "../interfaces/member.interface";
+import type { ImageUploadResponseDto, MemberFilters, MemberPageResponse, MemberRequest, MemberResponse, MemberSecurityData } from "../interfaces/member.interface";
 import type { UserMemberships } from "../interfaces/plan.interface";
 
 export class MemberService {
@@ -59,7 +59,25 @@ export class MemberService {
             throw new Error(`Error al actualizar el miembro: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
+    static async updateProfileImage(userId: string, file: File): Promise<ImageUploadResponseDto> {
+        const formData = new FormData();
+        formData.append('file', file);
 
+        try {
+            const { data } = await fitdeskApi.post<ImageUploadResponseDto>(
+                `/members/member/${userId}/profile-image`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+            return data;
+        } catch (error) {
+            throw new Error(`Error al actualizar la foto de perfil: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
     static async getMyMembership(): Promise<UserMemberships> {
         try {
             const response = await fitdeskApi.get<UserMemberships>(
