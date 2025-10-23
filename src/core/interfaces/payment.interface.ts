@@ -46,5 +46,13 @@ export interface PaymentResponse {
   transactionAmount: number;
   transactionId: string;
 }
-
+export interface PlanUpgradeRequest {
+  userId: string;
+  newPlanId: string;
+  token: string;
+  installments: number;
+  paymentMethodId: string;
+  identificationType: string;
+  identificationNumber: string;
+}
 export type STATUS_PAYMENT = "approved" | "pending" | "rejected";

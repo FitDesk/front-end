@@ -1,12 +1,16 @@
 /** biome-ignore-all lint/correctness/useUniqueElementIds: <explanation> */
 import { Button } from "./ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card";
-import { Textarea } from "./ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { CardDesing } from "./ui/card-desing";
-import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "./ui/field";
+import { Field, FieldLabel, FieldLegend, FieldSet } from "./ui/field";
 import { Input } from "./ui/input";
 import { motion } from "motion/react";
-import { useMyMembership } from "@/modules/client/payments/useMembershipQuery";
 import type { PlanResponse } from "@/core/interfaces/plan.interface";
 import type { PaymentResponse } from "@/core/interfaces/payment.interface";
 import { CheckCircle, CreditCard, Lock, Shield } from "lucide-react";
@@ -18,10 +22,17 @@ interface PaymentFormProps {
   plan: PlanResponse;
   onPaymentSuccess: (paymentData: PaymentResponse) => void;
   isProcessingPayment?: boolean;
+   isUpgrade: boolean;
 }
 
-const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPayment }: PaymentFormProps) => {
-
+const PaymentForm = ({
+  userId,
+  userEmail,
+  plan,
+  onPaymentSuccess,
+  isProcessingPayment,
+  isUpgrade
+}: PaymentFormProps) => {
   const {
     formData,
     cardRef,
@@ -35,22 +46,23 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
     showBackCard,
     hideBackCard,
     handleSubmit,
-    getCardGradient
+    getCardGradient,
   } = usePaymentForm({
     userId,
     userEmail,
     plan,
-    onPaymentSuccess
+    onPaymentSuccess,
+    isUpgrade
   });
-  const setFormData = (updater: (prev: typeof formData) => typeof formData) => {
-    const newData = updater(formData);
-    Object.keys(newData).forEach(key => {
-      const field = key as keyof typeof formData;
-      if (newData[field] !== formData[field]) {
-        setFormData(prev => ({ ...prev, [field]: newData[field] }));
-      }
-    });
-  };
+  // const setFormData = (updater: (prev: typeof formData) => typeof formData) => {
+  //   const newData = updater(formData);
+  //   Object.keys(newData).forEach(key => {
+  //     const field = key as keyof typeof formData;
+  //     if (newData[field] !== formData[field]) {
+  //       setFormData(prev => ({ ...prev, [field]: newData[field] }));
+  //     }
+  //   });
+  // };
   const CardLogo = CardDesing[cardType];
   if (isProcessingPayment) {
     return (
@@ -64,7 +76,8 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
         </div>
         <h2 className="text-2xl font-bold mb-2">¡Pago exitoso!</h2>
         <p className="text-muted-foreground mb-8">
-          Tu membresía ha sido activada correctamente. Estamos redireccionándote...
+          Tu membresía ha sido activada correctamente. Estamos
+          redireccionándote...
         </p>
         <div className="flex items-center justify-center">
           <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
@@ -96,7 +109,10 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
         className="mb-8"
       >
         <div className="relative mx-auto max-w-2xl text-center">
-          <div className="absolute -top-6 -z-10 transform-gpu blur-3xl" aria-hidden="true">
+          <div
+            className="absolute -top-6 -z-10 transform-gpu blur-3xl"
+            aria-hidden="true"
+          >
             <div className="aspect-[1097/845] w-[68.5625rem] bg-gradient-to-r from-orange-500 to-red-500 opacity-25" />
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
@@ -123,7 +139,10 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
         </CardHeader>
 
         <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-8">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col lg:flex-row gap-8"
+          >
             {/* Columna izquierda - Formulario de entrada */}
             <div className="w-full lg:w-1/2 space-y-6">
               <motion.div
@@ -156,13 +175,15 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
                       <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     </div>
 
-                    {cardType !== 'unknown' && (
+                    {cardType !== "unknown" && (
                       <motion.div
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-xs mt-1.5 flex items-center gap-2"
                       >
-                        <span className="font-semibold capitalize text-foreground">{cardType}</span>
+                        <span className="font-semibold capitalize text-foreground">
+                          {cardType}
+                        </span>
                         <span className="text-green-600 flex items-center gap-1">
                           <CheckCircle className="h-3 w-3" /> Tarjeta detectada
                         </span>
@@ -181,12 +202,8 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
                         onFocus={hideBackCard}
                         onClick={hideBackCard}
                         value={formData.cardName}
-                        onChange={(e) => {
-                          const value = e.target.value.toUpperCase();
-                          setFormData((prev) => ({ ...prev, cardName: value }));
-                        }}
                         placeholder="NOMBRE APELLIDO"
-                        required
+                        readOnly
                       />
                     </Field>
 
@@ -250,18 +267,19 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-              >
-              </motion.div>
+              ></motion.div>
             </div>
 
-            {/* Columna derecha - Visualización de la tarjeta */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
               className="w-full lg:w-1/2 flex items-center justify-center"
             >
-              <div className="w-full max-w-sm h-56" style={{ perspective: 1000 }}>
+              <div
+                className="w-full max-w-sm h-56"
+                style={{ perspective: 1000 }}
+              >
                 <div
                   ref={cardRef}
                   role="button"
@@ -274,7 +292,9 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
                   className={`relative creditCard cursor-pointer w-full h-56 ${formData.showBack ? "seeBack" : ""}`}
                 >
                   {/* Frente de la tarjeta */}
-                  <div className={`absolute w-full h-56 rounded-2xl text-white shadow-2xl cardFace overflow-hidden bg-gradient-to-br ${getCardGradient()}`}>
+                  <div
+                    className={`absolute w-full h-56 rounded-2xl text-white shadow-2xl cardFace overflow-hidden bg-gradient-to-br ${getCardGradient()}`}
+                  >
                     {/* Patrón de fondo sutil */}
                     <div className="absolute inset-0 opacity-10">
                       <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full blur-3xl"></div>
@@ -316,7 +336,9 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
                   </div>
 
                   {/* Reverso de la tarjeta */}
-                  <div className={`absolute w-full h-56 rounded-2xl text-white shadow-2xl cardFace cardBack overflow-hidden bg-gradient-to-br ${getCardGradient()}`}>
+                  <div
+                    className={`absolute w-full h-56 rounded-2xl text-white shadow-2xl cardFace cardBack overflow-hidden bg-gradient-to-br ${getCardGradient()}`}
+                  >
                     <div className="w-full h-full flex flex-col">
                       {/* Banda magnética */}
                       <div className="bg-black h-12 mt-6"></div>
@@ -329,7 +351,9 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
                             {formData.ccv || "•••"}
                           </div>
                         </div>
-                        <p className="text-[10px] opacity-70 text-right">CÓDIGO DE SEGURIDAD</p>
+                        <p className="text-[10px] opacity-70 text-right">
+                          CÓDIGO DE SEGURIDAD
+                        </p>
 
                         {/* Logo en reverso */}
                         <div className="flex justify-end mt-4">
@@ -364,7 +388,10 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
                 Procesando...
               </>
             ) : (
-              <>Confirmar Pago</>
+              <>
+                {" "}
+                <h1>Confirmar Pago</h1>{" "}
+              </>
             )}
           </Button>
         </CardFooter>
@@ -379,7 +406,9 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
       >
         <Card className="border border-border/40 bg-card/60 backdrop-blur-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">Resumen del Plan</CardTitle>
+            <CardTitle className="text-lg font-medium">
+              Resumen del Plan
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
@@ -389,7 +418,12 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
               </div>
               <div className="flex justify-between py-1 text-sm">
                 <span className="text-muted-foreground">Precio:</span>
-                <span className="font-medium">{new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(plan.price)}</span>
+                <span className="font-medium">
+                  {new Intl.NumberFormat("es-PE", {
+                    style: "currency",
+                    currency: "PEN",
+                  }).format(plan.price)}
+                </span>
               </div>
               <div className="flex justify-between py-1 text-sm">
                 <span className="text-muted-foreground">Duración:</span>
@@ -398,7 +432,12 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
               <div className="border-t border-border mt-2 pt-2">
                 <div className="flex justify-between text-base font-semibold">
                   <span>Total:</span>
-                  <span className="text-orange-600">{new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(plan.price)}</span>
+                  <span className="text-orange-600">
+                    {new Intl.NumberFormat("es-PE", {
+                      style: "currency",
+                      currency: "PEN",
+                    }).format(plan.price)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -407,6 +446,6 @@ const PaymentForm = ({ userId, userEmail, plan, onPaymentSuccess, isProcessingPa
       </motion.div>
     </>
   );
-}
+};
 
 export default PaymentForm;
