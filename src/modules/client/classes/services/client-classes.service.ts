@@ -24,16 +24,23 @@ export class ClientClassesService {
     const currentParticipants = capacityMatch ? parseInt(capacityMatch[1]) : 0;
     const maxParticipants = capacityMatch ? parseInt(capacityMatch[2]) : 0;
     
-    
+
     let status: 'upcoming' | 'pending' | 'completed' | 'cancelled';
-    if (reservation.completed) {
+    const backendStatus = reservation.action;
+    
+    if (backendStatus === 'COMPLETADO') {
       status = 'completed';
-    } else if (reservation.alreadyReserved) {
+    } else if (backendStatus === 'PENDIENTE') {
       status = 'pending';
+    } else if (backendStatus === 'CANCELADO') {
+      status = 'cancelled';
     } else {
       status = 'upcoming';
     }
 
+    
+    const scheduleTime = reservation.schedule.split(' - ')[0];
+    
     return {
       id: reservation.classId,
       reservationId: reservation.reservationId,
@@ -46,7 +53,7 @@ export class ClientClassesService {
       },
       location: reservation.locationName,
       date: new Date().toISOString().split('T')[0],
-      time: reservation.schedule.split(' - ')[0],
+      time: scheduleTime,
       duration: 60,
       maxParticipants,
       currentParticipants,
@@ -59,17 +66,16 @@ export class ClientClassesService {
 
   static async getAll(filters?: ClassFilters): Promise<PaginatedResponse<ClientClass>> {
     try {
-      const params = new URLSearchParams();
-      
-      if (filters?.status && filters.status !== 'all') {
-        params.append('completed', filters.status === 'completed' ? 'true' : 'false');
-      }
-      
-      const response = await fitdeskApi.get(`/reservations/my?${params.toString()}`);
+      const response = await fitdeskApi.get(`/classes/reservations/my`);
       const reservations: ClassReservationResponse[] = Array.isArray(response.data) ? response.data : [];
       
+
+      let clientClasses = reservations.map(this.mapReservationToClientClass);
       
-      const clientClasses = reservations.map(this.mapReservationToClientClass);
+ 
+      if (filters?.status && filters.status !== 'all') {
+        clientClasses = clientClasses.filter(cls => cls.status === filters.status);
+      }
       
       return {
         data: clientClasses,
@@ -100,7 +106,7 @@ export class ClientClassesService {
 
   static async getById(id: string): Promise<ClientClass> {
     try {
-      const response = await fitdeskApi.get(`/reservations/my`);
+      const response = await fitdeskApi.get(`/classes/reservations/my`);
       const reservations: ClassReservationResponse[] = Array.isArray(response.data) ? response.data : [];
       const reservation = reservations.find(r => r.classId === id);
       
@@ -118,7 +124,7 @@ export class ClientClassesService {
 
   static async bookClass(classId: string): Promise<{ success: boolean; message: string }> {
     try {
-      await fitdeskApi.post('/reservations', {
+      await fitdeskApi.post('/classes/reservations', {
         classId: classId
       });
       return { success: true, message: 'Clase reservada exitosamente' };
@@ -131,7 +137,7 @@ export class ClientClassesService {
 
   static async cancelReservation(reservationId: string): Promise<{ success: boolean; message: string }> {
     try {
-      await fitdeskApi.delete(`/reservations/${reservationId}`);
+      await fitdeskApi.delete(`/classes/reservations/${reservationId}`);
       return { success: true, message: 'Reserva cancelada exitosamente' };
     } catch (error) {
       console.error('Error canceling reservation:', error);
@@ -142,7 +148,7 @@ export class ClientClassesService {
 
   static async confirmAttendance(reservationId: string): Promise<{ success: boolean; message: string }> {
     try {
-      await fitdeskApi.put(`/reservations/${reservationId}/confirm`);
+      await fitdeskApi.put(`/classes/reservations/${reservationId}/confirm`);
       return { success: true, message: 'Asistencia confirmada exitosamente' };
     } catch (error) {
       console.error('Error confirming attendance:', error);
@@ -154,7 +160,7 @@ export class ClientClassesService {
   static async cancelClass(classId: string): Promise<{ success: boolean; message: string }> {
     try {
 
-      const response = await fitdeskApi.get('/reservations/my');
+      const response = await fitdeskApi.get('/classes/reservations/my');
       const reservations: ClassReservationResponse[] = Array.isArray(response.data) ? response.data : [];
       const reservation = reservations.find(r => r.classId === classId);
       
@@ -172,7 +178,7 @@ export class ClientClassesService {
 
   static async completeReservation(reservationId: string): Promise<{ success: boolean; message: string }> {
     try {
-      await fitdeskApi.put(`/reservations/${reservationId}/complete`);
+      await fitdeskApi.put(`/classes/reservations/${reservationId}/complete`);
       return { success: true, message: 'Clase completada exitosamente' };
     } catch (error) {
       console.error('Error completing reservation:', error);

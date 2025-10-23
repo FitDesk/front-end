@@ -172,20 +172,6 @@ export function ClassCard({ classItem, index }: ClassCardProps) {
           <div className="flex gap-2 pt-2">
             <Button
               size="sm"
-              variant="destructive"
-              onClick={handleCancelClass}
-              disabled={cancelClassMutation.isPending}
-            >
-              {cancelClassMutation.isPending ? 'Cancelando...' : 'Cancelar Reserva'}
-            </Button>
-          </div>
-        )}
-
-        {/* Botones para clases pendientes */}
-        {classItem.status === 'pending' && (
-          <div className="flex gap-2 pt-2">
-            <Button
-              size="sm"
               onClick={handleCompleteReservation}
               disabled={completeReservationMutation.isPending}
               className="bg-green-600 hover:bg-green-700 text-white"
