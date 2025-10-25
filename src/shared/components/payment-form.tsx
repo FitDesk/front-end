@@ -192,21 +192,7 @@ const PaymentForm = ({
                   </Field>
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
-                    <Field>
-                      <FieldLabel htmlFor="card-name" className="font-medium">
-                        Nombre del Titular
-                      </FieldLabel>
-                      <Input
-                        id="card-name"
-                        type="text"
-                        onFocus={hideBackCard}
-                        onClick={hideBackCard}
-                        value={formData.cardName}
-                        placeholder="NOMBRE APELLIDO"
-                        readOnly
-                      />
-                    </Field>
-
+                    
                     <div className="grid grid-cols-2 gap-2">
                       <Field>
                         <FieldLabel htmlFor="card-date" className="font-medium">

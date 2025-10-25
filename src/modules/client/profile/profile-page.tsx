@@ -156,14 +156,7 @@ export default function ProfilePage() {
                   </FormItem>
                 )}
               />
-              <div className="space-y-2">
-                <Label>Estado</Label>
-                <Input
-                  value={member?.status || ""}
-                  readOnly
-                  className="capitalize"
-                />
-              </div>
+            
             </div>
           </CardContent>
 
