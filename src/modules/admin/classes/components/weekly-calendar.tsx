@@ -1,6 +1,6 @@
 import { format, startOfWeek, addWeeks, subWeeks, isToday, isSameDay, addDays } from 'date-fns';
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus, User, Users, DoorOpen, Clock as ClockIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, User, Users, DoorOpen, Clock as ClockIcon, RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/core/lib/utils';
 
@@ -17,18 +17,26 @@ export interface CalendarEvent {
 interface WeeklyCalendarProps {
   events: CalendarEvent[];
   onDateClick?: (date: Date) => void;
+  onEventClick?: (event: CalendarEvent) => void;
   onNewEvent?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
   className?: string;
 }
 
 export function WeeklyCalendar({
   events = [],
   onDateClick,
+  onEventClick,
   onNewEvent,
+  onRefresh,
+  isRefreshing = false,
   className,
 }: WeeklyCalendarProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  console.log('WeeklyCalendar received events:', events);
 
 
   const weekDays = useMemo(() => {
@@ -46,8 +54,11 @@ export function WeeklyCalendar({
   };
 
 
-  const getDayEvents = (day: Date) => 
-    events.filter(event => isSameDay(event.start, day));
+  const getDayEvents = (day: Date) => {
+    const dayEvents = events.filter(event => isSameDay(event.start, day));
+    console.log(`Events for ${format(day, 'yyyy-MM-dd')}:`, dayEvents);
+    return dayEvents;
+  };
 
   const formatTime = (date: Date) => format(date, 'HH:mm');
 
@@ -69,6 +80,15 @@ export function WeeklyCalendar({
           </Button>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            title="Refrescar calendario"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
           <Button variant="outline" size="icon" onClick={prevWeek}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -125,7 +145,11 @@ export function WeeklyCalendar({
                 {dayEvents.map((event) => (
                   <div 
                     key={event.id}
-                    className="text-xs p-2 rounded bg-primary/5 border border-primary/20 text-left space-y-2"
+                    className="text-xs p-2 rounded bg-primary/5 border border-primary/20 text-left space-y-2 cursor-pointer hover:bg-primary/10 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEventClick?.(event);
+                    }}
                   >
                     <div className="font-medium text-sm">{event.title}</div>
                     <div className="flex items-center gap-2 text-muted-foreground">

@@ -4,8 +4,6 @@ import { Login } from "./modules/shared/auth/login";
 import { Register } from "./modules/shared/auth/register";
 import { ForgotPassword } from "./modules/shared/auth/forgot-password";
 import { PageLoader } from "./shared/components/page-loader";
-// Importaciones de entrenadores y miembros
-// Importación directa para evitar problemas con lazy loading
 import { TrainersPage } from "./modules/admin/trainers/pages/TrainersPage";
 import { TrainerFormPage } from "./modules/admin/trainers/pages/TrainerFormPage";
 import { TrainerDetailsPage } from "./modules/admin/trainers/pages/TrainerDetailsPage";
@@ -14,73 +12,146 @@ import { CreateMemberPage } from "./modules/admin/members/pages/CreateMemberPage
 import { MemberDetailsPage } from "./modules/admin/members/pages/MemberDetailsPage";
 import { EditMemberPage } from "./modules/admin/members/pages/EditMemberPage";
 import { MessagePage } from "./modules/trainer/messages/message-page";
+import { ClientMessagePage } from "./modules/client/messages/message-page";
+import { OAuthCallback } from "./modules/shared/auth/oauth-callback";
+import { ConfigurationPage } from "./modules/trainer/configuration";
+import { TrainerRoute, AdminRoute, NotAuthenticatedRoute } from './shared/components/protected-routes';
+import { MembershipPage } from "./modules/client/payments/membership-page";
 
 //Admin
 const AdminLayout = lazy(() => import("@/shared/layouts/AdminLayout"))
 const DashboardPage = lazy(() => import("@/modules/admin/dashboard/DashboardPage"))
-const PlansPage = lazy(() => import("@/modules/admin/plans/plans-page"))
-const PromotionsPage = lazy(() => import("@/modules/admin/promotions/pages/promotions-page"))
+const PlansPage = lazy(() => import("@/modules/admin/plans/pages/plans-page"))
 const ClassesPage = lazy(() => import("@/modules/admin/classes/pages/classes-page"))
 const LocationsPage = lazy(() => import("@/modules/admin/classes/pages/locations-page"))
-
-
-
+const BillingPage = lazy(() => import("@/modules/admin/billing/pages/BillingPage"))
+const UserRolesPage = lazy(() => import("@/modules/admin/roles/pages/UserRolesPage"))
+const AdminProfilePage = lazy(() => import("@/modules/admin/profile/pages/AdminProfilePage").then(m => ({ default: m.default })))
 
 //Trainer
 const TrainerLayout = lazy(() => import("@/shared/layouts/TrainerLayout"))
 const DashboardTrainer = lazy(() => import("@/modules/trainer/dashboard/DashboardTrainer"))
 // Add other trainer pages as needed
-const TrainerCalendarPage = lazy(() => import("@/modules/trainer/calendar/calendar-page"))
-const TrainerAttendancePage = lazy(() => import("@/modules/trainer/attendance/attendance-page"))
-const TrainerStudentsPage = lazy(() => import("@/modules/trainer/students/students-page"))
+const TrainerCalendarPage = lazy(() => import("@/modules/trainer/calendar/pages/calendar-page"))
+const TrainerAttendancePage = lazy(() => import("@/modules/trainer/attendance").then(m => ({ default: m.AttendancePage })))
+const TrainerStudentsPage = lazy(() => import("@/modules/trainer/students/pages/students-page"))
 
 
 
-
-
-
-//Client
+// Client
 const ClientLayout = lazy(() => import("@/shared/layouts/ClientLayout"))
-const LandingPage = lazy(() => import("@/modules/client/landing/landing-page"))
+const ClientDashboardLayout = lazy(() => import("@/shared/layouts/ClientDashboardLayout"))
+const LandingPage = lazy(() => import("@/modules/shared/landing/landing-page"))
+const ClientDashboard = lazy(() => import("@/modules/client/dashboard/ClientDashboard"))
+const ClientProfilePage = lazy(() => import("@/modules/client/profile/profile-page"))
+const ClientClassesPage = lazy(() => import("@/modules/client/classes/pages/client-classes-page"))
+const ClientPaymentsPage = lazy(() => import("@/modules/client/payments/payments-page"))
+const ReservaClasePage = lazy(() => import("@/modules/client/reserva-clase").then(m => ({ default: m.ReservaClasePage })))
+const SesionesPersonalizadasPage = lazy(() => import("@/modules/client/sesiones-personalizadas/pages/sesiones-personalizadas-page"))
+const BlogPage = lazy(() => import("@/modules/client/blog/pages/blog-page"))
 
-//Auth
+// Auth
 const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
+
+// Payment
+const PaymentPage = lazy(() => import("@/modules/client/payments/payments-page"))
+
 export const appRouter = createBrowserRouter([
-    //Main
+    {
+        path: "/dashboard",
+        element: <Navigate to="/client/dashboard" replace />
+    },
+    {
+        path: "/payments",
+        element: <Suspense><PaymentPage /></Suspense>
+    },
+    // Landing Page Route
     {
         path: "/",
         element: (
-            <Suspense fallback={<PageLoader />} >
+            <Suspense fallback={<PageLoader />}>
                 <ClientLayout />
             </Suspense>
         ),
         children: [
-            { index: true, element: <Suspense><LandingPage /></Suspense> }
+            { index: true, element: <Suspense><LandingPage /></Suspense> },
+            {
+                path: "reserva-clase",
+                element: <Suspense fallback={<PageLoader />}><ReservaClasePage /></Suspense>
+            },
+            {
+                path: "sesiones-personalizadas",
+                element: <Suspense fallback={<PageLoader />}><SesionesPersonalizadasPage /></Suspense>
+            },
+            {
+                path: "blog",
+                element: <Suspense fallback={<PageLoader />}><BlogPage /></Suspense>
+            }
         ]
     },
+    // Client Routes
+    {
+        path: "/client",
+        element: (
+            <Suspense fallback={<PageLoader />}>
+                <ClientDashboardLayout />
+            </Suspense>
+        ),
+        children: [
+            { index: true, element: <Navigate to="/client/dashboard" replace /> },
+            {
+                path: "dashboard",
+                element: <Suspense><ClientDashboard /></Suspense>
+            },
+            {
+                path: "membership",
+                element: <Suspense><MembershipPage /></Suspense>
+            },
+            {
+                path: "profile",
+                element: <Suspense><ClientProfilePage /></Suspense>
+            },
+            {
+                path: "classes",
+                element: <Suspense><ClientClassesPage /></Suspense>
+            },
+            {
+                path: "payments",
+                element: <Suspense><ClientPaymentsPage /></Suspense>
+            },
+            {
+                path: "messages",
+                element: <Suspense fallback={<PageLoader />}><ClientMessagePage /></Suspense>
+            },
+        ]
+    },
+
     {
         path: "/auth",
         element: (
-            // <NotAuthenticatedRoute>
-            <Suspense fallback={<PageLoader />}>
-                <AuthLayout />
-            </Suspense>
-            // </NotAuthenticatedRoute>
+
+            <NotAuthenticatedRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <AuthLayout />
+                </Suspense>
+            </NotAuthenticatedRoute>
+
         ),
         children: [
             { index: true, element: <Suspense><Login /></Suspense> },
             { path: "register", element: <Suspense><Register /></Suspense> },
-            { path: "forgot-password", element: <Suspense><ForgotPassword /></Suspense> }
+            { path: "forgot-password", element: <Suspense><ForgotPassword /></Suspense> },
+            { path: "callback", element: <OAuthCallback /> }
         ]
     },
     {
         path: "/admin",
         element: (
-            // <AdminRoute>
-            <Suspense fallback={<PageLoader />}>
-                <AdminLayout />
-            </Suspense>
-            // </AdminRoute>
+            <AdminRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <AdminLayout />
+                </Suspense>
+            </AdminRoute>
         ),
         children: [
             { index: true, element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
@@ -89,16 +160,16 @@ export const appRouter = createBrowserRouter([
                 element: <Suspense fallback={<PageLoader />}><PlansPage /></Suspense>
             },
             {
-                path: "promotions",
-                element: <Suspense fallback={<PageLoader />}><PromotionsPage /></Suspense>
-            },
-            {
                 path: "classes",
                 element: <Suspense fallback={<PageLoader />}><ClassesPage /></Suspense>
             },
             {
                 path: "locations",
                 element: <Suspense fallback={<PageLoader />}><LocationsPage /></Suspense>
+            },
+            {
+                path: "billing",
+                element: <Suspense fallback={<PageLoader />}><BillingPage /></Suspense>
             },
             {
                 path: "trainers",
@@ -131,6 +202,14 @@ export const appRouter = createBrowserRouter([
             {
                 path: "trainers/:id",
                 element: <Suspense fallback={<PageLoader />}><TrainerDetailsPage /></Suspense>,
+            },
+            {
+                path: "roles",
+                element: <Suspense fallback={<PageLoader />}><UserRolesPage /></Suspense>,
+            },
+            {
+                path: "profile",
+                element: <Suspense fallback={<PageLoader />}><AdminProfilePage /></Suspense>,
             }
         ]
     },
@@ -138,9 +217,11 @@ export const appRouter = createBrowserRouter([
     {
         path: "/trainer",
         element: (
-            <Suspense fallback={<PageLoader />}>
-                <TrainerLayout />
-            </Suspense>
+            <TrainerRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <TrainerLayout />
+                </Suspense>
+            </TrainerRoute>
         ),
         children: [
             { index: true, element: <Navigate to="dashboard" replace /> },
@@ -160,26 +241,9 @@ export const appRouter = createBrowserRouter([
                 path: "students",
                 element: <Suspense fallback={<PageLoader />}><TrainerStudentsPage /></Suspense>
             },
-            // Add more trainer routes as needed
-            {
-                path: "workouts",
-                element: <div className="p-6">Workouts Page</div>
-            },
-            {
-                path: "nutrition",
-                element: <div className="p-6">Nutrition Page</div>
-            },
-            {
-                path: "stats",
-                element: <div className="p-6">Stats Page</div>
-            },
             {
                 path: "messages",
-                element: <Suspense fallback={<PageLoader />}> <MessagePage  /></Suspense>
-            },
-            {
-                path: "reports",
-                element: <div className="p-6">Reports Page</div>
+                element: <Suspense fallback={<PageLoader />}><MessagePage /></Suspense>
             },
             {
                 path: "profile",
@@ -187,7 +251,7 @@ export const appRouter = createBrowserRouter([
             },
             {
                 path: "settings",
-                element: <div className="p-6">Settings Page</div>
+                element: <Suspense fallback={<PageLoader />}><ConfigurationPage /></Suspense>
             },
         ]
     },

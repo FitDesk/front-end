@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus, Trash2, Download, RefreshCw } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-
+import { Plus, Trash2, Download, RefreshCw, ChevronDown, SearchIcon, X } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import { MembersTable } from '../components/MembersTable';
-import { useMembers } from '../hooks/useMembers';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 import { useToast } from '@/shared/components/ui/toast';
-import { useMemberStore } from '../store/useMemberStore';
-import type { Member } from '../types';
+import { MembersTable } from '../components/MembersTable';
 import {
   Dialog,
   DialogContent,
@@ -18,147 +20,66 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
-} from '@/shared/components/animated/dialog';
+} from '@/shared/components/ui/dialog';
+import { useAllMembersQuery } from '@/core/queries/useMemberQuery';
+import type { MEMBER_STATUS, MemberFilters } from '@/core/interfaces/member.interface';
+import { useDebounce } from '@/core/hooks/useDebounce';
+
 
 export function MembersPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isBulkDelete, setIsBulkDelete] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
-
-  const { updateMemberStatus, deleteMember } = useMemberStore();
-  const { refreshMembers, updateFilters } = useMembers();
+  const [membershipStatus, setMembershipStatus] = useState<string>('');
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [sortField, setSortField] = useState('firstName');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const filters: any = {};
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
-      if (searchTerm.trim() !== '') {
-        filters.searchTerm = searchTerm.trim();
-      }
+  const filters: MemberFilters = useMemo(() => ({
+    search: debouncedSearch || undefined,
+    membershipStatus: membershipStatus as MEMBER_STATUS || undefined,
+    page,
+    size,
+    sortField,
+    sortDirection,
+  }), [debouncedSearch, membershipStatus, page, size, sortField, sortDirection]);
 
-      if (statusFilter === 'inactive') {
-        filters.status = ['INACTIVE'];
-      } else if (statusFilter !== 'all') {
-        filters.status = [statusFilter.toUpperCase()];
-      }
 
-      updateFilters(filters);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm, statusFilter, updateFilters]);
-
+  const { data, isLoading, isError, error, refetch } = useAllMembersQuery(filters);
+  console.log('MembersPage render', { filters, data });
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+    setPage(0);
+  };
+
+  const handleMembershipStatusChange = (value: string) => {
+    setMembershipStatus(value);
+    setPage(0);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setMembershipStatus('');
+    setPage(0);
+  };
+
+  const handleExport = (format: 'pdf' | 'excel') => {
+    toast({
+      title: 'Exportando...',
+      description: `Generando archivo ${format.toUpperCase()}`,
+    });
+
   };
 
 
-  const handleDelete = async () => {
-    if (!memberToDelete) return;
-
-    try {
-      await deleteMember(memberToDelete.id);
-      toast({
-        title: 'Miembro eliminado',
-        description: 'El miembro ha sido eliminado correctamente.',
-      });
-      refreshMembers();
-      setIsDeleteDialogOpen(false);
-      setMemberToDelete(null);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo completar la acción. Por favor, inténtalo de nuevo.',
-        type: 'destructive',
-      });
-    }
-  };
-
-
-  const handleBulkDelete = async () => {
-    if (selectedMembers.size === 0) return;
-
-    try {
-      const deletePromises = Array.from(selectedMembers).map((id: string) =>
-        deleteMember(id).then(() => ({
-          success: true as const,
-          id
-        })).catch((error: Error) => {
-          console.error(`Error al eliminar miembro ${id}:`, error);
-          return {
-            success: false as const,
-            id
-          };
-        })
-      );
-
-      const results = await Promise.all(deletePromises);
-      const successCount = results.filter((r: { success: boolean }) => r.success).length;
-
-      if (successCount > 0) {
-        toast({
-          title: 'Eliminación completada',
-          description: `Se eliminaron ${successCount} miembros correctamente.`,
-        });
-      }
-
-      if (successCount < selectedMembers.size) {
-        toast({
-          title: 'Atención',
-          description: `No se pudieron eliminar ${selectedMembers.size - successCount} miembros.`,
-          type: 'warning',
-        });
-      }
-
-      setSelectedMembers(new Set());
-      setIsDeleteDialogOpen(false);
-      refreshMembers();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo completar la acción. Por favor, inténtalo de nuevo.',
-        type: 'destructive',
-      });
-    }
-  };
-
-
-  const handleStatusChange = async (memberId: string, status: 'ACTIVE' | 'SUSPENDED' | 'DELETED') => {
-    try {
-      await updateMemberStatus(memberId, status);
-      const statusText = {
-        'ACTIVE': 'Activo',
-        'SUSPENDED': 'Suspendido',
-        'DELETED': 'Eliminado'
-      }[status];
-
-      toast({
-        title: 'Estado actualizado',
-        description: `El estado del miembro ha sido actualizado a ${statusText}.`,
-      });
-      refreshMembers();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el estado del miembro. Por favor, inténtalo de nuevo.',
-        type: 'destructive',
-      });
-    }
-  };
-
-
-  const confirmBulkDelete = () => {
-    if (selectedMembers.size === 0) return;
-    setMemberToDelete(null);
-    setIsBulkDelete(true);
-    setIsDeleteDialogOpen(true);
-  };
+  const activeFiltersCount = [searchTerm, membershipStatus].filter(Boolean).length;
 
   return (
     <div className="space-y-6 mx-4 sm:mx-6 lg:mx-8">
@@ -174,196 +95,145 @@ export function MembersPage() {
             variant="outline"
             size="sm"
             className="h-9"
-            onClick={() => refreshMembers()}
+            onClick={() => refetch()}
             title="Actualizar lista de miembros"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
-          <Button
-            onClick={() => navigate('/admin/members/nuevo')}
-            className="whitespace-nowrap"
-          >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                <Download className="mr-2 h-4 w-4" />
+                Exportar
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('excel')}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar Excel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={() => navigate('/admin/members/nuevo')} size="sm" className="h-9">
             <Plus className="mr-2 h-4 w-4" />
             Nuevo Miembro
           </Button>
         </div>
       </div>
 
-      {/* Filtros mejorados */}
+      {/* Filtros */}
       <div className="space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-md">
             <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Buscar por nombre, email o documento..."
+              placeholder="Buscar por nombre, email o DNI..."
               className="pl-9 w-full bg-background"
               value={searchTerm}
               onChange={handleSearch}
             />
           </div>
 
-          <div className="w-full sm:w-48">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="Filtrar por estado" />
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Select value={membershipStatus} onValueChange={handleMembershipStatusChange}>
+              <SelectTrigger className="bg-background w-full sm:w-48">
+                <SelectValue placeholder="Estado de membresía" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="suspended">Suspendidos</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
+                <SelectItem value="ALL">Todos los estados</SelectItem>
+                <SelectItem value="ACTIVE">Activa</SelectItem>
+                <SelectItem value="EXPIRED">Vencida</SelectItem>
+                <SelectItem value="CANCELLED">Cancelada</SelectItem>
+                <SelectItem value="SUSPENDED">Suspendida</SelectItem>
+                <SelectItem value="PENDING">Pendiente</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
 
-        {/* Filtros activos */}
-        {(searchTerm || statusFilter !== 'all') && (
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Filtros activos:</span>
-            {searchTerm && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border bg-secondary/20 px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                Búsqueda: "{searchTerm}"
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="ml-1 rounded-full p-0.5 hover:bg-secondary/50"
-                >
-                  <span className="sr-only">Eliminar filtro de búsqueda</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                  </svg>
-                </button>
-              </span>
-            )}
-            {statusFilter !== 'all' && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border bg-secondary/20 px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                Estado: {
-                  statusFilter === 'active' ? 'Activos' :
-                    statusFilter === 'suspended' ? 'Suspendidos' : 'Inactivos'
-                }
-                <button
-                  onClick={() => setStatusFilter('all')}
-                  className="ml-1 rounded-full p-0.5 hover:bg-secondary/50"
-                >
-                  <span className="sr-only">Eliminar filtro de estado</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                  </svg>
-                </button>
-              </span>
-            )}
-            {(searchTerm || statusFilter !== 'all') && (
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('all');
-                }}
-                className="ml-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Limpiar todo
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Tabla de miembros */}
-      <div className="rounded-lg border bg-card">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="text-lg font-semibold">Lista de Miembros</h2>
-          <div className="flex items-center space-x-2">
-            {selectedMembers.size > 0 && (
+            {activeFiltersCount > 0 && (
               <Button
-                variant="destructive"
+                variant="ghost"
                 size="sm"
-                onClick={confirmBulkDelete}
-                className="h-8"
+                onClick={handleClearFilters}
+                className="shrink-0"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar ({selectedMembers.size})
+                <X className="h-4 w-4 mr-1" />
+                Limpiar ({activeFiltersCount})
               </Button>
             )}
           </div>
         </div>
-
-        <MembersTable
-          onEdit={(member) => navigate(`/admin/members/editar/${member.id}`)}
-          onView={(member) => navigate(`/admin/members/${member.id}`)}
-          onDelete={handleDelete}
-          onStatusChange={handleStatusChange}
-        />
       </div>
 
-      {/* Diálogo de confirmación para eliminar */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {isBulkDelete
-                ? `¿Eliminar ${selectedMembers.size} miembros seleccionados?`
-                : '¿Eliminar miembro?'}
-            </DialogTitle>
-            <DialogDescription>
-              {isBulkDelete ? (
-                'Esta acción eliminará permanentemente los miembros seleccionados y no se podrá deshacer.'
-              ) : (
-                <>
-                  ¿Estás seguro de que deseas eliminar a{' '}
-                  <span className="font-semibold">
-                    {memberToDelete?.firstName} {memberToDelete?.lastName}
-                  </span>
-                  ? Esta acción no se puede deshacer.
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              onClick={() =>
-                isBulkDelete ? handleBulkDelete() : handleDelete()
-              }
-            >
-              Eliminar
+      {/* Tabla */}
+      <div className="rounded-lg border bg-card">
+        <div className="flex items-center justify-between border-b p-4">
+          <div>
+            <h2 className="text-lg font-semibold">Lista de Miembros</h2>
+            {data && (
+              <p className="text-sm text-muted-foreground">
+                Mostrando {data.members.length} de {data.totalElements} miembros
+              </p>
+            )}
+          </div>
+        </div>
+
+        {isError ? (
+          <div className="p-8 text-center">
+            <p className="text-destructive">Error al cargar los miembros</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {error instanceof Error ? error.message : 'Error desconocido'}
+            </p>
+            <Button onClick={() => refetch()} variant="outline" className="mt-4">
+              Reintentar
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        ) : (
+          <>
+            <MembersTable
+              members={data?.members || []}
+              isLoading={isLoading}
+              selectedRows={selectedMembers}
+              onSelectionChange={setSelectedMembers}
+              onView={(member) => navigate(`/admin/members/${member.userId}`)}
+
+            />
+
+            {data && data.totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  Página {page + 1} de {data.totalPages}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                  >
+                    Anterior
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.min(data.totalPages - 1, p + 1))}
+                    disabled={page >= data.totalPages - 1 || data.last}
+                  >
+                    Siguiente
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+
     </div>
-  );
-}
-
-
-function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
   );
 }

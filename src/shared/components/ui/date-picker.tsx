@@ -9,32 +9,39 @@ import {
   PopoverTrigger,
 } from "./popover"
 
+interface DatePickerProps {
+  selected: Date | undefined
+  onChange: (date: Date | undefined) => void
+  className?: string
+  minDate?: Date
+  maxDate?: Date
+  placeholderText?: string
+  id?: string
+}
+
 export function DatePicker({
   selected,
   onChange,
   className,
   minDate,
   maxDate,
-}: {
-  selected: Date | undefined
-  onChange: (date: Date | undefined) => void
-  className?: string
-  minDate?: Date
-  maxDate?: Date
-}) {
+  placeholderText = 'Pick a date',
+  ...props
+}: DatePickerProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant={"outline"}
+          variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal",
             !selected && "text-muted-foreground",
             className
           )}
+          id={props.id}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {selected ? format(selected, "PPP") : <span>Selecciona una fecha</span>}
+          {selected ? format(selected, "PPP") : <span>{placeholderText}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">

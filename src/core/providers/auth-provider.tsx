@@ -4,16 +4,19 @@ import { PageLoader } from "@/shared/components/page-loader";
 import type { PropsWithChildren } from "react";
 
 export const CheckAuthProvider = ({ children }: PropsWithChildren) => {
-    const { checkAuthStatus } = useAuthStore()
+	const { checkAuthStatus, authStatus } = useAuthStore();
+	const { isLoading } = useQuery({
+		queryKey: ["auth"],
+		queryFn: async () => {
+			if (authStatus === "authenticated") {
+				return true;
+			}
+			return checkAuthStatus();
+		},
+		retry: false,
+		refetchOnWindowFocus: true,
+	});
+	if (isLoading) return <PageLoader />;
 
-    const { isLoading } = useQuery({
-        queryKey: ['auth'],
-        queryFn: checkAuthStatus,
-        retry: false,
-        refetchInterval: 1000 * 60 * 1.5,
-        refetchOnWindowFocus: true
-    })
-    if (isLoading) return <PageLoader />
-
-    return children;
-}
+	return children;
+};

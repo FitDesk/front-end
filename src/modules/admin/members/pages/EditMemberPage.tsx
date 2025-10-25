@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { useToast } from '@/shared/components/ui/toast';
 import { MemberForm } from '../components/MemberForm';
@@ -16,24 +15,7 @@ export function EditMemberPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  console.log('=== EditMemberPage renderizado ===');
-  console.log('ID del parámetro de la URL:', id);
-  
   const { member, isLoading, error, refetch } = useMember(id);
-
-  // Efecto para depuración
-  useEffect(() => {
-    console.log('=== Efecto en EditMemberPage ===');
-    console.log('ID del miembro:', id);
-    console.log('Estado de carga:', isLoading);
-    console.log('Error:', error);
-    console.log('Datos del miembro:', member);
-    
-    // Verificar si el ID está definido
-    if (!id) {
-      console.error('Error: No se proporcionó un ID de miembro en la URL');
-    }
-  }, [id, isLoading, error, member]);
 
   const handleSuccess = () => {
     toast({
@@ -44,7 +26,6 @@ export function EditMemberPage() {
   };
 
   const handleRetry = () => {
-    console.log('Reintentando cargar los datos del miembro...');
     refetch();
   };
 

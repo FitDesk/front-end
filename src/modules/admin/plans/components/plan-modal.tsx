@@ -1,12 +1,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/animated/dialog';
-import type { Plan } from './plans-columns';
 import type { FormValues } from './plan-form';
 import { PlanForm } from './plan-form';
+import type { PlanResponse } from '@/core/interfaces/plan.interface';
 
 type PlanModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  plan?: Plan;
+  plan?: PlanResponse;
   onSubmit: (values: FormValues) => void;
   isLoading?: boolean;
 };

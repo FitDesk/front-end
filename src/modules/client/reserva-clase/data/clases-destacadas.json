@@ -1,0 +1,54 @@
+{
+  "clasesDestacadas": [
+    {
+      "id": "1",
+      "nombre": "Funcional Training",
+      "instructor": "Carlos Mendoza",
+      "rating": 4.8,
+      "imagen": "https://img.freepik.com/foto-gratis/gente-tiro-completo-entrenando-juntas-gimnasio_23-2150290026.jpg?t=st=1760303773~exp=1760307373~hmac=8ee306a62d1443be0680b2adb5376a3bb754d796c3eadb5d867511f48efe1d9e&w=1060",
+      "descripcion": "Entrenamiento completo que combina fuerza, resistencia y coordinación. Ideal para mejorar el rendimiento físico diario.",
+      "etiquetas": "#Fuerza #Coordinación #Resistencia"
+    },
+    {
+      "id": "2",
+      "nombre": "Cardio Burn",
+      "instructor": "María López",
+      "rating": 4.9,
+      "imagen": "https://img.freepik.com/foto-gratis/personas-que-hacen-ciclismo-interiores_23-2149270267.jpg?t=st=1760304623~exp=1760308223~hmac=c5a6e4c8356f39a6f8d8c7e1006d893269c91a18fecee512c44ff90e174ebb50&w=1060",
+      "descripcion": "Entrenamiento cardiovascular con música motivadora para quemar calorías y mejorar tu resistencia.",
+      "etiquetas": "#Cardio #Energía #Motivación"
+    },
+    {
+      "id": "3",
+      "nombre": "Cross Training",
+      "instructor": "Roberto Silva",
+      "rating": 4.7,
+      "imagen": "https://img.freepik.com/foto-gratis/adulto-joven-haciendo-deporte-interior-gimnasio_23-2149205551.jpg?t=st=1760304320~exp=1760307920~hmac=b6aaa9d72579ab79b45355b38576e4516b0b4f4b2b9e569963dbf7590a5d31ed&w=1060",
+      "descripcion": "Rutinas funcionales con pesas, cuerdas y ejercicios de alta intensidad. ¡Desafía tus límites!",
+      "etiquetas": "#CrossFit #Desafío #FuerzaTotal"
+    },
+    {
+      "id": "4",
+      "nombre": "Box Fit",
+      "instructor": "Diego Morales",
+      "rating": 4.6,
+      "imagen": "https://img.freepik.com/foto-gratis/hombre-entrenando-saco-boxeo_23-2148353091.jpg?t=st=1760304393~exp=1760307993~hmac=0feecf7d6e31d5922d144780f9b8537202ddcb39d19559729ff96bc129a0294d&w=1060",
+      "descripcion": "Entrenamiento de boxeo sin contacto. Mejora fuerza, agilidad y libera estrés.",
+      "etiquetas": "#Boxeo #Cardio #Poder"
+    },
+    {
+      "id": "5",
+      "nombre": "Entrenamiento Personalizado",
+      "instructor": "Ana García",
+      "rating": 5.0,
+      "imagen": "https://img.freepik.com/foto-gratis/pareja-gimnasio_1303-5511.jpg?t=st=1760304468~exp=1760308068~hmac=eb4f2fdd102b2913f667afb2b1b3646f134c7e41914882e22a5cbaaeab0efcaa&w=1060",
+      "descripcion": "Sesiones 1 a 1 con tu coach para alcanzar objetivos específicos con seguimiento constante.",
+      "etiquetas": "#PersonalCoach #Objetivos #Progreso"
+    }
+  ],
+  "estadisticas": {
+    "recetasPositivas": 1300,
+    "videosEjercicios": 1000,
+    "instructores": 1500
+  }
+}

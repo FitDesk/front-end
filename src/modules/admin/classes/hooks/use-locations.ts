@@ -1,77 +1,122 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fitdeskApi } from '@/core/api/fitdeskApi';
-import type { Location, CreateLocationDTO, UpdateLocationDTO } from '../types/location';
+import { useEffect } from 'react';
+import { locationService } from '../services/location.service';
+import type { LocationRequest, Location } from '../types/location';
 
-export function useLocations() {
+interface LocationFilters {
+  searchTerm?: string;
+  status?: 'active' | 'inactive';
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+interface LocationResponse {
+  data: Location[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export function useLocations(filters: LocationFilters = {}) {
   const queryClient = useQueryClient();
- 
-  const LOCATIONS_ENDPOINT = '/admin/locations';
 
- 
+
+  const prefetchLocations = async (page: number) => {
+    const nextPageFilters = { ...filters, page };
+    await queryClient.prefetchQuery<LocationResponse>({
+      queryKey: ['locations', nextPageFilters],
+      queryFn: () => locationService.getAll(nextPageFilters),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+
+  useEffect(() => {
+    const nextPage = (filters.page || 1) + 1;
+    prefetchLocations(nextPage).catch(console.error);
+  }, [filters, prefetchLocations]);
+
   const { 
-    data: locations = [], 
+    data: response = { 
+      data: [], 
+      pagination: { 
+        page: 1, 
+        limit: 10, 
+        total: 0, 
+        totalPages: 0 
+      } 
+    }, 
     isLoading, 
-    error 
-  } = useQuery<Location[]>({
-    queryKey: ['locations'],
+    error
+  } = useQuery<LocationResponse>({
+    queryKey: ['locations', filters],
     queryFn: async () => {
       try {
-        const response = await fitdeskApi.get<Location[]>(LOCATIONS_ENDPOINT);
-        return response.data || [];
+        console.log('Fetching locations from API with filters:', filters);
+        const result = await locationService.getAll(filters);
+        return result;
       } catch (error) {
         console.error('Error fetching locations:', error);
-        return [];
+        throw error;
       }
-    }
+    },
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
   });
+  
+  const { data: locations = [], pagination } = response;
 
- 
-  const createMutation = useMutation<Location, Error, CreateLocationDTO>({
-    mutationFn: async (data: CreateLocationDTO) => {
-      const response = await fitdeskApi.post<Location>(LOCATIONS_ENDPOINT, data);
-      if (!response.data) {
+  const createMutation = useMutation({
+    mutationFn: async (data: LocationRequest) => {
+      const result = await locationService.create(data);
+      if (!result) {
         throw new Error('Failed to create location');
       }
-      return response.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
     },
   });
 
-  
-  const updateMutation = useMutation<Location, Error, UpdateLocationDTO>({
-    mutationFn: async ({ id, ...data }: UpdateLocationDTO) => {
-      const response = await fitdeskApi.put<Location>(`${LOCATIONS_ENDPOINT}/${id}`, data);
-      if (!response.data) {
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: LocationRequest }) => {
+      const result = await locationService.update(id, data);
+      if (!result) {
         throw new Error('Failed to update location');
       }
-      return response.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
     },
   });
 
-  
-  const deleteMutation = useMutation<boolean, Error, string>({
+  const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await fitdeskApi.delete(`${LOCATIONS_ENDPOINT}/${id}`);
-      return true;
+      const success = await locationService.delete(id);
+      if (!success) {
+        throw new Error('Failed to delete location');
+      }
+      return success;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
     },
   });
 
-  
-  const toggleStatusMutation = useMutation<Location, Error, { id: string; isActive: boolean }>({
-    mutationFn: async ({ id, isActive }) => {
-      const response = await fitdeskApi.put<Location>(`${LOCATIONS_ENDPOINT}/${id}`, { isActive });
-      if (!response.data) {
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const result = await locationService.toggleStatus(id, isActive);
+      if (!result) {
         throw new Error('Failed to update location status');
       }
-      return response.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
@@ -80,8 +125,9 @@ export function useLocations() {
 
   return {
     locations,
+    pagination,
     isLoading,
-    error: error as Error | null,
+    error,
     createLocation: createMutation.mutateAsync,
     updateLocation: updateMutation.mutateAsync,
     deleteLocation: deleteMutation.mutateAsync,

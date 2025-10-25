@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
 import type { Trainer } from '../types';
 
 interface TrainerState {
@@ -9,14 +10,20 @@ interface TrainerState {
 }
 
 export const useTrainerStore = create<TrainerState>()(
-  devtools(
-    (set) => ({
-      currentTrainer: null,
-      setCurrentTrainer: (trainer) => set({ currentTrainer: trainer }),
-      resetCurrentTrainer: () => set({ currentTrainer: null }),
-    }),
-    {
-      name: 'trainer-storage',
-    }
+  persist(
+    devtools(
+      immer((set) => ({
+        currentTrainer: null,
+        setCurrentTrainer: (trainer) => 
+          set((state) => {
+            state.currentTrainer = trainer;
+          }),
+        resetCurrentTrainer: () => 
+          set((state) => {
+            state.currentTrainer = null;
+          }),
+      }))
+    ),
+    { name: 'trainer-storage' }
   )
 );

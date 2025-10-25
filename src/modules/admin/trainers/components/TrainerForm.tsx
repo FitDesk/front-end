@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { trainerService } from '../services/trainer.service';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
@@ -58,7 +57,8 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
 
   const form = useForm<TrainerFormData>({
     resolver: zodResolver(TrainerSchema) as any, 
-    defaultValues,
+    defaultValues: defaultValues,
+    mode: 'onChange',
   });
 
   const {
@@ -72,17 +72,46 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
   
   useEffect(() => {
     if (trainer) {
-      const formattedTrainer = {
-        ...trainer,
-        birthDate: trainer.birthDate ? trainer.birthDate.split('T')[0] : '',
-        joinDate: trainer.joinDate ? trainer.joinDate.split('T')[0] : new Date().toISOString().split('T')[0],
+     
+      const formatDateForForm = (dateString: string) => {
+        if (!dateString) return '';
+        if (dateString.includes('-') && dateString.split('-')[0].length === 4) {
+          return dateString;
+        }
+ 
+        if (dateString.includes('-') && dateString.split('-')[0].length === 2) {
+          const [day, month, year] = dateString.split('-');
+          return `${year}-${month}-${day}`;
+        }
+        return dateString;
       };
-      reset(formattedTrainer);
-      if (trainer.profileImage) {
+
+ 
+      const formattedBirthDate = formatDateForForm(trainer.birthDate || '');
+      const formattedJoinDate = formatDateForForm(trainer.joinDate || '');
+    
+      reset({
+        ...trainer,
+        birthDate: formattedBirthDate,
+        joinDate: formattedJoinDate,
+        availability: trainer.availability || {}
+      });
+      
+  
+      setValue('birthDate', formattedBirthDate);
+      setValue('joinDate', formattedJoinDate);
+      
+  
+      if (trainer.availability) {
+        Object.keys(trainer.availability).forEach(day => {
+          setValue(`availability.${day}`, trainer.availability[day]);
+        });
+      }
+      if (trainer.profileImage && typeof trainer.profileImage === 'string') {
         setPreviewImage(trainer.profileImage);
       }
     }
-  }, [trainer, reset, setPreviewImage]);
+  }, [trainer, reset, setValue]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,7 +125,7 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
     setIsUploading(true);
     
     try {
-      
+   
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
@@ -104,14 +133,11 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
       reader.readAsDataURL(file);
 
       
-      const { url } = await trainerService.uploadFile(file, 'profile');
-      
-      
-      setValue('profileImage', url);
-      toast.success('Imagen subida exitosamente');
+      setValue('profileImage', file);
+      toast.success('Imagen seleccionada correctamente');
     } catch (error) {
-      console.error('Error al subir la imagen:', error);
-      toast.error('Error al subir la imagen');
+      console.error('Error al procesar la imagen:', error);
+      toast.error('Error al procesar la imagen');
     } finally {
       setIsUploading(false);
     }
@@ -158,38 +184,102 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
       setIsSubmitting(true);
       const formDataObj = new FormData();
       
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (key === 'birthDate' && value instanceof Date) {
-            formDataObj.append(key, value.toISOString().split('T')[0]);
-          } else if (Array.isArray(value)) {
-            
-            value.forEach((item, index) => {
-              formDataObj.append(`${key}[${index}]`, item);
-            });
-          } else if (value instanceof File) {
-            formDataObj.append(key, value);
-          } else if (typeof value === 'object' && value !== null) {
-            
-            Object.entries(value).forEach(([nestedKey, nestedValue]) => {
-              if (nestedValue !== undefined && nestedValue !== null) {
-                formDataObj.append(`${key}.${nestedKey}`, nestedValue.toString());
-              }
-            });
-          } else if (value !== undefined && value !== null) {
-            formDataObj.append(key, value.toString());
-          }
-        }
-      });
+      
+      const formatDateForBackend = (dateString: string) => {
+        if (!dateString) return '';
+        const [year, month, day] = dateString.split('-');
+        return `${day}-${month}-${year}`;
+      };
+
+     
+      const mapGender = (gender: string) => {
+        const genderMap: Record<string, string> = {
+          'MALE': 'MASCULINO',
+          'FEMALE': 'FEMENINO',
+          'OTHER': 'OTRO'
+        };
+        return genderMap[gender] || gender;
+      };
 
     
-      if (previewImage) {
-        formDataObj.append('profilePhoto', previewImage);
+      const mapStatus = (status: string) => {
+        const statusMap: Record<string, string> = {
+          'ACTIVE': 'ACTIVO',
+          'INACTIVE': 'INACTIVO',
+          'SUSPENDED': 'SUSPENDIDO'
+        };
+        return statusMap[status] || status;
+      };
+
+      
+      const mapContractType = (contractType: string) => {
+        const contractMap: Record<string, string> = {
+          'FULL_TIME': 'TIEMPO_COMPLETO',
+          'PART_TIME': 'MEDIO_TIEMPO',
+          'FREELANCE': 'INDEPENDIENTE',
+          'PER_HOUR': 'TEMPORAL'
+        };
+        return contractMap[contractType] || contractType;
+      };
+
+      
+      const mapAvailability = (availability: string[]) => {
+        const dayMap: Record<string, string> = {
+          'lunes': 'LUNES',
+          'Lunes': 'LUNES',
+          'martes': 'MARTES',
+          'Martes': 'MARTES',
+          'miercoles': 'MIERCOLES',
+          'Miércoles': 'MIERCOLES',
+          'jueves': 'JUEVES',
+          'Jueves': 'JUEVES',
+          'viernes': 'VIERNES',
+          'Viernes': 'VIERNES',
+          'sabado': 'SABADO',
+          'sábado': 'SABADO',
+          'Sábado': 'SABADO',
+          'domingo': 'DOMINGO',
+          'Domingo': 'DOMINGO'
+        };
+        return availability.map(day => {
+          return dayMap[day] || day.toUpperCase().replace(/[ÁÉÍÓÚ]/g, match => {
+            const accents: Record<string, string> = { 'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U' };
+            return accents[match] || match;
+          });
+        });
+      };
+
+      
+      const trainerData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dni: data.documentNumber,
+        birthDate: formatDateForBackend(data.birthDate),
+        gender: mapGender(data.gender),
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+        specialties: data.specialties,
+        yearsOfExperience: data.yearsOfExperience,
+        availability: mapAvailability(Object.keys(data.availability).filter(day => data.availability[day])),
+        hireDate: formatDateForBackend(data.joinDate),
+        status: mapStatus(data.status),
+        contractType: mapContractType(data.contractType),
+        salaryPerClass: data.salary,
+        bankInfo: data.bankInfo,
+        notes: data.notes
+      };
+
+
+      formDataObj.append('trainer', JSON.stringify(trainerData));
+    
+      if (previewImage && typeof previewImage === 'object' && 'name' in previewImage) {
+        formDataObj.append('profileImage', previewImage as File);
       }
 
       
-      certifications.forEach((file, index) => {
-        formDataObj.append(`certifications[${index}]`, file);
+      certifications.forEach((file) => {
+        formDataObj.append('certifications', file);
       });
 
       if (trainer?.id) {
@@ -211,10 +301,7 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
   };
 
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      void handleSubmit(onSubmit)(e);
-    }} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {isSubmitting && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded-lg flex items-center gap-2">
@@ -515,20 +602,6 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
                   </div>
                 )}
               />
-              {form.watch(`availability.${day.toLowerCase()}`) && (
-                <div className="flex-1 grid grid-cols-2 gap-2">
-                  <Input
-                    type="time"
-                    {...form.register(`startTime`)}
-                    placeholder="Hora de inicio"
-                  />
-                  <Input
-                    type="time"
-                    {...form.register(`endTime`)}
-                    placeholder="Hora de fin"
-                  />
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -655,9 +728,10 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
         </Button>
         <Button
           type="submit"
-          disabled={form.formState.isSubmitting}
+          disabled={isSubmitting}
+          className="cursor-pointer hover:bg-primary/90 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {form.formState.isSubmitting ? (
+          {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Guardando...

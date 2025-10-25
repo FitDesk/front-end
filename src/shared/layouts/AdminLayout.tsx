@@ -1,14 +1,9 @@
-'use client';
-
 import { useState } from 'react';
 
 import { AdminSidebar } from '@/modules/admin/components/ui/admin-sidebar';
 import { DashboardHeader } from '@/modules/admin/components/ui/dashboard-header';
 import { Outlet } from 'react-router';
 import { SidebarInset, SidebarProvider } from '../components/animated/sidebar';
-
-
-
 
 
 export default function AdminDashboard() {
@@ -31,14 +26,18 @@ export default function AdminDashboard() {
         <SidebarProvider>
             <AdminSidebar />
             <SidebarInset>
-                <DashboardHeader
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    onRefresh={handleRefresh}
-                    onExport={handleExport}
-                    isRefreshing={isRefreshing}
-                />
-                <Outlet />
+                <div className="px-4 md:px-6 py-4">
+                    <DashboardHeader
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        onRefresh={handleRefresh}
+                        onExport={handleExport}
+                        isRefreshing={isRefreshing}
+                    />
+                    <main className="mt-6">
+                        <Outlet />
+                    </main>
+                </div>
             </SidebarInset>
         </SidebarProvider>
     );

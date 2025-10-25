@@ -1,5 +1,5 @@
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { format, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
@@ -29,28 +29,28 @@ import { Switch } from '@/shared/components/ui/switch';
 
 import { 
   DURATION_OPTIONS, 
-  ClassSchema,
   type Class, 
-  type CreateClassDTO, 
-  type DayOfWeek
+  type ClassRequest
 } from '../types/class';
-import { useTrainers } from '../../trainers/hooks/use-trainers';
+import { useTrainersForSelect } from '../../trainers/hooks/use-trainers';
 import { useLocations } from '../hooks/use-locations';
 
-export type ClassFormValues = Omit<CreateClassDTO, 'id' | 'createdAt' | 'updatedAt' | 'dayOfWeek' | 'startTime'> & {
-  date: Date;
-  time: string;
-  name: string;
+export type ClassFormValues = {
+  className: string;
+  locationId: string;
   trainerId: string;
-  location: string;
+  date: Date;
   duration: number;
-  isActive: boolean;
+  maxCapacity: number;
+  startTime: string;
+  endTime: string;
+  active: boolean;
   description?: string;
 };
 
 type ClassFormProps = {
   initialData?: Class | null;
-  onSubmit: (data: CreateClassDTO) => void;
+  onSubmit: (data: ClassRequest) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 };
@@ -61,57 +61,106 @@ export function ClassForm({
   onCancel, 
   isSubmitting 
 }: ClassFormProps) {
-  const { trainers = [], isLoading: isLoadingTrainers, error: trainersError } = useTrainers();
+  const { trainers = [], isLoading: isLoadingTrainers, error: trainersError } = useTrainersForSelect();
   const { locations = [], isLoading: isLoadingLocations } = useLocations();
+  const [dataLoaded, setDataLoaded] = useState(false);
   
   const form = useForm<ClassFormValues>({
-    resolver: zodResolver(ClassSchema as any),
     defaultValues: initialData ? {
-      ...initialData,
-      date: new Date(initialData.startTime ? parseISO(initialData.startTime) : addDays(new Date(), 1)),
-      time: initialData.startTime ? format(parseISO(initialData.startTime), 'HH:mm') : '09:00',
+      className: initialData.className || '',
+      description: initialData.description || '',
+      trainerId: '', 
+      locationId: '', 
+      date: initialData.classDate ? (() => {
+
+        let parsedDate: Date;
+        if (typeof initialData.classDate === 'string' && initialData.classDate.includes('-')) {
+          const [day, month, year] = initialData.classDate.split('-');
+          parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else {
+          parsedDate = parseISO(initialData.classDate);
+        }
+        
+        if (isNaN(parsedDate.getTime())) {
+          console.error('Invalid date in form:', initialData.classDate);
+          return addDays(new Date(), 1);
+        }
+        
+        return parsedDate;
+      })() : addDays(new Date(), 1),
+      startTime: initialData.schedule ? initialData.schedule.split(' - ')[0] : '09:00',
+      endTime: initialData.schedule ? initialData.schedule.split(' - ')[1] : '10:00',
+      duration: initialData.duration || 60,
+      maxCapacity: initialData.maxCapacity || 1,
+      active: initialData.active ?? true,
     } : {
-      name: '',
+      className: '',
       description: '',
       trainerId: '',
-      location: '',
-      date: new Date(),
-      time: '09:00',
+      locationId: '',
+      date: addDays(new Date(), 1),
+      startTime: '09:00',
+      endTime: '10:00',
       duration: 60,
-      isActive: true,
+      maxCapacity: 1,
+      active: true,
     },
   });
 
   const handleFormSubmit = (formData: ClassFormValues) => {
-    const [hours, minutes] = formData.time.split(':').map(Number);
-    const startTime = new Date(formData.date);
-    startTime.setHours(hours, minutes, 0, 0);
 
-    const selectedLocation = locations.find(loc => loc.id === formData.location);
-    
-    if (!selectedLocation) {
-      console.error('No se encontró la ubicación seleccionada');
+    if (!formData.className || formData.className.length < 3) {
+      form.setError('className', {
+        type: 'manual',
+        message: 'El nombre debe tener al menos 3 caracteres'
+      });
       return;
     }
 
+    if (!formData.locationId) {
+      form.setError('locationId', {
+        type: 'manual',
+        message: 'Selecciona una ubicación'
+      });
+      return;
+    }
+
+    if (!formData.trainerId) {
+      form.setError('trainerId', {
+        type: 'manual',
+        message: 'Selecciona un entrenador'
+      });
+      return;
+    }
+
+
+    const [startHour, startMin] = formData.startTime.split(':').map(Number);
+    const [endHour, endMin] = formData.endTime.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
     
-    const classData: CreateClassDTO = {
-      ...formData,
-      startTime: startTime.toISOString(),
-      dayOfWeek: getDayOfWeek(startTime.getDay()),
-      capacity: selectedLocation.capacity,
+    if (endMinutes <= startMinutes) {
+      form.setError('endTime', {
+        type: 'manual',
+        message: 'La hora de fin debe ser posterior a la hora de inicio'
+      });
+      return;
+    }
+
+    const classData: ClassRequest = {
+      className: formData.className,
+      locationId: formData.locationId,
+      trainerId: formData.trainerId,
+      classDate: format(formData.date, 'dd-MM-yyyy'),
+      duration: formData.duration,
+      maxCapacity: formData.maxCapacity,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      active: formData.active,
+      description: formData.description,
     };
 
-
-    delete (classData as any).date;
-    delete (classData as any).time;
-
     onSubmit(classData);
-  };
-
-  const getDayOfWeek = (day: number): DayOfWeek => {
-    const days: DayOfWeek[] = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    return days[day];
   };
 
   const generateTimeOptions = () => {
@@ -122,10 +171,35 @@ export function ClassForm({
     return times;
   };
 
-  const selectedLocation = locations.find(loc => loc.id === form.watch('location'));
+  const selectedLocationId = form.watch('locationId');
+  const selectedLocation = locations.find(loc => loc.id === selectedLocationId);
   const capacity = selectedLocation?.capacity || 0;
 
- 
+
+  useEffect(() => {
+    if (initialData && trainers.length > 0 && locations.length > 0 && !dataLoaded) {
+      // Buscar el entrenador por nombre
+      const trainer = trainers.find(t => t.name === initialData.trainerName);
+      if (trainer?.id) {
+        form.setValue('trainerId', trainer.id);
+      }
+      
+      const location = locations.find(l => l.name === initialData.locationName);
+      if (location?.id) {
+        form.setValue('locationId', location.id);
+      }
+      
+      setDataLoaded(true);
+    }
+  }, [initialData?.id, trainers.length, locations.length]);
+
+
+  useEffect(() => {
+    if (selectedLocation?.capacity) {
+      form.setValue('maxCapacity', selectedLocation.capacity);
+    }
+  }, [selectedLocationId]);
+
   const renderFormButtons = () => (
     <div className="flex justify-end space-x-4">
       <Button 
@@ -151,7 +225,7 @@ export function ClassForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="name"
+            name="className"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nombre de la Clase</FormLabel>
@@ -186,7 +260,7 @@ export function ClassForm({
                     ) : Array.isArray(trainers) && trainers.length > 0 ? (
                       trainers.map((trainer) => (
                         <SelectItem key={trainer.id} value={trainer.id || ''}>
-                          {`${trainer.firstName || ''} ${trainer.lastName || ''}`.trim()}
+                          {trainer.name}
                         </SelectItem>
                       ))
                     ) : (
@@ -201,7 +275,7 @@ export function ClassForm({
 
           <FormField
             control={form.control}
-            name="location"
+            name="locationId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ubicación</FormLabel>
@@ -368,10 +442,38 @@ export function ClassForm({
 
           <FormField
             control={form.control}
-            name="time"
+            name="startTime"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Hora de Inicio</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona una hora" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {generateTimeOptions().map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="endTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Hora de Fin</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value}
@@ -424,7 +526,7 @@ export function ClassForm({
 
           <FormField
             control={form.control}
-            name="isActive"
+            name="active"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">

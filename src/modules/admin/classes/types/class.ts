@@ -1,6 +1,60 @@
 import { z } from 'zod';
 
 
+export interface ClassRequest {
+  className: string;
+  locationId: string;
+  trainerId: string;
+  classDate: string; 
+  duration: number;
+  maxCapacity: number;
+  startTime: string;
+  endTime: string;
+  active: boolean;
+  description?: string;
+}
+
+export interface ClassResponse {
+  id: string;
+  className: string;
+  locationName: string;
+  trainerName: string;
+  classDate: string;
+  duration: number;
+  maxCapacity: number;
+  schedule: string;
+  active: boolean;
+  description?: string;
+}
+
+export interface CalendarClassDTO {
+  id: string;
+  className: string;
+  trainerName: string;
+  classDate: string;
+  startTime: string;
+  endTime: string;
+  schedule: string;
+  locationName: string;
+  currentStudents: number;
+  maxCapacity: number;
+  action: string;
+}
+
+
+export interface Class {
+  id: string;
+  className: string;
+  locationName: string;
+  trainerName: string;
+  classDate: string;
+  duration: number;
+  maxCapacity: number;
+  schedule: string;
+  active: boolean;
+  description?: string;
+}
+
 export const DayOfWeekEnum = {
   MONDAY: 'Lunes',
   TUESDAY: 'Martes',
@@ -13,33 +67,40 @@ export const DayOfWeekEnum = {
 
 export type DayOfWeek = typeof DayOfWeekEnum[keyof typeof DayOfWeekEnum];
 
-
-export type Location = string;
-
 export const DAYS_OF_WEEK = Object.values(DayOfWeekEnum);
 
 export const DURATION_OPTIONS = [30, 45, 60, 90] as const;
 export type DurationOption = typeof DURATION_OPTIONS[number];
 
 
-const DayOfWeekSchema = z.nativeEnum(DayOfWeekEnum);
 
-
+// Schema 
 export const ClassSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
-  trainerId: z.string().min(1, 'Selecciona un entrenador'),
-  dayOfWeek: DayOfWeekSchema,
-  startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida'),
+  className: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+  locationId: z.string().uuid('Selecciona una ubicación válida').min(1, 'Selecciona una ubicación'),
+  trainerId: z.string().uuid('Selecciona un entrenador válido').min(1, 'Selecciona un entrenador'),
+  classDate: z.string().min(1, 'Selecciona una fecha'),
   duration: z.number().min(30, 'La duración mínima es de 30 minutos'),
-  capacity: z.number().min(1, 'La capacidad debe ser mayor a 0'),
-  location: z.string().min(1, 'Selecciona una ubicación'),
+  maxCapacity: z.number().min(1, 'La capacidad debe ser mayor a 0'),
+  startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida (formato HH:mm)'),
+  endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida (formato HH:mm)'),
+  active: z.boolean().default(true),
   description: z.string().optional(),
-  isActive: z.boolean().default(true),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional()
 });
 
-export type Class = z.infer<typeof ClassSchema>;
-export type CreateClassDTO = Omit<Class, 'id' | 'createdAt' | 'updatedAt'>;
-export type UpdateClassDTO = Partial<CreateClassDTO> & { id: string };
+
+export const ClassFormSchema = z.object({
+  className: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+  locationId: z.string().min(1, 'Selecciona una ubicación'),
+  trainerId: z.string().min(1, 'Selecciona un entrenador'),
+  date: z.date(),
+  duration: z.number().min(30, 'La duración mínima es de 30 minutos'),
+  maxCapacity: z.number().min(1, 'La capacidad debe ser mayor a 0'),
+  startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida (formato HH:mm)'),
+  endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida (formato HH:mm)'),
+  active: z.boolean().default(true),
+  description: z.string().optional(),
+});
+
+export type CreateClassDTO = ClassRequest;
+export type UpdateClassDTO = Partial<ClassRequest> & { id: string };

@@ -1,14 +1,31 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Search, Loader2, MapPin, Users, Filter, Edit, Trash2, Check, XCircle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
+import { Dialog, DialogContent } from '@/shared/components/animated/dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from '@/shared/components/ui/dropdown-menu';
 import { useLocations } from '../hooks/use-locations';
 import { LocationForm } from '../components/location-form';
-import type { Location } from '../types/location';
+import type { Location, LocationRequest } from '../types/location';
 
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 const useToast = () => ({
   toast: (data: { title: string; description: string; variant?: 'default' | 'destructive' }) => {
@@ -30,9 +47,21 @@ export default function LocationsPage() {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  
+  const filters = useMemo(() => ({
+    searchTerm: debouncedSearchQuery || undefined,
+    status: statusFilter !== 'ALL' ? statusFilter.toLowerCase() as 'active' | 'inactive' : undefined,
+    page: currentPage,
+    limit: 12, 
+  }), [debouncedSearchQuery, statusFilter, currentPage]);
   
   const {
     locations,
+    pagination,
     isLoading,
     error,
     createLocation,
@@ -43,30 +72,22 @@ export default function LocationsPage() {
     isUpdating,
     isDeleting,
     isToggling
-  } = useLocations();
+  } = useLocations(filters);
 
-  const filteredLocations = useMemo(() => {
-    return locations.filter(location => {
-      const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (location.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-      
-      const matchesStatus = statusFilter === 'ALL' || 
-                          (statusFilter === 'ACTIVE' && location.isActive) ||
-                          (statusFilter === 'INACTIVE' && !location.isActive);
-      
-      return matchesSearch && matchesStatus;
-    });
-  }, [locations, searchQuery, statusFilter]);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); 
+  };
 
-  const handleSubmit = async (data: any) => {
+
+  const handleSubmit = async (data: LocationRequest) => {
     try {
       if (selectedLocation?.id) {
        
-        const updateData = {
+        await updateLocation({
           id: selectedLocation.id,
-          ...data
-        };
-        await updateLocation(updateData);
+          data
+        });
         toast({
           title: 'Ubicación actualizada',
           description: 'La ubicación ha sido actualizada correctamente',
@@ -180,71 +201,73 @@ export default function LocationsPage() {
             Gestiona las ubicaciones disponibles para tus clases
           </p>
         </div>
-        <Button 
-          onClick={() => {
-            setSelectedLocation(null);
-            setIsFormOpen(true);
-          }}
-          className="w-full md:w-auto"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Nueva Ubicación
-        </Button>
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar ubicaciones..."
+              className="pl-9 w-64"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className={statusFilter !== 'ALL' ? 'bg-primary/10 border-primary/20' : ''}
+              >
+                <Filter className={`h-4 w-4 ${statusFilter !== 'ALL' ? 'text-primary' : ''}`} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === 'ALL'}
+                onCheckedChange={() => {
+                  setStatusFilter('ALL');
+                  setCurrentPage(1);
+                }}
+              >
+                Todas
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === 'ACTIVE'}
+                onCheckedChange={() => {
+                  setStatusFilter('ACTIVE');
+                  setCurrentPage(1);
+                }}
+              >
+                Activas
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === 'INACTIVE'}
+                onCheckedChange={() => {
+                  setStatusFilter('INACTIVE');
+                  setCurrentPage(1);
+                }}
+              >
+                Inactivas
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button 
+            onClick={() => {
+              setSelectedLocation(null);
+              setIsFormOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nueva Ubicación
+          </Button>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader className="border-b">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="relative w-full md:max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar ubicaciones..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Tabs 
-                defaultValue="all" 
-                className="w-full"
-                onValueChange={(value) => setStatusFilter(value.toUpperCase() as StatusFilterType)}
-              >
-                <TabsList>
-                  <TabsTrigger value="all">Todas</TabsTrigger>
-                  <TabsTrigger value="active">Activas</TabsTrigger>
-                  <TabsTrigger value="inactive">Inactivas</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {filteredLocations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No se encontraron ubicaciones</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {searchQuery || statusFilter !== 'ALL' 
-                  ? "Intenta con otros términos de búsqueda o filtros" 
-                  : "Comienza creando una nueva ubicación"}
-              </p>
-              {!searchQuery && statusFilter === 'ALL' && (
-                <Button
-                  onClick={() => {
-                    setSelectedLocation(null);
-                    setIsFormOpen(true);
-                  }}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Crear Ubicación
-                </Button>
-              )}
-            </div>
-          ) : (
+      {locations.length > 0 ? (
+        <Card>
+          <CardContent className="p-0">
             <div className="grid gap-4 p-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {filteredLocations.map((location) => (
+              {locations.map((location: Location) => (
                 <Card 
                   key={location.id} 
                   className="overflow-hidden hover:shadow-md transition-shadow"
@@ -330,21 +353,64 @@ export default function LocationsPage() {
               </Card>
             ))}
           </div>
-        )}
-      </CardContent>
-    </Card>
+          </CardContent>
+          
+          {/* Información de paginación */}
+          {pagination && pagination.total > 0 && (
+            <div className="p-4 border-t">
+              <div className="text-sm text-muted-foreground text-center">
+                <p>
+                  Mostrando {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-{Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} ubicaciones
+                </p>
+              </div>
+            </div>
+          )}
+        </Card>
+      ) : null}
+
+      {locations.length === 0 && (
+        <div className="rounded-lg border-2 border-dashed p-12 text-center">
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <MapPin className="h-14 w-14 text-muted-foreground" />
+            <h3 className="text-xl font-medium">No se encontraron ubicaciones</h3>
+            <p className="text-muted-foreground max-w-md">
+              {searchQuery || statusFilter !== 'ALL' 
+                ? "Intenta con otros términos de búsqueda o filtros" 
+                : "Comienza creando una nueva ubicación"}
+            </p>
+            {!searchQuery && statusFilter === 'ALL' && (
+              <div className="mt-6">
+                <Button
+                  onClick={() => {
+                    setSelectedLocation(null);
+                    setIsFormOpen(true);
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Crear Ubicación
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     {isFormOpen && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <CardHeader className="border-b">
-            <CardTitle className="text-xl">
+      <Dialog 
+        open={isFormOpen} 
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) {
+            setSelectedLocation(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">
               {selectedLocation ? 'Editar Ubicación' : 'Nueva Ubicación'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
+            </h2>
             <LocationForm
-              key={selectedLocation?.id || 'new'}
               initialData={selectedLocation}
               onSubmit={handleSubmit}
               onCancel={() => {
@@ -353,9 +419,9 @@ export default function LocationsPage() {
               }}
               isSubmitting={isCreating || isUpdating}
             />
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     )}
   </div>
 );

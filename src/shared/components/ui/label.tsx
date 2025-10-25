@@ -1,5 +1,3 @@
-"use client"
-// biome-ignore lint/style/useImportType: Default
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 

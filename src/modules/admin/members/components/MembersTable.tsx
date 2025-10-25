@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { MoreVertical, Eye, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
 import { cn } from '@/core/lib/utils';
 
 import { Button } from '@/shared/components/ui/button';
@@ -15,454 +21,275 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/components/ui/dropdown-menu';
+
 import { Badge } from '@/shared/components/ui/badge';
+import type { Member } from '@/core/interfaces/member.interface';
+import { getMembershipStatusLabel, getMembershipStatusVariant } from '../utils/status.util';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
+import { MemberTableSkeleton } from './MemberTableSkeleton';
+import { useQueryClient } from '@tanstack/react-query';
+import { MemberService } from '@/core/services/member.service';
 
-const Avatar = ({ className, children }: { className?: string; children?: React.ReactNode }) => (
-  <div className={cn('flex h-10 w-10 items-center justify-center rounded-full bg-muted', className)}>
-    {children}
-  </div>
-);
-
-const AvatarFallback = ({ className, children }: { className?: string; children?: React.ReactNode }) => (
-  <div className={cn('flex h-full w-full items-center justify-center', className)}>
-    {children}
-  </div>
-);
-
-const AvatarImage = ({ src, alt, className }: { src?: string; alt?: string; className?: string }) => (
-  <img src={src} alt={alt} className={cn('h-full w-full rounded-full object-cover', className)} />
-);
-import { Skeleton } from '@/shared/components/ui/skeleton';
-import { useMembers } from '../hooks/useMembers';
-import type { Member, MemberStatus, MembershipStatus } from '../types';
 
 interface MembersTableProps {
-  onEdit?: (member: Member) => void;
+  members: Member[];
+  isLoading: boolean;
   onView?: (member: Member) => void;
-  onDelete?: (member: Member) => void;
-  onStatusChange?: (memberId: string, status: MemberStatus) => void;
-  onMembershipStatusChange?: (memberId: string, status: MembershipStatus) => void;
+  onStatusChange?: (memberId: string, currentStatus: string | null) => void;
   showActions?: boolean;
   className?: string;
+  selectedRows: Set<string>;
+  onSelectionChange: (selection: Set<string>) => void;
 }
 
-const statusVariant: Record<MemberStatus, 'default' | 'secondary' | 'destructive'> = {
-  ACTIVE: 'default',
-  SUSPENDED: 'secondary',
-  DELETED: 'destructive',
-};
-
-const membershipStatusVariant: Record<MembershipStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  ACTIVE: 'default',
-  SUSPENDED: 'secondary',
-  EXPIRED: 'destructive',
-  CANCELLED: 'outline',
-};
-
-const statusLabels: Record<MemberStatus, string> = {
-  ACTIVE: 'Activo',
-  SUSPENDED: 'Suspendido',
-  DELETED: 'Eliminado',
-};
-
-const membershipStatusLabels: Record<MembershipStatus, string> = {
-  ACTIVE: 'Activa',
-  SUSPENDED: 'Suspendida',
-  EXPIRED: 'Vencida',
-  CANCELLED: 'Cancelada',
-};
 
 export function MembersTable({
-  onEdit,
+  members,
+  isLoading,
   onView,
-  onDelete,
   onStatusChange,
-  onMembershipStatusChange: _onMembershipStatusChange, 
   showActions = true,
   className = '',
+  selectedRows,
+  onSelectionChange,
 }: MembersTableProps) {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
-  
-  const {
-    members,
-    isLoading,
-    error,
-    refreshMembers,
-    pagination,
-    updatePagination
-  } = useMembers();
 
-  
-  const toggleRowSelection = (memberId: string) => {
-    const newSelection = new Set(selectedRows);
-    if (newSelection.has(memberId)) {
-      newSelection.delete(memberId);
-    } else {
-      newSelection.add(memberId);
-    }
-    setSelectedRows(newSelection);
+  const handlePrefetchMember = (memberId: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ['members', 'detail', memberId],
+      queryFn: () => MemberService.getMemberByIdWithSecurity(memberId),
+      staleTime: 10 * 60 * 1000,
+    });
   };
 
-  const toggleAllRows = () => {
-    if (selectedRows.size === members.length) {
-      setSelectedRows(new Set());
-    } else {
-      setSelectedRows(new Set(members.map(member => member.id)));
-    }
-  };
 
-  const handleStatusChange = (memberId: string, currentStatus: MemberStatus) => {
-    const newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    if (onStatusChange) {
-      onStatusChange(memberId, newStatus);
-    }
-  };
 
-  
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd MMM yyyy', { locale: es });
-    } catch (error) {
-      return 'Fecha inválida';
-    }
-  };
 
-  
-  if (isLoading && members.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <Skeleton className="h-4 w-4" />
-                </TableHead>
-                <TableHead className="w-12"></TableHead>
-                <TableHead><Skeleton className="h-4 w-24" /></TableHead>
-                <TableHead><Skeleton className="h-4 w-24" /></TableHead>
-                <TableHead><Skeleton className="h-4 w-24" /></TableHead>
-                <TableHead><Skeleton className="h-4 w-24" /></TableHead>
-                <TableHead><Skeleton className="h-4 w-24" /></TableHead>
-                {showActions && <TableHead className="w-12"></TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[1, 2, 3, 4, 5].map((row) => (
-                <TableRow key={row}>
-                  <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                  <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  {showActions && (
-                    <TableCell>
-                      <Skeleton className="h-8 w-8 rounded-md" />
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-4 w-48" />
-          <div className="flex space-x-2">
-            <Skeleton className="h-9 w-24" />
-            <Skeleton className="h-9 w-24" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
- 
-  if (error) {
-    // Si no hay miembros, mostramos el mensaje de lista vacía
-    if (error.message === 'NO_MEMBERS_FOUND' || (Array.isArray(members) && members.length === 0)) {
-      return (
-        <div className="text-center py-12">
-          <div className="mx-auto h-12 w-12 text-muted-foreground">
-            <UserX className="h-full w-full" />
-          </div>
-          <h3 className="mt-2 text-sm font-medium text-foreground">
-            No se encontraron miembros
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Comienza creando un nuevo miembro.
-          </p>
-        </div>
-      );
-    }
-    
-    // Si hay un error de conexión
-    if (error.message === 'CONNECTION_ERROR') {
-      return (
-        <div className="rounded-md bg-destructive/10 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <span className="text-destructive">Error de conexión:</span>
+  const columns = useMemo<ColumnDef<Member>[]>(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => {
+              table.toggleAllPageRowsSelected(!!value);
+              if (value) {
+                onSelectionChange(new Set(members.map((m) => m.userId)));
+              } else {
+                onSelectionChange(new Set());
+              }
+            }}
+            aria-label="Seleccionar todos"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={selectedRows.has(row.original.userId)}
+            onCheckedChange={(value) => {
+              const newSelection = new Set(selectedRows);
+              if (value) {
+                newSelection.add(row.original.userId);
+              } else {
+                newSelection.delete(row.original.userId);
+              }
+              onSelectionChange(newSelection);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={`Seleccionar ${row.original.firstName} ${row.original.lastName}`}
+          />
+        ),
+        size: 40,
+      },
+      {
+        id: 'avatar',
+        header: 'Avatar',
+        cell: ({ row }) => (
+          <Avatar>
+            <AvatarImage src={row.original.profileImageUrl ?? 'd'} alt={row.original.firstName} />
+            <AvatarFallback> {row.original.initials} </AvatarFallback>
+          </Avatar>
+        ),
+        size: 50,
+      },
+      {
+        accessorKey: 'firstName',
+        header: 'Nombre',
+        cell: ({ row }) => (
+          <div>
+            <div className="font-medium">
+              {row.original.firstName} {row.original.lastName}
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-destructive">
-                No se pudo conectar con el servidor
-              </h3>
-              <div className="mt-2 text-sm text-destructive">
-                <p>Verifica tu conexión a internet e inténtalo de nuevo.</p>
-              </div>
-              <div className="mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => refreshMembers()}
-                >
-                  Reintentar
-                </Button>
+            <div className="text-xs text-muted-foreground">
+              {row.original.dni || 'Sin DNI'}
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'email',
+        header: 'Contacto',
+        cell: ({ row }) => (
+          <div>
+            <div className="font-medium">{row.original.phone || 'Sin teléfono'}</div>
+            <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+              {row.original.email || 'Sin email'}
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'membership',
+        header: 'Membresía',
+        cell: ({ row }) => {
+          const membership = row.original.membership;
+          if (!membership) {
+            return <Badge variant="outline">Sin membresía</Badge>;
+          }
+          return (
+            <div>
+              <Badge variant={getMembershipStatusVariant(membership.status)}>
+                {getMembershipStatusLabel(membership.status)}
+              </Badge>
+              <div className="text-xs text-muted-foreground mt-1">
+                {membership.planName}
               </div>
             </div>
-          </div>
-        </div>
-      );
-    }
-    
-   
-    return (
-      <div className="rounded-md bg-destructive/10 p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <span className="text-destructive">Error:</span>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-destructive">
-              No se pudieron cargar los miembros
-            </h3>
-            <div className="mt-2 text-sm text-destructive">
-              <p>{error.message}</p>
+          );
+        },
+      },
+      {
+        id: 'daysRemaining',
+        header: 'Días restantes',
+        cell: ({ row }) => {
+          const membership = row.original.membership;
+          if (!membership) return <span className="text-muted-foreground">-</span>;
+          return (
+            <div className="text-sm">
+              <span className={cn(
+                "font-medium",
+                membership.daysRemaining < 7 && "text-destructive",
+                membership.daysRemaining < 15 && membership.daysRemaining >= 7 && "text-yellow-600"
+              )}>
+                {membership.daysRemaining}
+              </span>
+              {' días'}
             </div>
-            <div className="mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refreshMembers()}
-              >
-                Reintentar
+          );
+        },
+      },
+      {
+        id: 'endDate',
+        header: 'Vencimiento',
+        cell: ({ row }) => {
+          const membership = row.original.membership;
+          if (!membership?.endDate) return <span className="text-muted-foreground">-</span>;
+          try {
+            return (
+              <div className="text-sm">
+                {format(new Date(membership.endDate), 'dd MMM yyyy', { locale: es })}
+              </div>
+            );
+          } catch {
+            return <span className="text-muted-foreground">-</span>;
+          }
+        },
+      },
+      ...(showActions
+        ? [
+          {
+            id: 'actions',
+            header: '',
+            cell: () => (
+              <Button variant="ghost" size="icon" className="h-4 w-4 p-0 mr-2">
+                <Eye className="h-4 w-4" />
               </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+            ),
+            size: 50,
+          } as ColumnDef<Member>,
+        ]
+        : []),
+    ],
+    [members, selectedRows, onSelectionChange, showActions, onView, onStatusChange, navigate]
+  );
 
+  const table = useReactTable({
+    data: members,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  if (isLoading) return <MemberTableSkeleton showActions={showActions} />;
 
 
   return (
     <div className={className}>
-      {/* Acciones de selección múltiple */}
       {selectedRows.size > 0 && (
         <div className="flex items-center justify-between mb-4 p-2 bg-muted/50 rounded-md">
           <div className="text-sm font-medium">
             {selectedRows.size} miembro(s) seleccionado(s)
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedRows(new Set())}
-          >
+          <Button variant="ghost" size="sm" onClick={() => onSelectionChange(new Set())}>
             Limpiar selección
           </Button>
         </div>
       )}
 
-      {/* Tabla de miembros */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={
-                    members.length > 0 && selectedRows.size === members.length
-                  }
-                  onCheckedChange={toggleAllRows}
-                  aria-label="Seleccionar todos"
-                />
-              </TableHead>
-              <TableHead className="w-12"></TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Contacto</TableHead>
-              <TableHead>Membresía</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Vencimiento</TableHead>
-              {showActions && <TableHead className="w-12"></TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.map((member) => (
-              <TableRow
-                key={member.id}
-                className={cn(
-                  'cursor-pointer hover:bg-muted/50',
-                  member.status === 'SUSPENDED' && 'opacity-70',
-                  member.status === 'DELETED' && 'line-through'
-                )}
-                onClick={() => onView?.(member) || navigate(`/admin/members/${member.id}`)}
-              >
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Checkbox
-                    checked={selectedRows.has(member.id)}
-                    onCheckedChange={() => toggleRowSelection(member.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`Seleccionar ${member.firstName} ${member.lastName}`}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={member.profileImage} alt={`${member.firstName} ${member.lastName}`} />
-                    <AvatarFallback>
-                      {member.firstName.charAt(0)}
-                      {member.lastName.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                </TableCell>
-                <TableCell>
-                  <div className="font-medium">
-                    {member.firstName} {member.lastName}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {member.documentNumber || 'Sin documento'}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="font-medium">{member.phone}</div>
-                  <div className="text-xs text-muted-foreground truncate max-w-[200px]">
-                    {member.email}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={membershipStatusVariant[member.membership.status]}>
-                    {membershipStatusLabels[member.membership.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={statusVariant[member.status]}>
-                    {statusLabels[member.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {member.membership.endDate
-                    ? formatDate(member.membership.endDate)
-                    : 'Sin fecha'}
-                </TableCell>
-                {showActions && (
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 p-0"
-                        >
-                          <span className="sr-only">Abrir menú</span>
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => onView?.(member) || navigate(`/admin/members/${member.id}`)}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          <span>Ver detalles</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            if (onEdit) {
-                              onEdit(member);
-                            } else {
-                              navigate(`/admin/members/editar/${member.id}`, { replace: true });
-                            }
-                          }}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          <span>Editar</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusChange(member.id, member.status)
-                          }
-                        >
-                          {member.status === 'ACTIVE' ? (
-                            <UserX className="mr-2 h-4 w-4 text-destructive" />
-                          ) : (
-                            <UserCheck className="mr-2 h-4 w-4 text-green-600" />
-                          )}
-                          <span>
-                            {member.status === 'ACTIVE' ? 'Suspender' : 'Activar'}
-                          </span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => onDelete?.(member)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Eliminar</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                )}
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} style={{ width: header.getSize() }}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center py-8 text-muted-foreground">
+                  No se encontraron miembros
+                </TableCell>
+              </TableRow>
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onMouseOver={() => handlePrefetchMember(row.original.userId)}
+                  onClick={() => {
+                    if (onView) {
+                      onView(row.original);
+                    } else {
+                      navigate(`/admin/members/${row.original.userId}`);
+                    }
+                  }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      onClick={(e) => {
+                        if (cell.column.id === 'select' || cell.column.id === 'actions') {
+                          e.stopPropagation();
+                        }
+                      }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
-      </div>
-
-      {/* Paginación */}
-      <div className="flex items-center justify-between px-2 py-4">
-        <div className="text-sm text-muted-foreground">
-          Mostrando <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> a{' '}
-          <span className="font-medium">
-            {pagination.total ? Math.min(pagination.page * pagination.limit, pagination.total) : pagination.page * pagination.limit}
-          </span>
-          {pagination.total && (
-            <>
-              {' '}de <span className="font-medium">{pagination.total}</span>
-            </>
-          )} miembros
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => updatePagination({ page: pagination.page - 1 })}
-            disabled={pagination.page <= 1}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => updatePagination({ page: pagination.page + 1 })}
-            disabled={pagination.totalPages ? pagination.page >= pagination.totalPages : false}
-          >
-            Siguiente
-          </Button>
-        </div>
       </div>
     </div>
   );

@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "title": "Guía completa de entrenamiento de fuerza para principiantes",
+    "description": "¿Quieres desarrollar músculo, tonificar tu cuerpo y sentirte más fuerte? El entrenamiento de fuerza es la base perfecta para empezar.",
+    "content": "En esta guía aprenderás cómo levantar pesas correctamente, la importancia del calentamiento, y cómo crear una rutina equilibrada.",
+    "image": "",
+    "date": "12 de Octubre, 2025",
+    "readTime": "5 min de lectura",
+    "category": "Entrenamiento",
+    "author": "Equipo FitDesk"
+  },
+  {
+    "id": 2,
+    "title": "Entrenamiento en pareja o grupo: motívate y alcanza tus metas juntos",
+    "description": "¿Cansado de entrenar solo? Entrenar en pareja o en grupo puede ser la clave para mantener la motivación y disfrutar el proceso.",
+    "content": "Ya sea con tu pareja, amigos o compañeros del gym, estos ejercicios combinan fuerza, cardio y diversión para todos los niveles.",
+    "image": "",
+    "date": "10 de Octubre, 2025",
+    "readTime": "4 min de lectura",
+    "category": "Motivación",
+    "author": "Equipo FitDesk"
+  },
+  {
+    "id": 3,
+    "title": "12 ejercicios para adultos mayores: equilibrio, movilidad y fuerza",
+    "description": "Mantenerse activo a cualquier edad es esencial. Estos ejercicios están diseñados para mejorar la coordinación, la estabilidad y la fuerza muscular de los adultos mayores.",
+    "content": "Incluye movimientos simples como levantamientos de talones, sentadillas asistidas, caminata lateral y estiramientos de brazos.",
+    "image": "",
+    "date": "8 de Octubre, 2025",
+    "readTime": "6 min de lectura",
+   "categories": ["Salud", "Ejercicio"],
+    "author": "Equipo FitDesk"
+  }
+]

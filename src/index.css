@@ -1,6 +1,58 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.4);
+}
+
+/* Estilos específicos para el chat */
+.chat-message-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-message-list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+}
+
+.chat-message-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
+/* Estilos para modo oscuro */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.4);
+}
+
+.dark .chat-message-list::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.3);
+}
+
+.dark .chat-message-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

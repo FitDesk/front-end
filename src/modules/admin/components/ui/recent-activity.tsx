@@ -1,8 +1,6 @@
-'use client';
-
 import { memo } from 'react';
 import { motion } from 'motion/react';
-import { User, Download, Settings, Users } from 'lucide-react';
+import { User, Users } from 'lucide-react';
 
 const activities = [
   {
@@ -11,20 +9,6 @@ const activities = [
     time: '2 min ago',
     icon: User,
     color: 'text-blue-500',
-  },
-  {
-    action: 'Data export',
-    user: 'admin',
-    time: '5 min ago',
-    icon: Download,
-    color: 'text-green-500',
-  },
-  {
-    action: 'Settings updated',
-    user: 'admin',
-    time: '10 min ago',
-    icon: Settings,
-    color: 'text-orange-500',
   },
   {
     action: 'New user registered',
@@ -71,4 +55,3 @@ export const RecentActivity = memo(() => {
   );
 });
 
-RecentActivity.displayName = 'RecentActivity';
