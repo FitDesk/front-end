@@ -2,12 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { studentService } from '../services/student.service';
 import { useStudentsStore } from '../store/students-store';
-import { MemberSchema, PaginatedApiResponseSchema } from '@/core/zod';
 import type { 
   CreateStudentDTO,
   UpdateStudentDTO,
   StudentStatus,
-  StudentFilters
+  StudentFilters,
+  Student,
+  PaginatedResponse
 } from '../types';
 
 export function useStudents() {
@@ -30,42 +31,49 @@ export function useStudents() {
     queryKey: ['students', filters, pagination],
     queryFn: async () => {
       try {
-        const response = await studentService.getStudents(filters, pagination);
+        const response = await studentService.getStudents(filters, pagination) as PaginatedResponse<Student>;
         
-        const validatedResponse = PaginatedApiResponseSchema(MemberSchema).parse(response);
-        
-        
-        const adaptedStudents = validatedResponse.data.map(member => ({
-          id: member.id,
-          firstName: member.firstName,
-          lastName: member.lastName,
-          email: member.email,
-          phone: member.phone,
-          profileImage: member.profileImage,
-          status: member.status as StudentStatus,
-          joinDate: member.joinDate,
-          lastActivity: member.lastActivity,
-          membership: {
-            type: member.membershipType,
-            startDate: member.membershipStartDate,
-            endDate: member.membershipEndDate,
-            status: member.status === 'ACTIVE' ? 'ACTIVE' as const : 'EXPIRED' as const,
-          },
-          stats: {
-            totalClasses: 0,
-            attendedClasses: 0,
-            attendanceRate: 0,
-            currentStreak: 0,
-            longestStreak: 0,
-          },
-          createdAt: member.joinDate,
-          updatedAt: member.lastActivity || member.joinDate,
-        }));
-        
-        setStudents(adaptedStudents);
-        setPagination(validatedResponse.pagination);
-        
-        return validatedResponse;
+        const adaptedStudents = response.data.map(student => {
+          // Ensure all required fields have default values
+          const defaultMembership = {
+            type: 'BASIC' as const,
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            status: student.status === 'ACTIVE' ? 'ACTIVE' as const : 'EXPIRED' as const,
+          };
+          
+          return {
+            id: student.id,
+            firstName: student.firstName || '',
+            lastName: student.lastName || '',
+            email: student.email || '',
+            phone: student.phone || '',
+            profileImage: student.profileImage || '',
+            status: student.status || 'INACTIVE',
+            joinDate: student.joinDate || new Date().toISOString(),
+            lastActivity: student.lastActivity || new Date().toISOString(),
+            membership: {
+              ...defaultMembership,
+              ...student.membership,
+              type: student.membership?.type || defaultMembership.type,
+              status: student.status === 'ACTIVE' ? 'ACTIVE' as const : 'EXPIRED' as const,
+            },
+            stats: {
+              totalClasses: student.stats?.totalClasses || 0,
+              attendedClasses: student.stats?.attendedClasses || 0,
+              attendanceRate: student.stats?.attendanceRate || 0,
+              currentStreak: student.stats?.currentStreak || 0,
+              longestStreak: student.stats?.longestStreak || 0,
+            },
+            createdAt: student.createdAt || new Date().toISOString(),
+            updatedAt: student.updatedAt || new Date().toISOString()
+          };
+        });
+
+        return {
+          ...response,
+          data: adaptedStudents
+        };
       } catch (error) {
         console.error('Error fetching students:', error);
         setStudents([]);

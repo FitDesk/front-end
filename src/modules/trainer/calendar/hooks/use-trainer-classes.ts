@@ -53,6 +53,11 @@ export function useTrainerClass(classId: string) {
     queryKey: trainerClassKeys.detail(classId),
     queryFn: () => TrainerClassService.getClassById(classId),
     enabled: !!classId,
+    staleTime: 30 * 1000, // Los datos son frescos por 30 segundos
+    refetchOnMount: true, // Refrescar cada vez que se monta
+    refetchOnWindowFocus: true, // Refrescar cuando se enfoca la ventana
+    refetchInterval: 60 * 1000, // Refrescar automáticamente cada minuto
+    refetchIntervalInBackground: false, // No refrescar en background
   });
 }
 
@@ -88,7 +93,12 @@ export function useTrainerStats() {
   return useQuery({
     queryKey: trainerClassKeys.stats(),
     queryFn: () => TrainerClassService.getTrainerStats(),
-    staleTime: 10 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000, // Los datos son frescos por 5 minutos
+    gcTime: 15 * 60 * 1000, // Cache por 15 minutos
+    refetchOnWindowFocus: true,
+    refetchOnMount: false,
+    refetchInterval: 10 * 60 * 1000, // Refrescar automáticamente cada 10 minutos
+    refetchIntervalInBackground: false, // No refrescar en background
   });
 }
 
@@ -108,10 +118,15 @@ export function useClassesByDateRange(
   filters?: CalendarFilters
 ) {
   return useQuery({
-    queryKey: [...trainerClassKeys.byRange(startDate, endDate), filters],
+    queryKey: trainerClassKeys.byRange(startDate, endDate),
     queryFn: () => TrainerClassService.getClassesByDateRange(startDate, endDate, filters),
     enabled: !!startDate && !!endDate,
-    staleTime: 2 * 60 * 1000, 
+    staleTime: 2 * 60 * 1000, // Los datos son frescos por 2 minutos
+    gcTime: 10 * 60 * 1000, // Cache por 10 minutos
+    refetchOnWindowFocus: true, // Refrescar al volver a la ventana
+    refetchOnMount: false, // No refrescar en cada mount si hay datos en cache
+    refetchInterval: 5 * 60 * 1000, // Refrescar automáticamente cada 5 minutos
+    refetchIntervalInBackground: false, // No refrescar en background
   });
 }
 
@@ -122,7 +137,14 @@ export function useStartClass() {
   return useMutation({
     mutationFn: (data: StartClassDTO) => TrainerClassService.startClass(data),
     onSuccess: () => {
+      // Invalidar queries para refrescar los datos
       queryClient.invalidateQueries({ queryKey: trainerClassKeys.all });
+      queryClient.invalidateQueries({ queryKey: trainerClassKeys.stats() });
+      // Prefetch para la próxima vista
+      queryClient.prefetchQuery({
+        queryKey: trainerClassKeys.stats(),
+        queryFn: () => TrainerClassService.getTrainerStats(),
+      });
       toast.success('Clase iniciada exitosamente');
     },
     onError: (error: unknown) => {
@@ -222,4 +244,75 @@ export function useAvailableLocations() {
     queryFn: () => TrainerClassService.getAvailableLocations(),
     staleTime: 30 * 60 * 1000, 
   });
+}
+
+/**
+ * Hook para prefetching proactivo de datos del calendario
+ */
+export function useCalendarPrefetching() {
+  const queryClient = useQueryClient();
+
+  const prefetchNextWeek = (currentDate: Date) => {
+    const nextWeekStart = new Date(currentDate);
+    nextWeekStart.setDate(currentDate.getDate() + 7);
+    const nextWeekEnd = new Date(nextWeekStart);
+    nextWeekEnd.setDate(nextWeekStart.getDate() + 7);
+
+    queryClient.prefetchQuery({
+      queryKey: trainerClassKeys.byRange(nextWeekStart, nextWeekEnd),
+      queryFn: () => TrainerClassService.getClassesByDateRange(nextWeekStart, nextWeekEnd),
+      staleTime: 2 * 60 * 1000,
+    });
+  };
+
+  const prefetchPreviousWeek = (currentDate: Date) => {
+    const prevWeekStart = new Date(currentDate);
+    prevWeekStart.setDate(currentDate.getDate() - 7);
+    const prevWeekEnd = new Date(prevWeekStart);
+    prevWeekEnd.setDate(prevWeekStart.getDate() + 7);
+
+    queryClient.prefetchQuery({
+      queryKey: trainerClassKeys.byRange(prevWeekStart, prevWeekEnd),
+      queryFn: () => TrainerClassService.getClassesByDateRange(prevWeekStart, prevWeekEnd),
+      staleTime: 2 * 60 * 1000,
+    });
+  };
+
+  const prefetchNextMonth = (currentDate: Date) => {
+    const nextMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    const nextMonthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 0);
+
+    queryClient.prefetchQuery({
+      queryKey: trainerClassKeys.byRange(nextMonthStart, nextMonthEnd),
+      queryFn: () => TrainerClassService.getClassesByDateRange(nextMonthStart, nextMonthEnd),
+      staleTime: 2 * 60 * 1000,
+    });
+  };
+
+  const prefetchPreviousMonth = (currentDate: Date) => {
+    const prevMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    const prevMonthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+
+    queryClient.prefetchQuery({
+      queryKey: trainerClassKeys.byRange(prevMonthStart, prevMonthEnd),
+      queryFn: () => TrainerClassService.getClassesByDateRange(prevMonthStart, prevMonthEnd),
+      staleTime: 2 * 60 * 1000,
+    });
+  };
+
+  const prefetchClassDetails = (classId: string) => {
+    queryClient.prefetchQuery({
+      queryKey: trainerClassKeys.detail(classId),
+      queryFn: () => TrainerClassService.getClassById(classId),
+      staleTime: 30 * 1000,
+    });
+  };
+
+  return {
+    prefetchNextWeek,
+    prefetchPreviousWeek,
+    prefetchNextMonth,
+    prefetchPreviousMonth,
+    prefetchClassDetails,
+  };
 }

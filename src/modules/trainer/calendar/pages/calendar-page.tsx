@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
@@ -15,14 +15,12 @@ import { useCalendarStore } from '../store/calendar-store';
 import { 
   useClassesByDateRange, 
   useTrainerStats, 
-  useStartClass, 
-  useEndClass, 
-  useMarkAttendance,
-  useAvailableLocations
+  useAvailableLocations,
+  useCalendarPrefetching
 } from '../hooks/use-trainer-classes';
 
 
-import type { CalendarEvent, StartClassDTO, EndClassDTO, ClassAttendee } from '../types';
+import type { CalendarEvent } from '../types';
 import { convertClassesToEvents } from '../lib/calendar-utils';
 
 export default function CalendarPage() {
@@ -48,18 +46,25 @@ export default function CalendarPage() {
   const { 
     data: classes = [], 
     isLoading: isLoadingClasses,
-    error: classesError
+    error: classesError,
+    refetch: refetchClasses,
+    isRefetching: isRefreshingClasses
   } = useClassesByDateRange(dateRange.start, dateRange.end);
 
   const { 
     data: stats, 
-    isLoading: isLoadingStats 
+    isLoading: isLoadingStats,
+    refetch: refetchStats
   } = useTrainerStats();
 
- 
-  const startClassMutation = useStartClass();
-  const endClassMutation = useEndClass();
-  const markAttendanceMutation = useMarkAttendance();
+  // Hook para prefetching proactivo
+  const {
+    prefetchNextWeek,
+    prefetchPreviousWeek,
+    prefetchNextMonth,
+    prefetchPreviousMonth,
+    prefetchClassDetails
+  } = useCalendarPrefetching();
 
   
   const events = useMemo(() => {
@@ -74,62 +79,36 @@ export default function CalendarPage() {
     setIsModalOpen(true);
   };
 
-  const handleStartClass = (event: CalendarEvent, notes?: string) => {
-    const startData: StartClassDTO = {
-      classId: event.id,
-      sessionDate: event.start,
-      notes
-    };
-    
-    startClassMutation.mutate(startData, {
-      onSuccess: () => {
-        setSelectedEvent(null);
-        setIsModalOpen(false);
-      }
-    });
-  };
-
-  const handleEndClass = (event: CalendarEvent, attendees: ClassAttendee[], notes?: string) => {
-    const endData: EndClassDTO = {
-      sessionId: `session-${event.id}`,
-      endTime: new Date(),
-      attendees,
-      notes
-    };
-    
-    endClassMutation.mutate(endData, {
-      onSuccess: () => {
-        setSelectedEvent(null);
-        setIsModalOpen(false);
-      }
-    });
-  };
-
-  // Wrapper para el calendario semanal (solo necesita el evento)
-  const handleEndClassFromCalendar = (event: CalendarEvent) => {
-    handleEndClass(event, [], ''); // Sin attendees ni notas desde el calendario
-  };
-
-  const handleMarkAttendance = (
-    memberId: string,
-    status: 'present' | 'absent' | 'late',
-    notes?: string
-  ) => {
-    if (!selectedEvent) return;
-    
-    const sessionId = `session-${selectedEvent.id}`;
-    markAttendanceMutation.mutate({
-      sessionId,
-      memberId,
-      status,
-      notes
-    });
-  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedEvent(null);
   };
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      refetchClasses(),
+      refetchStats()
+    ]);
+  };
+
+  // Prefetching proactivo basado en la vista actual
+  useEffect(() => {
+    if (viewType === 'week') {
+      prefetchNextWeek(currentDate);
+      prefetchPreviousWeek(currentDate);
+    } else {
+      prefetchNextMonth(currentDate);
+      prefetchPreviousMonth(currentDate);
+    }
+  }, [currentDate, viewType, prefetchNextWeek, prefetchPreviousWeek, prefetchNextMonth, prefetchPreviousMonth]);
+
+  // Prefetching de detalles de clases cuando se cargan los eventos
+  useEffect(() => {
+    events.forEach(event => {
+      prefetchClassDetails(event.id);
+    });
+  }, [events, prefetchClassDetails]);
 
   
   if (isLoadingClasses && !classes.length) {
@@ -205,6 +184,8 @@ export default function CalendarPage() {
           onPrevious={goToPrevious}
           onNext={goToNext}
           onToday={goToToday}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshingClasses}
           onViewChange={setViewType}
           onFiltersChange={updateFilters}
           onClearFilters={clearFilters}
@@ -217,8 +198,6 @@ export default function CalendarPage() {
               events={events}
               currentDate={currentDate}
               onEventClick={handleEventClick}
-              onStartClass={handleStartClass}
-              onEndClass={handleEndClassFromCalendar}
               className="h-[600px]"
             />
           ) : (
@@ -237,9 +216,6 @@ export default function CalendarPage() {
         event={selectedEvent}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onStartClass={handleStartClass}
-        onEndClass={handleEndClass}
-        onMarkAttendance={handleMarkAttendance}
       />
     </div>
   );

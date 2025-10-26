@@ -28,6 +28,7 @@ export interface TrainerClass {
   name: string;
   description?: string;
   dayOfWeek: DayOfWeek;
+  classDate: Date; // Fecha real de la clase
   startTime: string;
   duration: number; 
   capacity: number;
