@@ -70,7 +70,7 @@ const SesionesBanner = () => {
                 width="800" 
                 height="480" 
                 loading="eager" 
-                src="https://res.cloudinary.com/dvjfemxbz/image/upload/fl_sanitize,c_scale,f_auto,q_80,w_2000/Workout_editor_ES_pk0vk7.svg" 
+                src="https://res.cloudinary.com/dgtgmsqo7/image/upload/v1761168328/WhatsApp_Image_2025-10-22_at_4.15.04_PM_2_viw1gn.jpg" 
                 alt="Crea tus propios entrenamientos virtuales para clientes y empieza a ahorrar tiempo"
               />
             </div>

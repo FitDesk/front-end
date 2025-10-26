@@ -12,6 +12,7 @@ export interface ClassResponse {
     schedule: string;
     active: boolean;
     description: string;
+    status?: string; // 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 }
 
 export interface BackendPaginatedClassResponse {
@@ -60,7 +61,7 @@ export interface ClaseReserva {
     capacidad: number;
     inscritos: number;
     ubicacion: string;
-    estado: 'disponible' | 'lleno' | 'cancelado';
+    estado: 'disponible' | 'lleno' | 'cancelado' | 'en_progreso';
     descripcion?: string;
     precio?: number;
 }
@@ -70,10 +71,62 @@ export interface ClaseReserva {
 export class ClassesService {
 
     
+    private static isClassInProgress(classDate: string, schedule: string): boolean {
+        try {
+            // Parse the class date and time
+            const [startTime, endTime] = schedule.split(' - ');
+            const [startHour, startMinute] = startTime.split(':').map(Number);
+            const [endHour, endMinute] = endTime.split(':').map(Number);
+            
+            const classDateTime = new Date(classDate);
+            const startDateTime = new Date(classDateTime);
+            startDateTime.setHours(startHour, startMinute, 0, 0);
+            
+            const endDateTime = new Date(classDateTime);
+            endDateTime.setHours(endHour, endMinute, 0, 0);
+            
+            const now = new Date();
+            
+            return now >= startDateTime && now <= endDateTime;
+        } catch (error) {
+            console.error('Error checking if class is in progress:', error);
+            return false;
+        }
+    }
+
     private static mapClassResponseToClaseReserva(classResponse: ClassResponse, reservationsCount: number = 0): ClaseReserva {
         const inscritos = reservationsCount;
         const capacidad = classResponse.maxCapacity;
-        const estado = inscritos >= capacidad ? 'lleno' : 'disponible';
+        
+        // First check if the class is marked as active/inactive
+        if (!classResponse.active) {
+            return {
+                id: classResponse.id,
+                nombre: classResponse.className,
+                instructor: classResponse.trainerName,
+                horario: classResponse.schedule,
+                fecha: classResponse.classDate,
+                capacidad: capacidad,
+                inscritos: inscritos,
+                ubicacion: classResponse.locationName,
+                estado: 'cancelado',
+                descripcion: classResponse.description
+            };
+        }
+        
+        // Check if the class is in progress (from backend status or time-based)
+        const isInProgress = classResponse.status === 'IN_PROGRESS' || 
+                           classResponse.status === 'ACTIVE' ||
+                           this.isClassInProgress(classResponse.classDate, classResponse.schedule);
+        
+        // Determine the status
+        let estado: 'disponible' | 'lleno' | 'cancelado' | 'en_progreso' = 'disponible';
+        
+        if (isInProgress) {
+            estado = 'en_progreso';
+        } else if (inscritos >= capacidad) {
+            estado = 'lleno';
+        }
         
         return {
             id: classResponse.id,
@@ -84,7 +137,7 @@ export class ClassesService {
             capacidad: capacidad,
             inscritos: inscritos,
             ubicacion: classResponse.locationName,
-            estado: estado as 'disponible' | 'lleno' | 'cancelado',
+            estado,
             descripcion: classResponse.description
         };
     }

@@ -49,6 +49,7 @@ const ClientPaymentsPage = lazy(() => import("@/modules/client/payments/payments
 const ReservaClasePage = lazy(() => import("@/modules/client/reserva-clase").then(m => ({ default: m.ReservaClasePage })))
 const SesionesPersonalizadasPage = lazy(() => import("@/modules/client/sesiones-personalizadas/pages/sesiones-personalizadas-page"))
 const BlogPage = lazy(() => import("@/modules/client/blog/pages/blog-page"))
+const NosotrosPage = lazy(() => import("@/modules/client/nosotros/pages/LandingPage"))
 
 // Auth
 const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
@@ -86,6 +87,10 @@ export const appRouter = createBrowserRouter([
             {
                 path: "blog",
                 element: <Suspense fallback={<PageLoader />}><BlogPage /></Suspense>
+            },
+            {
+                path: "about",
+                element: <Suspense fallback={<PageLoader />}><NosotrosPage /></Suspense>
             }
         ]
     },

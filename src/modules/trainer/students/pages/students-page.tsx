@@ -1,43 +1,93 @@
-import React, { useState } from 'react';
-import { GraduationCap, BarChart3, RefreshCw, ArrowLeft } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { BarChart3, RefreshCw, Users, BookOpen } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Button } from '@/shared/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import { Skeleton } from '@/shared/components/ui/skeleton';
 
 import { useStudents } from '../hooks/use-students';
 import { useStudentMetrics } from '../hooks/use-student-metrics';
+import { useTrainerClasses, useClassStudents, useClassMetrics, useClassDetails } from '../hooks/use-class-students';
 import { useStudentsStore } from '../store/students-store';
 
 import { StudentFilters } from '../components/StudentFilters';
 import { StudentsTable } from '../components/StudentsTable';
-import { StudentMetricsCards } from '../components/StudentMetricsCards';
+import { ClassMetricsView } from '../components/ClassMetricsView';
 import { StudentAttendanceHistoryView } from '../components/StudentAttendanceHistoryView';
 
-import type { Student, Class, StudentStatus } from '../types';
-import { studentService } from '../services/student.service';
+import type { Student, StudentStatus, ClassStudent } from '../types';
 
 export default function StudentsPage() {
-
-  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<Student | null>(null);
   const [showHistoryView, setShowHistoryView] = useState(false);
   
-
   const { 
     filters, 
     selectedTab,
     setFilters, 
-    setSelectedTab 
+    setSelectedTab,
+    pagination,
+    setPagination
   } = useStudentsStore();
 
+  // Fetch all classes for the trainer
+  const { 
+    data: classesData, 
+    isLoading: isLoadingClasses,
+    error: classesError,
+    refetch: refetchClasses 
+  } = useTrainerClasses();
 
+  // Log classes data and error for debugging
+  useEffect(() => {
+    console.log('Clases cargadas:', classesData);
+    if (classesError) {
+      console.error('Error al cargar clases:', classesError);
+    }
+  }, [classesData, classesError]);
+
+  // Fetch students for the selected class
+  const { 
+    data: classStudentsData, 
+    isLoading: isLoadingClassStudents,
+    refetch: refetchClassStudents 
+  } = useClassStudents(selectedClassId, filters, pagination);
+
+  // Fetch metrics for the selected class
+  const { 
+    data: classMetrics, 
+    isLoading: isLoadingClassMetrics,
+    refetch: refetchClassMetrics 
+  } = useClassMetrics(selectedClassId);
+
+  // Get class details for the selected class
+  const { data: selectedClass } = useClassDetails(selectedClassId);
+
+  // Get all classes
+  const classes = useMemo(() => classesData?.data || [], [classesData]);
+
+  // Get students for the selected class
+  const classStudents = useMemo(() => classStudentsData?.data || [], [classStudentsData]);
+  const totalStudents = classStudentsData?.total || 0;
+  // Remove unused totalPages variable
+
+  // Handle class selection change
+  const handleClassChange = (value: string) => {
+    // Si el valor es 'all', establece selectedClassId como string vacío
+    const newClassId = value === 'all' ? '' : value;
+    setSelectedClassId(newClassId);
+    // Reset pagination when changing classes
+    setPagination({ ...pagination, page: 1 });
+  };
+
+  // Use regular students or class students based on selection
   const {
-    students,
-    pagination,
+    students: allStudents,
+    pagination: allStudentsPagination,
     isLoading: isLoadingStudents,
     refreshStudents,
     updateFilters,
@@ -47,46 +97,60 @@ export default function StudentsPage() {
     isDeleting
   } = useStudents();
 
-  const {
-    metrics,
-    isLoadingMetrics,
-    refreshMetrics
-  } = useStudentMetrics();
+  const totalItems = selectedClassId ? totalStudents : allStudentsPagination.total;
 
-  const loadClasses = async () => {
-    setIsLoadingClasses(true);
-    try {
-      const response = await studentService.getClasses();
-      setClasses(response.data || []);
-    } catch (error) {
-      console.error('Error loading classes:', error);
-      setClasses([]);
-     
-    } finally {
-      setIsLoadingClasses(false);
+  // Destructure only what's needed from useStudentMetrics
+  useStudentMetrics();
+
+  const displayPagination = selectedClassId ? {
+    ...pagination,
+    total: totalStudents,
+    totalPages: Math.ceil(totalStudents / (pagination.limit || 10)),
+    data: classStudents.map((classStudent: ClassStudent) => ({
+      id: classStudent.id,
+      firstName: classStudent.firstName,
+      lastName: classStudent.lastName,
+      email: classStudent.email,
+      phone: classStudent.phone,
+      profileImage: classStudent.profileImage,
+      status: classStudent.membershipStatus as StudentStatus,
+      joinDate: classStudent.joinDate,
+      membership: {
+        type: classStudent.membershipType,
+        startDate: '',
+        endDate: '',
+        status: classStudent.membershipStatus as 'ACTIVE' | 'EXPIRED' | 'SUSPENDED'
+      },
+      stats: {
+        totalClasses: classStudent.totalClasses,
+        attendedClasses: classStudent.attendedClasses,
+        attendanceRate: classStudent.attendanceRate,
+        currentStreak: 0,
+        longestStreak: 0
+      },
+      createdAt: '',
+      updatedAt: ''
+    }))
+  } : {
+    ...allStudentsPagination,
+    data: allStudents || [],
+    page: allStudentsPagination.page || 1,
+    limit: allStudentsPagination.limit || 10,
+    total: allStudentsPagination.total || 0,
+    totalPages: allStudentsPagination.totalPages || 1
+  };
+  
+  const displayIsLoading = Boolean(isLoadingStudents || (selectedClassId && isLoadingClassStudents));
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    const newPagination = { ...displayPagination, page };
+    if (selectedClassId) {
+      setPagination(newPagination);
+    } else {
+      updatePagination(newPagination);
     }
   };
-
-
-  React.useEffect(() => {
-    loadClasses();
-  }, []);
-
-
-  const handleClassSelect = (classItem: Class) => {
-    setSelectedClass(classItem);
-  };
-
-  const handleBackToClasses = () => {
-    setSelectedClass(null);
-  };
-
-
-  const getDayName = (dayOfWeek: number) => {
-    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    return days[dayOfWeek];
-  };
-
 
   const handleFiltersChange = (newFilters: Partial<typeof filters>) => {
     setFilters(newFilters);
@@ -96,10 +160,6 @@ export default function StudentsPage() {
   const handleClearFilters = () => {
     setFilters({});
     updateFilters({});
-  };
-
-  const handlePageChange = (page: number) => {
-    updatePagination({ page });
   };
 
   const handleStudentDelete = async (student: Student) => {
@@ -112,287 +172,222 @@ export default function StudentsPage() {
     
     try {
       await deleteStudent(student.id);
-    } catch {
+    } catch (error) {
+      console.error('Error deleting student:', error);
     }
   };
 
   const handleStudentStatusUpdate = async (studentId: string, status: StudentStatus) => {
     try {
       await updateStatus({ id: studentId, status });
-    } catch {
+    } catch (error) {
+      console.error('Error updating student status:', error);
     }
-  };
-
-  const handleStudentMessage = (_student: Student) => {
-    // Implementar lógica de mensajería 
-    
-  };
-
-  const handleStudentHistory = (student: Student) => {
-    setSelectedStudentForHistory(student);
-    setShowHistoryView(true);
-  };
-
-  const handleBackFromHistory = () => {
-    setShowHistoryView(false);
-    setSelectedStudentForHistory(null);
   };
 
   const handleRefresh = () => {
-    if (selectedClass) {
+    if (selectedClassId) {
+      refetchClassStudents();
+      refetchClassMetrics();
+    } else {
       refreshStudents();
-    } else if (selectedTab === 'students') {
-      loadClasses();
-    } else if (selectedTab === 'metrics') {
-      refreshMetrics();
     }
+    refetchClasses();
   };
 
-  
+  useEffect(() => {
+    if (selectedTab === 'metrics' && selectedClassId) {
+      refetchClassMetrics();
+    }
+  }, [selectedTab, selectedClassId]);
+
   if (showHistoryView && selectedStudentForHistory) {
     return (
-      <StudentAttendanceHistoryView
+      <StudentAttendanceHistoryView 
         student={selectedStudentForHistory}
-        onBack={handleBackFromHistory}
+        onBack={() => setShowHistoryView(false)}
       />
     );
   }
 
- 
-  if (selectedClass) {
-    return (
-      <div className="p-6 space-y-6">
-        {/* Header con botón de regreso */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleBackToClasses}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Clases
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">{selectedClass.name}</h1>
-              <p className="text-muted-foreground">
-                {selectedClass.currentEnrollment || 0} de {selectedClass.maxCapacity || 0} estudiantes inscritos
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Badge variant={selectedClass.status === 'ACTIVE' ? 'default' : 'secondary'}>
-              {selectedClass.status === 'ACTIVE' ? 'Activa' : 
-               selectedClass.status === 'FULL' ? 'Llena' : 'Inactiva'}
-            </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isLoadingStudents}
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Actualizar
-            </Button>
-          </div>
-        </div>
-
-        {/* Información de la clase */}
-        <Card className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer">
-          <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <CardHeader className="relative">
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" />
-              Información de la Clase
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground">Horarios</h4>
-                <div className="mt-1 space-y-1">
-                  {(selectedClass.schedule || []).map((schedule, index) => (
-                    <div key={index} className="text-sm">
-                      {getDayName(schedule.dayOfWeek)} {schedule.startTime} - {schedule.endTime}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground">Ubicación</h4>
-                <div className="mt-1 text-sm">
-                  {selectedClass.location}
-                  {selectedClass.room && ` - ${selectedClass.room}`}
-                </div>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground">Trainer</h4>
-                <div className="mt-1 text-sm">{selectedClass.trainer?.name || 'Sin asignar'}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Estudiantes de la clase */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-80">
-            <StudentFilters
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              onClearFilters={handleClearFilters}
-            />
-          </div>
-          <div className="flex-1">
-            <StudentsTable
-              students={students}
-              pagination={{
-                ...pagination,
-                data: students
-              }}
-              isLoading={isLoadingStudents}
-              isDeleting={isDeleting}
-              onStudentDelete={handleStudentDelete}
-              onStudentStatusUpdate={handleStudentStatusUpdate}
-              onStudentMessage={handleStudentMessage}
-              onStudentHistory={handleStudentHistory}
-              onPageChange={handlePageChange}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
+    <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <GraduationCap className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold">Gestión de Clases</h1>
-            <p className="text-muted-foreground">
-              Administra clases y estudiantes de tu gimnasio
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {selectedClass ? `Estudiantes de ${selectedClass.name}` : 'Gestión de Estudiantes'}
+          </h1>
+          <p className="text-muted-foreground">
+            {selectedClass 
+              ? `Administra los estudiantes de esta clase` 
+              : 'Administra los estudiantes y sus asistencias'}
+          </p>
         </div>
-        
-        <Button 
-          variant="outline" 
-          onClick={handleRefresh}
-          disabled={isLoadingClasses || isLoadingMetrics}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${isLoadingClasses ? 'animate-spin' : ''}`} />
+        <Button onClick={handleRefresh} variant="outline" size="sm">
+          <RefreshCw className="h-4 w-4 mr-2" />
           Actualizar
         </Button>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as any)}>
-        <TabsList className="grid w-full grid-cols-2 bg-transparent border border-border rounded-lg">
-          <TabsTrigger value="students" className="flex items-center gap-2">
-            <GraduationCap className="h-4 w-4" />
-            Clases
-          </TabsTrigger>
-          <TabsTrigger value="metrics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Métricas
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Pestaña de Clases */}
-        <TabsContent value="students" className="space-y-6">
-          {/* Grid de clases */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoadingClasses ? (
-              // Loading skeleton
-              Array.from({ length: 6 }).map((_, index) => (
-                <Card key={index} className="animate-pulse">
-                  <CardHeader>
-                    <div className="h-6 bg-muted rounded w-3/4"></div>
-                    <div className="h-4 bg-muted rounded w-1/2"></div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-muted rounded"></div>
-                      <div className="h-4 bg-muted rounded w-2/3"></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              (classes || []).map((classItem) => (
-                <Card 
-                  key={classItem.id} 
-                  className="border-border bg-card/40 rounded-xl border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group relative cursor-pointer"
-                  onClick={() => handleClassSelect(classItem)}
-                >
-                  <div className="to-primary/5 absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  <CardHeader className="relative">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{classItem.name}</CardTitle>
-                      <Badge variant={classItem.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                        {classItem.status === 'ACTIVE' ? 'Activa' : 
-                         classItem.status === 'FULL' ? 'Llena' : 'Inactiva'}
+      {/* Class Selector */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <BookOpen className="h-5 w-5" />
+            <span>Seleccionar Clase</span>
+          </CardTitle>
+          <CardDescription>
+            Selecciona una clase para ver sus estudiantes y métricas
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 items-center">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => refetchClasses()}
+              disabled={isLoadingClasses}
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoadingClasses ? 'animate-spin' : ''}`} />
+            </Button>
+            <Select 
+              value={selectedClassId} 
+              onValueChange={handleClassChange}
+              disabled={isLoadingClasses}
+            >
+              <SelectTrigger className="w-[300px]">
+                <SelectValue placeholder={isLoadingClasses ? 'Cargando clases...' : 'Selecciona una clase'} />
+              </SelectTrigger>
+              <SelectContent>
+                {classesError ? (
+                  <div className="p-2 text-sm text-red-500">
+                    Error al cargar las clases. Intenta recargar la página.
+                  </div>
+                ) : (
+                  <SelectItem value="all">
+                    <span className="font-medium">Todos los estudiantes</span>
+                  </SelectItem>
+                )}
+                {classes.map((cls) => (
+                  <SelectItem key={cls.id} value={cls.id}>
+                    <div className="flex items-center gap-2">
+                      <span>{cls.name}</span>
+                      <Badge variant="outline" className="ml-2">
+                        {cls.status}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{classItem.description}</p>
-                  </CardHeader>
-                  <CardContent className="relative">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Estudiantes:</span>
-                        <span className="font-medium">
-                          {classItem.currentEnrollment || 0}/{classItem.maxCapacity || 0}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Trainer:</span>
-                        <span className="font-medium">{classItem.trainer?.name || 'Sin asignar'}</span>
-                      </div>
-                      
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">Horarios:</span>
-                        <div className="mt-1 space-y-1">
-                          {(classItem.schedule || []).slice(0, 2).map((schedule, index) => (
-                            <div key={index} className="text-xs">
-                              {getDayName(schedule.dayOfWeek)} {schedule.startTime} - {schedule.endTime}
-                            </div>
-                          ))}
-                          {(classItem.schedule || []).length > 2 && (
-                            <div className="text-xs text-muted-foreground">
-                              +{(classItem.schedule || []).length - 2} más
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Asistencia promedio:</span>
-                        <span className="font-medium text-green-600">
-                          {(classItem.stats?.averageAttendance || 0).toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {selectedClass && (
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium">Instructor:</span> {selectedClass.trainer?.name || 'No especificado'}
+                  <span className="mx-2">•</span>
+                  <span className="font-medium">Horario:</span> {selectedClass.schedule?.[0] ? 
+                    `${selectedClass.schedule[0].dayOfWeek} ${selectedClass.schedule[0].startTime}-${selectedClass.schedule[0].endTime}` : 
+                    'No especificado'}
+                </p>
+              </div>
             )}
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        {/* Pestaña de Métricas */}
-        <TabsContent value="metrics" className="space-y-6">
-          <StudentMetricsCards 
-            metrics={metrics || null} 
-            isLoading={isLoadingMetrics} 
+      <Tabs 
+        value={selectedTab} 
+        onValueChange={(value) => setSelectedTab(value as 'students' | 'metrics')}
+        className="space-y-4"
+      >
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="students" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span>Estudiantes</span>
+              {selectedClassId && (
+                <Badge variant="secondary" className="ml-1">
+                  {totalItems}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="metrics" 
+              className="flex items-center gap-2"
+              disabled={!selectedClassId}
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span>Métricas</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="students" className="space-y-4">
+          <StudentFilters 
+            filters={filters} 
+            onFiltersChange={handleFiltersChange} 
+            onClearFilters={handleClearFilters} 
           />
+          {isLoadingClasses ? (
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-[400px] w-full" />
+            </div>
+          ) : (
+            <StudentsTable 
+              students={displayPagination.data}
+              pagination={{
+                data: displayPagination.data,
+                total: displayPagination.total,
+                totalPages: displayPagination.totalPages,
+                page: displayPagination.page || 1,
+                limit: displayPagination.limit || 10
+              }}
+              isLoading={displayIsLoading}
+              onPageChange={handlePageChange}
+              onStudentStatusUpdate={handleStudentStatusUpdate}
+              onStudentDelete={handleStudentDelete}
+              onStudentMessage={(student) => {
+                // Implementar lógica de mensajería si es necesario
+                console.log('Enviar mensaje a:', student.email);
+              }}
+              onStudentHistory={(student) => {
+                setSelectedStudentForHistory(student);
+                setShowHistoryView(true);
+              }}
+              isDeleting={isDeleting}
+            />
+          )}
         </TabsContent>
 
+        <TabsContent value="metrics" className="space-y-4">
+          {isLoadingClassMetrics ? (
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-[110px] w-full" />
+                ))}
+              </div>
+              <Skeleton className="h-[400px] w-full" />
+            </div>
+          ) : selectedClass && classMetrics ? (
+            <ClassMetricsView 
+              metrics={classMetrics} 
+              classData={selectedClass}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Selecciona una clase</CardTitle>
+                <CardDescription>
+                  Por favor, selecciona una clase para ver sus métricas detalladas.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+        </TabsContent>
       </Tabs>
-
     </div>
   );
 }

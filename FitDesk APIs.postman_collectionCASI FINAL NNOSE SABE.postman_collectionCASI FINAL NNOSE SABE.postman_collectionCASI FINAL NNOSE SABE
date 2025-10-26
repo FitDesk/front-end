@@ -1,0 +1,1894 @@
+{
+	"info": {
+		"_postman_id": "9f79c6f2-7bde-46ff-a6ac-b3a40e4dc924",
+		"name": "FitDesk APIs",
+		"description": "# Get Started Here 👇\n\nThe _Postman Visualizer_ provides a programmable way to visually represent your request [responses](https://learning.postman.com/docs/sending-requests/responses/).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48410107",
+		"_collection_link": "https://fitdesk-apis.postman.co/workspace/API-Fitdesk~871c66d6-fc3e-460c-9fa1-26294d69b474/collection/37605718-9f79c6f2-7bde-46ff-a6ac-b3a40e4dc924?action=share&source=collection_link&creator=48410107"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Autorizacion",
+					"item": [
+						{
+							"name": "Statistics",
+							"item": [
+								{
+									"name": "admin/users/roles",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{GATEWAY_DEVELOPER}}/security/admin/users/roles",
+											"host": [
+												"{{GATEWAY_DEVELOPER}}"
+											],
+											"path": [
+												"security",
+												"admin",
+												"users",
+												"roles"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "admin/users/provider",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "billingImage",
+													"contentType": "",
+													"type": "file",
+													"src": "/C:/Users/ACER/Desktop/Neon Nova (1).png"
+												},
+												{
+													"key": "planReq",
+													"value": "{\n    \"name\": \"Plan Actualizado\",\n    \"description\": \"Acceso Actualizado\"\n}",
+													"contentType": "application/json",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{GATEWAY_DEVELOPER}}/security/admin/users/provider",
+											"host": [
+												"{{GATEWAY_DEVELOPER}}"
+											],
+											"path": [
+												"security",
+												"admin",
+												"users",
+												"provider"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "/admin/users",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "billingImage",
+													"contentType": "",
+													"type": "file",
+													"src": "/C:/Users/ACER/Desktop/Neon Nova (1).png"
+												},
+												{
+													"key": "planReq",
+													"value": "{\n    \"name\": \"Plan Actualizado\",\n    \"description\": \"Acceso Actualizado\"\n}",
+													"contentType": "application/json",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{GATEWAY_DEVELOPER}}/security/admin/users",
+											"host": [
+												"{{GATEWAY_DEVELOPER}}"
+											],
+											"path": [
+												"security",
+												"admin",
+												"users"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "admin/users/id/roles",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"role\": \"ADMIN\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/security/admin/users/8257a9fb-c21d-468e-a0cf-fc847e8249ba/roles",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"security",
+										"admin",
+										"users",
+										"8257a9fb-c21d-468e-a0cf-fc847e8249ba",
+										"roles"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "admin/users/id/roles",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"role\": \"ADMIN\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/security/admin/users/8257a9fb-c21d-468e-a0cf-fc847e8249ba/roles",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"security",
+										"admin",
+										"users",
+										"8257a9fb-c21d-468e-a0cf-fc847e8249ba",
+										"roles"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "admin/users/id/roles",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"role\": \"ADMIN\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/security/admin/users/6eec6c23-2a7e-4bd6-bbf2-093e5412c45d/roles",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"security",
+										"admin",
+										"users",
+										"6eec6c23-2a7e-4bd6-bbf2-093e5412c45d",
+										"roles"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "admin/users/id/deactivate",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"admin@fitdesk.com\",\r\n    \"password\": \"admin123\"\r\n}"
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/security/admin/users/16a58438-9938-40de-9352-76e9bf1f4906/deactivate",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"security",
+										"admin",
+										"users",
+										"16a58438-9938-40de-9352-76e9bf1f4906",
+										"deactivate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "admin/users/id/activate",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"admin@fitdesk.com\",\r\n    \"password\": \"admin123\"\r\n}"
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/security/admin/users/16a58438-9938-40de-9352-76e9bf1f4906/activate",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"security",
+										"admin",
+										"users",
+										"16a58438-9938-40de-9352-76e9bf1f4906",
+										"activate"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Autenticacion",
+					"item": [
+						{
+							"name": "logout",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"trainer@fitdesk.com\",\r\n    \"password\": \"trainer123\"\r\n}"
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/security/auth/logout",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"security",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "login",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"test@gmail.com\",\r\n    \"password\": \"test3492005\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/security/auth/login",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"security",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "auth/register",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"test\",\r\n  \"lastName\": \"test test\",\r\n  \"email\": \"test@gmail.com\",\r\n  \"dni\": \"74899271\",\r\n  \"password\": \"test3492005\",\r\n  \"phone\": \"971893339\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/security/auth/register",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"security",
+										"auth",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/auth/refresh",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:9090/security/auth/refresh",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "9090",
+									"path": [
+										"security",
+										"auth",
+										"refresh"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "change-password",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": ".well-known/oauth-authorization-server",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9091/.well-known/oauth-authorization-server",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								".well-known",
+								"oauth-authorization-server"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": ".well-known/jwks.json",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9091/.well-known/jwks.json",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								".well-known",
+								"jwks.json"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "auth/me",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/security/auth/me",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"security",
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Locations",
+			"item": [
+				{
+					"name": "api/locations",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Gimnasio\",\r\n  \"description\": \"Área 52\",\r\n  \"ability\": 10,\r\n  \"active\": true\r\n}"
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/locations",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"locations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "api/locations",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Gimnasio 2\",\r\n  \"description\": \"Área 52\",\r\n  \"ability\": 10,\r\n  \"active\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/locations",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"locations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "api/locations",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "accept",
+								"value": "*/*"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Gimnasio\",\n  \"description\": \"Área 49\",\n  \"ability\": 10,\n  \"active\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9094/locations/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9094",
+							"path": [
+								"locations",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "api/locations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "*/*"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9094/api/locations/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9094",
+							"path": [
+								"api",
+								"locations",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "api/locations",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "accept",
+								"value": "*/*"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9094/api/locations/4",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9094",
+							"path": [
+								"api",
+								"locations",
+								"4"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Trainers",
+			"item": [
+				{
+					"name": "trainers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/trainers",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"trainers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "trainers",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "trainer",
+									"value": "{\n  \"firstName\": \"Roger\",\n  \"lastName\": \"Concepcion\",\n  \"dni\": \"74258391\",\n  \"birthDate\": \"12-05-1990\",\n  \"gender\": \"MASCULINO\",\n  \"phone\": \"987654321\",\n  \"email\": \"roger@fitdesk.com\",\n  \"address\": \"Av. Los Próceres 120, Trujillo\",\n  \"specialties\": \"Entrenamiento funcional, CrossFit\",\n  \"yearsOfExperience\": 6,\n  \"availability\": [\"LUNES\", \"MIERCOLES\", \"VIERNES\"],\n  \"hireDate\": \"15-01-2022\",\n  \"status\": \"ACTIVO\",\n  \"contractType\": \"MEDIO_TIEMPO\",\n  \"salaryPerClass\": 80.50,\n  \"bankInfo\": \"Interbank - 1234567890123456\",\n  \"notes\": \"Entrenador certificado por CrossFit Level 1\"\n}",
+									"type": "text"
+								},
+								{
+									"key": "profileImage",
+									"type": "file",
+									"src": "/C:/Users/Erik/Pictures/Acer/Acer_Wallpaper_03_3840x2400.jpg"
+								},
+								{
+									"key": "certifications",
+									"type": "file",
+									"src": "/C:/Users/Erik/Downloads/CV-ROGER ERIK CONCEPCION LEON.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/trainers",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"trainers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "trainers{id}",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/trainers/23e0f63e-5953-4e2a-a98f-6ecdfa5e07b8",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"trainers",
+								"23e0f63e-5953-4e2a-a98f-6ecdfa5e07b8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "trainers{id}",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/trainers/d979f693-7d6a-4fc0-902e-ce3df66390d8",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"trainers",
+								"d979f693-7d6a-4fc0-902e-ce3df66390d8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "trainers{id}",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "trainer",
+									"value": "{\"dni\": \"74258391\"}",
+									"type": "text"
+								},
+								{
+									"key": "certifications",
+									"type": "file",
+									"src": "/C:/Users/Erik/Downloads/2420_Plan de negocios_T2_772_Roger Concepcion.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/trainers/879a780c-58d8-49a4-987e-bde5e9b45daf",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"trainers",
+								"879a780c-58d8-49a4-987e-bde5e9b45daf"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Classes",
+			"item": [
+				{
+					"name": "classes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/classes",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"classes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "classes",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"className\": \"Entrenamiento Funcional Intermedio\",\r\n  \"locationId\": \"c018bfb2-5bf5-410a-8a70-24a593cb9654\",\r\n  \"trainerId\": \"879a780c-58d8-49a4-987e-bde5e9b45daf\",\r\n  \"classDate\": \"25-10-2025\",\r\n  \"duration\": 60,\r\n  \"maxCapacity\": 20,\r\n  \"startTime\": \"07:00\",\r\n  \"endTime\": \"08:00\",\r\n  \"active\": true,\r\n  \"description\": \"Clase intensiva enfocada en fuerza y resistencia para atletas intermedios.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/classes",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"classes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "classes{id}",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"description\": \"Prueba de editar  \"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/classes/545c6a97-fecc-4851-bff4-d37d5d9b170a",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"classes",
+								"545c6a97-fecc-4851-bff4-d37d5d9b170a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "classes{id}",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/classes/702a52e4-0bd9-4bda-ac68-efc36c510e96",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"classes",
+								"702a52e4-0bd9-4bda-ac68-efc36c510e96"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "admin/users/register-trainer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"trainer@gmail.com\",\r\n  \"password\": \"Trainer123!\",\r\n  \"firstName\": \"Carlos\",\r\n  \"lastName\": \"Rodríguez\",\r\n  \"dni\": \"74894286\",\r\n  \"phone\": \"951890369\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/security/admin/users/register-trainer",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"security",
+								"admin",
+								"users",
+								"register-trainer"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Members",
+			"item": [
+				{
+					"name": "member",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/members/member",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"members",
+								"member"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "member/id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/members/member/user/33c721fa-cb47-4137-855e-b669ee5dddcf",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"members",
+								"member",
+								"user",
+								"33c721fa-cb47-4137-855e-b669ee5dddcf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "member/id",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "profileImage",
+									"type": "file",
+									"src": "/C:/Users/ACER/Desktop/REGISTER.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/members/member/33c721fa-cb47-4137-855e-b669ee5dddcf",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"members",
+								"member",
+								"33c721fa-cb47-4137-855e-b669ee5dddcf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "member/user-security/{id}",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/members/member/user-security/d6be898b-0559-4c83-b62f-8d104d2b9951",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"members",
+								"member",
+								"user-security",
+								"d6be898b-0559-4c83-b62f-8d104d2b9951"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Billing",
+			"item": [
+				{
+					"name": "Plans",
+					"item": [
+						{
+							"name": "billing/plans/active",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/plans/active",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"plans",
+										"active"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "billing/plans/{id}",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "billingImage",
+											"contentType": "",
+											"type": "file",
+											"src": "/C:/Users/ACER/Desktop/Neon Nova (1).png"
+										},
+										{
+											"key": "planReq",
+											"value": "{\n    \"name\": \"Plan Actualizado\",\n    \"description\": \"Acceso Actualizado\"\n}",
+											"contentType": "application/json",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/plans/0d057b3f-1f7e-4944-abe6-be4788370266",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"plans",
+										"0d057b3f-1f7e-4944-abe6-be4788370266"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "billing/plans",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/plans",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"plans"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/billing/plans/{id}",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/plans/a1111111-1111-1111-1111-111111111111",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"plans",
+										"a1111111-1111-1111-1111-111111111111"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/billing/plans",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "plan",
+											"value": "{\n  \"name\": \"Plan Premium\",\n  \"description\": \"Acceso completo\",\n  \"price\": 19.99,\n  \"durationMonths\": 12,\n  \"currency\": \"USD\",\n  \"isActive\": true,\n  \"isPopular\": false,\n  \"features\": [\"Soporte 24/7\", \"Acceso ilimitado\"]\n}",
+											"contentType": "application/json",
+											"type": "text"
+										},
+										{
+											"key": "billingImage",
+											"type": "file",
+											"src": "/C:/Users/ACER/Desktop/Captura de pantalla 2025-10-10 102915.png"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/plans",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"plans"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "billing/plans/{id}",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "billingImage",
+											"contentType": "",
+											"type": "file",
+											"src": "/C:/Users/ACER/Desktop/Neon Nova (1).png"
+										},
+										{
+											"key": "planReq",
+											"value": "{\n    \"name\": \"Plan Actualizado\",\n    \"description\": \"Acceso Actualizado\"\n}",
+											"contentType": "application/json",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/plans/0d057b3f-1f7e-4944-abe6-be4788370266",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"plans",
+										"0d057b3f-1f7e-4944-abe6-be4788370266"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Payment",
+					"item": [
+						{
+							"name": "methods",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/payments/methods",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"payments",
+										"methods"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "health",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/payments/health",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"payments",
+										"health"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "test-credentials",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/payments/test-credentials",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"payments",
+										"test-credentials"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "New Request",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "TEST-2641493403784365-100318-0e206813a005e145a2e1a38762f74f38-2903718862",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"site_id\": \"MPE\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.mercadopago.com/users/test_user",
+									"protocol": "https",
+									"host": [
+										"api",
+										"mercadopago",
+										"com"
+									],
+									"path": [
+										"users",
+										"test_user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/billing/payments/details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/payments/details?planName=Plan Premium",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"payments",
+										"details"
+									],
+									"query": [
+										{
+											"key": "planName",
+											"value": "Plan Premium"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "/billing/payments/details",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{GATEWAY_DEVELOPER}}/billing/payments/details",
+											"host": [
+												"{{GATEWAY_DEVELOPER}}"
+											],
+											"path": [
+												"billing",
+												"payments",
+												"details"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "transfer-encoding",
+											"value": "chunked"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Vary",
+											"value": "Access-Control-Request-Method"
+										},
+										{
+											"key": "Vary",
+											"value": "Access-Control-Request-Headers"
+										},
+										{
+											"key": "X-Content-Type-Options",
+											"value": "nosniff"
+										},
+										{
+											"key": "X-XSS-Protection",
+											"value": "0"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, no-store, max-age=0, must-revalidate"
+										},
+										{
+											"key": "Pragma",
+											"value": "no-cache"
+										},
+										{
+											"key": "Expires",
+											"value": "0"
+										},
+										{
+											"key": "X-Frame-Options",
+											"value": "DENY"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Date",
+											"value": "Tue, 21 Oct 2025 23:53:05 GMT"
+										},
+										{
+											"key": "Referrer-Policy",
+											"value": "no-referrer"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"content\": [\n        {\n            \"id\": \"9e97ee74-737d-4676-814c-3744bf3df42e\",\n            \"payerEmail\": \"raydga2005@gmail.com\",\n            \"paymentMethodId\": \"visa\",\n            \"planName\": \"Plan Básico Update\",\n            \"amount\": 99,\n            \"planExpirationDate\": \"14 nov 2025\",\n            \"paymentDate\": \"14 de oct de 2025, 04:08\",\n            \"status\": \"approved\"\n        },\n        {\n            \"id\": \"affda33f-8ad2-43eb-a86a-f7cabbadaf2e\",\n            \"payerEmail\": \"test@gmail.com\",\n            \"paymentMethodId\": \"visa\",\n            \"planName\": \"Plan Premium\",\n            \"amount\": 199,\n            \"planExpirationDate\": \"17 nov 2025\",\n            \"paymentDate\": \"17 de oct de 2025, 23:45\",\n            \"status\": \"approved\"\n        }\n    ],\n    \"pageable\": {\n        \"pageNumber\": 0,\n        \"pageSize\": 20,\n        \"sort\": {\n            \"sorted\": false,\n            \"unsorted\": true,\n            \"empty\": true\n        },\n        \"offset\": 0,\n        \"paged\": true,\n        \"unpaged\": false\n    },\n    \"totalPages\": 1,\n    \"totalElements\": 2,\n    \"last\": true,\n    \"first\": true,\n    \"size\": 20,\n    \"number\": 0,\n    \"sort\": {\n        \"sorted\": false,\n        \"unsorted\": true,\n        \"empty\": true\n    },\n    \"numberOfElements\": 2,\n    \"empty\": false\n}"
+								},
+								{
+									"name": "status=approved&paymentMethodId=visa",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{GATEWAY_DEVELOPER}}/billing/payments/details?status=approved&paymentMethodId=visa",
+											"host": [
+												"{{GATEWAY_DEVELOPER}}"
+											],
+											"path": [
+												"billing",
+												"payments",
+												"details"
+											],
+											"query": [
+												{
+													"key": "status",
+													"value": "approved"
+												},
+												{
+													"key": "paymentMethodId",
+													"value": "visa"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "transfer-encoding",
+											"value": "chunked"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Vary",
+											"value": "Access-Control-Request-Method"
+										},
+										{
+											"key": "Vary",
+											"value": "Access-Control-Request-Headers"
+										},
+										{
+											"key": "X-Content-Type-Options",
+											"value": "nosniff"
+										},
+										{
+											"key": "X-XSS-Protection",
+											"value": "0"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, no-store, max-age=0, must-revalidate"
+										},
+										{
+											"key": "Pragma",
+											"value": "no-cache"
+										},
+										{
+											"key": "Expires",
+											"value": "0"
+										},
+										{
+											"key": "X-Frame-Options",
+											"value": "DENY"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Date",
+											"value": "Tue, 21 Oct 2025 23:55:26 GMT"
+										},
+										{
+											"key": "Referrer-Policy",
+											"value": "no-referrer"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"content\": [\n        {\n            \"id\": \"9e97ee74-737d-4676-814c-3744bf3df42e\",\n            \"payerEmail\": \"raydga2005@gmail.com\",\n            \"paymentMethodId\": \"visa\",\n            \"planName\": \"Plan Básico Update\",\n            \"amount\": 99,\n            \"planExpirationDate\": \"14 nov 2025\",\n            \"paymentDate\": \"14 de oct de 2025, 04:08\",\n            \"status\": \"approved\"\n        },\n        {\n            \"id\": \"affda33f-8ad2-43eb-a86a-f7cabbadaf2e\",\n            \"payerEmail\": \"test@gmail.com\",\n            \"paymentMethodId\": \"visa\",\n            \"planName\": \"Plan Premium\",\n            \"amount\": 199,\n            \"planExpirationDate\": \"17 nov 2025\",\n            \"paymentDate\": \"17 de oct de 2025, 23:45\",\n            \"status\": \"approved\"\n        }\n    ],\n    \"pageable\": {\n        \"pageNumber\": 0,\n        \"pageSize\": 20,\n        \"sort\": {\n            \"sorted\": false,\n            \"unsorted\": true,\n            \"empty\": true\n        },\n        \"offset\": 0,\n        \"paged\": true,\n        \"unpaged\": false\n    },\n    \"totalPages\": 1,\n    \"totalElements\": 2,\n    \"last\": true,\n    \"first\": true,\n    \"size\": 20,\n    \"number\": 0,\n    \"sort\": {\n        \"sorted\": false,\n        \"unsorted\": true,\n        \"empty\": true\n    },\n    \"numberOfElements\": 2,\n    \"empty\": false\n}"
+								}
+							]
+						},
+						{
+							"name": "billing/payments/statistics",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"test@gmail.com\",\r\n    \"password\": \"test3492005\"\r\n}"
+								},
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/billing/payments/statistics",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"billing",
+										"payments",
+										"statistics"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Reservations",
+			"item": [
+				{
+					"name": "reservations",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"classId\": \"00dc36e2-53fa-4648-bcd1-5e8192eae9b1\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/reservations",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"reservations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reservations/my",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/reservations/my",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"reservations",
+								"my"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reservations{id}",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/reservations/afb7c818-f20d-416b-ae1e-fe4f664ae46d/confirm",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"reservations",
+								"afb7c818-f20d-416b-ae1e-fe4f664ae46d",
+								"confirm"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reservations",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/reservations/afb7c818-f20d-416b-ae1e-fe4f664ae46d/complete",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"reservations",
+								"afb7c818-f20d-416b-ae1e-fe4f664ae46d",
+								"complete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "dashboard member",
+			"item": [
+				{
+					"name": "dashboard menber",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/dashboard/member",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"dashboard",
+								"member"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Config Server",
+			"item": [
+				{
+					"name": "DEV",
+					"item": [
+						{
+							"name": "/msvc-classes/dev",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:7777/msvc-classes/dev",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "7777",
+									"path": [
+										"msvc-classes",
+										"dev"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/msvc-security/dev",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{CONFIG_SERVER}}/msvc-security/dev",
+									"host": [
+										"{{CONFIG_SERVER}}"
+									],
+									"path": [
+										"msvc-security",
+										"dev"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "New Request",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{CONFIG_SERVER}}/gateway/dev",
+									"host": [
+										"{{CONFIG_SERVER}}"
+									],
+									"path": [
+										"gateway",
+										"dev"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "PROD",
+					"item": [
+						{
+							"name": "New Request",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "VISTA TRAINER",
+			"item": [
+				{
+					"name": "Estado de la clase",
+					"item": [
+						{
+							"name": "start",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/classes/classes/6c3164a1-3adf-4a2e-9c83-635d4ff3b741/start",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"classes",
+										"classes",
+										"6c3164a1-3adf-4a2e-9c83-635d4ff3b741",
+										"start"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "complete",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/classes/classes/6c3164a1-3adf-4a2e-9c83-635d4ff3b741/complete",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"classes",
+										"classes",
+										"6c3164a1-3adf-4a2e-9c83-635d4ff3b741",
+										"complete"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "cancel",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/classes/classes/6c3164a1-3adf-4a2e-9c83-635d4ff3b741/cancel",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"classes",
+										"classes",
+										"6c3164a1-3adf-4a2e-9c83-635d4ff3b741",
+										"cancel"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Clases del trainer",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/stadistic/my-classes/stats",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"stadistic",
+								"my-classes",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "detalle de la clase y miembro",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/stadistic/6c3164a1-3adf-4a2e-9c83-635d4ff3b741/detail",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"stadistic",
+								"6c3164a1-3adf-4a2e-9c83-635d4ff3b741",
+								"detail"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "clases con filtro",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "dashboard Trainer",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/dashboard/trainer",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"dashboard",
+								"trainer"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "dashboard Trainer",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_DEVELOPER}}/classes/dashboard/trainer",
+									"host": [
+										"{{GATEWAY_DEVELOPER}}"
+									],
+									"path": [
+										"classes",
+										"dashboard",
+										"trainer"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Vary",
+									"value": "Access-Control-Request-Method"
+								},
+								{
+									"key": "Vary",
+									"value": "Access-Control-Request-Headers"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 23 Oct 2025 08:52:07 GMT"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "no-referrer"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"totalClasses\": 4,\n    \"completedClasses\": 1,\n    \"totalStudents\": 1,\n    \"averageAttendance\": 0,\n    \"upcomingClasses\": 0,\n    \"classesThisMonth\": 4,\n    \"attendanceChange\": 100,\n    \"studentTrends\": [\n        {\n            \"week\": \"Sem 1\",\n            \"activeStudents\": 0,\n            \"inactiveStudents\": 0,\n            \"label\": \"Semana 1: 0 activos, 0 inactivos\"\n        },\n        {\n            \"week\": \"Sem 2\",\n            \"activeStudents\": 0,\n            \"inactiveStudents\": 0,\n            \"label\": \"Semana 2: 0 activos, 0 inactivos\"\n        },\n        {\n            \"week\": \"Sem 3\",\n            \"activeStudents\": 0,\n            \"inactiveStudents\": 0,\n            \"label\": \"Semana 3: 0 activos, 0 inactivos\"\n        },\n        {\n            \"week\": \"Sem 4\",\n            \"activeStudents\": 0,\n            \"inactiveStudents\": 1,\n            \"label\": \"Semana 4: 0 activos, 1 inactivos\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Proxima clase",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"attendanceStatus\": \"PRESENTE\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GATEWAY_DEVELOPER}}/classes/classes/reservations/7d14e432-a811-424a-b5b3-d94bc7eb4799/attendance",
+							"host": [
+								"{{GATEWAY_DEVELOPER}}"
+							],
+							"path": [
+								"classes",
+								"classes",
+								"reservations",
+								"7d14e432-a811-424a-b5b3-d94bc7eb4799",
+								"attendance"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "eq-starttime",
+			"value": ""
+		},
+		{
+			"key": "eq-endtime",
+			"value": ""
+		}
+	]
+}

@@ -15,8 +15,8 @@ interface CalendarStore {
   viewType: 'week' | 'month';
   filters: CalendarFilters;
   selectedDate: Date | null;
+  forceUpdate: number; // Add forceUpdate to trigger re-renders
   
-
   dateRange: { start: Date; end: Date };
   calendarTitle: string;
   
@@ -36,6 +36,7 @@ export const useCalendarStore = create<CalendarStore>()(
     viewType: 'week',
     filters: {},
     selectedDate: null,
+    forceUpdate: 0,
     
     // Computed properties
     get dateRange() {
@@ -54,15 +55,31 @@ export const useCalendarStore = create<CalendarStore>()(
     },
     
     get calendarTitle() {
-      const { currentDate, viewType } = get();
+      // Obtenemos el estado actual
+      const state = get();
+      const { currentDate, viewType } = state;
+      
+      // Forzamos la actualización al acceder a forceUpdate
+      void state.forceUpdate;
+      
       if (viewType === 'week') {
         const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
         const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
         
-        if (weekStart.getMonth() === weekEnd.getMonth()) {
-          return `${format(weekStart, 'd', { locale: es })} - ${format(weekEnd, 'd \'de\' MMMM yyyy', { locale: es })}`;
+        const formatDayMonth = (date: Date) => {
+          return format(date, 'd \'de\' MMM', { locale: es });
+        };
+        
+        const formatFullDate = (date: Date) => {
+          return format(date, 'd \'de\' MMMM yyyy', { locale: es });
+        };
+        
+        if (weekStart.getMonth() === weekEnd.getMonth() && weekStart.getFullYear() === weekEnd.getFullYear()) {
+          return `${weekStart.getDate()} - ${formatFullDate(weekEnd)}`;
+        } else if (weekStart.getFullYear() === weekEnd.getFullYear()) {
+          return `${formatDayMonth(weekStart)} - ${formatFullDate(weekEnd)}`;
         } else {
-          return `${format(weekStart, 'd \'de\' MMM', { locale: es })} - ${format(weekEnd, 'd \'de\' MMM yyyy', { locale: es })}`;
+          return `${formatFullDate(weekStart)} - ${formatFullDate(weekEnd)}`;
         }
       } else {
         return format(currentDate, 'MMMM yyyy', { locale: es });
@@ -91,28 +108,42 @@ export const useCalendarStore = create<CalendarStore>()(
     
     goToNext: () => set((state) => {
       const { currentDate, viewType } = get();
+      const newDate = new Date(currentDate);
+      
       if (viewType === 'week') {
-        state.currentDate = new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+        // Add exactly 7 days to move to the next week
+        newDate.setDate(newDate.getDate() + 7);
       } else {
-        const nextMonth = new Date(currentDate);
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-        state.currentDate = nextMonth;
+        // For month view, move to the same day in the next month
+        newDate.setMonth(newDate.getMonth() + 1);
       }
+      
+      // Update the date and force a re-render
+      state.currentDate = new Date(newDate);
+      state.forceUpdate += 1;
     }),
     
     goToPrevious: () => set((state) => {
       const { currentDate, viewType } = get();
+      const newDate = new Date(currentDate);
+      
       if (viewType === 'week') {
-        state.currentDate = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+        // Subtract exactly 7 days to move to the previous week
+        newDate.setDate(newDate.getDate() - 7);
       } else {
-        const prevMonth = new Date(currentDate);
-        prevMonth.setMonth(prevMonth.getMonth() - 1);
-        state.currentDate = prevMonth;
+        // For month view, move to the same day in the previous month
+        newDate.setMonth(newDate.getMonth() - 1);
       }
+      
+      // Update the date and force a re-render
+      state.currentDate = new Date(newDate);
+      state.forceUpdate += 1;
     }),
     
     goToToday: () => set((state) => {
+      // Update to today's date and force a re-render
       state.currentDate = new Date();
+      state.forceUpdate += 1;
     }),
   }))
 );

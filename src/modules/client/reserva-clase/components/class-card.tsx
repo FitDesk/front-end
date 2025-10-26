@@ -13,7 +13,9 @@ interface ClassCardProps {
     capacidad: number;
     inscritos: number;
     ubicacion: string;
-    estado: 'disponible' | 'lleno' | 'cancelado';
+    estado: 'disponible' | 'lleno' | 'cancelado' | 'en_progreso';
+    startTime?: string;
+    endTime?: string;
     onReservar: (classId: string) => void;
 }
 
@@ -29,7 +31,40 @@ export const ClassCard = ({
     estado,
     onReservar
 }: ClassCardProps) => {
+    const isClassInProgress = () => {
+        if (estado === 'en_progreso') return true;
+        
+        try {
+            if (!horario) return false;
+            
+            const [startTimeStr, endTimeStr] = horario.split(' - ');
+            if (!startTimeStr || !endTimeStr) return false;
+            
+            const now = new Date();
+            const [startHour, startMinute] = startTimeStr.split(':').map(Number);
+            const [endHour, endMinute] = endTimeStr.split(':').map(Number);
+            
+            const classDate = new Date(fecha);
+            const startDateTime = new Date(classDate);
+            startDateTime.setHours(startHour, startMinute, 0, 0);
+            
+            const endDateTime = new Date(classDate);
+            endDateTime.setHours(endHour, endMinute, 0, 0);
+            
+            return now >= startDateTime && now <= endDateTime;
+        } catch (error) {
+            console.error('Error verificando estado de la clase:', error);
+            return false;
+        }
+    };
+
     const getEstadoBadge = () => {
+        const inProgress = isClassInProgress();
+        
+        if (inProgress) {
+            return <Badge className="bg-blue-500 hover:bg-blue-600">En Progreso</Badge>;
+        }
+        
         switch (estado) {
             case 'disponible':
                 return <Badge className="bg-green-500 hover:bg-green-600">Disponible</Badge>;
@@ -43,6 +78,10 @@ export const ClassCard = ({
     };
 
     const getButtonText = () => {
+        if (isClassInProgress()) {
+            return 'Clase en curso';
+        }
+        
         switch (estado) {
             case 'disponible':
                 return 'Reservar';
@@ -94,8 +133,8 @@ export const ClassCard = ({
                 
                 <Button 
                     onClick={() => onReservar(id)}
-                    disabled={estado === 'cancelado'}
-                    variant={estado === 'disponible' ? 'default' : 'outline'}
+                    disabled={estado === 'cancelado' || isClassInProgress()}
+                    variant={estado === 'disponible' && !isClassInProgress() ? 'default' : 'outline'}
                     className="w-full"
                 >
                     {getButtonText()}

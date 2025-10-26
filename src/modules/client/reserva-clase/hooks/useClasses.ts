@@ -1,5 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ClassesService } from "../services/classes.service";
+import type { ClaseReserva } from "../services/classes.service";
+
+interface PaginatedResponse {
+    content: ClaseReserva[];
+    // Add other pagination properties if needed
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    first: boolean;
+    last: boolean;
+}
 
 export const useClasesPorFecha = () => {
     return useQuery({
@@ -19,10 +31,42 @@ export const useBuscarClases = () => {
 };
 
 export const useClasesPaginated = (page: number = 0, size: number = 10, search?: string) => {
-    return useQuery({
+    return useQuery<PaginatedResponse, Error>({
         queryKey: ["classes", "paginated", page, size, search],
-        queryFn: () => ClassesService.getClasesPaginated(page, size, search),
+        queryFn: () => ClassesService.getClasesPaginated(page, size, search) as Promise<PaginatedResponse>,
         staleTime: 2 * 60 * 1000,
+        refetchInterval: (query) => {
+            const data = query.state.data;
+            if (!data?.content) return false;
+            
+            // If any class is in progress, refetch more frequently
+            const hasClassInProgress = data.content.some((classItem: ClaseReserva) => {
+                const horario = classItem.horario || '';
+                const [startTimeStr, endTimeStr] = horario.split(' - ');
+                if (!startTimeStr || !endTimeStr) return false;
+                
+                try {
+                    const now = new Date();
+                    const [startHour, startMinute] = startTimeStr.split(':').map(Number);
+                    const [endHour, endMinute] = endTimeStr.split(':').map(Number);
+                    
+                    const classDate = new Date(classItem.fecha);
+                    const startDateTime = new Date(classDate);
+                    startDateTime.setHours(startHour, startMinute, 0, 0);
+                    
+                    const endDateTime = new Date(classDate);
+                    endDateTime.setHours(endHour, endMinute, 0, 0);
+                    
+                    return now >= startDateTime && now <= endDateTime;
+                } catch (error) {
+                    console.error('Error checking class time:', error);
+                    return false;
+                }
+            });
+            
+            // Refetch every 10 seconds if any class is in progress
+            return hasClassInProgress ? 10000 : false;
+        },
     });
 };
 

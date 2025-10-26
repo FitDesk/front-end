@@ -1,10 +1,12 @@
 export type StudentStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 export type MembershipType = 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' | 'PREMIUM';
-export type ClassStatus = 'ACTIVE' | 'INACTIVE' | 'FULL';
+export type ClassStatus = 'ACTIVE' | 'INACTIVE' | 'FULL' | 'IN_PROGRESS';
 
 export type ClassType = string;
-export interface Student {
+
+// Base Student interface for extending
+export interface BaseStudent {
   id: string;
   firstName: string;
   lastName: string;
@@ -14,6 +16,56 @@ export interface Student {
   status: StudentStatus;
   joinDate: string;
   lastActivity?: string;
+}
+
+export interface ClassStudent extends Pick<BaseStudent, 'id' | 'firstName' | 'lastName' | 'email' | 'phone' | 'profileImage'> {
+  attendanceStatus: AttendanceStatus;
+  lastAttended?: string;
+  totalClasses: number;
+  attendedClasses: number;
+  attendanceRate: number;
+  membershipStatus: 'ACTIVE' | 'EXPIRED' | 'SUSPENDED';
+  membershipType: MembershipType;
+  joinDate: string;
+  notes?: string;
+}
+
+export interface ClassMetrics {
+  classId: string;
+  className: string;
+  totalStudents: number;
+  averageAttendance: number;
+  attendanceTrend: {
+    date: string;
+    attendanceRate: number;
+  }[];
+  attendanceByDay: {
+    day: string;
+    count: number;
+  }[];
+  recentActivity: {
+    studentId: string;
+    studentName: string;
+    action: 'joined' | 'left' | 'attended' | 'missed';
+    date: string;
+  }[];
+  topStudents: Array<{
+    studentId: string;
+    studentName: string;
+    attendanceRate: number;
+    totalClasses: number;
+  }>;
+  upcomingClasses: Array<{
+    id: string;
+    name: string;
+    date: string;
+    time: string;
+    location: string;
+    registeredStudents: number;
+    capacity: number;
+  }>;
+}
+export interface Student extends BaseStudent {
   
   membership: {
     type: MembershipType;

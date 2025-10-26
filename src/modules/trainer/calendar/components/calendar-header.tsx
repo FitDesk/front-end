@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Calendar, Grid3X3, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Grid3X3, List, RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { 
   Select,
@@ -19,10 +19,12 @@ interface CalendarHeaderProps {
   onPrevious: () => void;
   onNext: () => void;
   onToday: () => void;
+  onRefresh: () => void;
   onViewChange: (view: CalendarView['type']) => void;
   onFiltersChange: (filters: Partial<CalendarFilters>) => void;
   onClearFilters: () => void;
   availableLocations?: string[];
+  isRefreshing?: boolean;
   className?: string;
 }
 
@@ -33,10 +35,12 @@ export function CalendarHeader({
   onPrevious,
   onNext,
   onToday,
+  onRefresh,
   onViewChange,
   onFiltersChange,
   onClearFilters,
   availableLocations = [],
+  isRefreshing = false,
   className
 }: CalendarHeaderProps) {
   const hasActiveFilters = !!(filters.status || filters.location || filters.dateRange);
@@ -73,6 +77,17 @@ export function CalendarHeader({
               className="ml-2"
             >
               Hoy
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="ml-2 h-8 w-8 p-0"
+              title="Refrescar calendario"
+            >
+              <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
             </Button>
           </div>
 

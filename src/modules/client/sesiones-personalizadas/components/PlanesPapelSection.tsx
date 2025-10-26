@@ -67,7 +67,7 @@ const PlanesPapelSection = () => {
                 height="480" 
                 loading="lazy" 
                 alt="No más planes en papel, crea fácilmente planes de entrenamiento virtuales" 
-                src="https://res.cloudinary.com/dvjfemxbz/image/upload/fl_sanitize,c_scale,f_auto,q_80,w_2000/Workouts_ES_fuvnet.svg"
+                src="https://res.cloudinary.com/dgtgmsqo7/image/upload/v1761168347/WhatsApp_Image_2025-10-22_at_4.15.04_PM_dr7fbf.jpg"
               />
             </div>
 
