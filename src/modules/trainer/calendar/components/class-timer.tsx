@@ -5,34 +5,71 @@ interface ClassTimerProps {
   startTime: Date;
   endTime: Date;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  actualStartTime?: Date; // Hora real cuando se inició la clase
+  actualStartTime?: Date; // Hora real cuando se inició la clase (usado para calcular el tiempo transcurrido)
+  classId?: string; // ID de la clase para persistir el estado
 }
 
-export function ClassTimer({ startTime, endTime, status, actualStartTime }: ClassTimerProps) {
+export function ClassTimer({ startTime, endTime, status, actualStartTime, classId }: ClassTimerProps) {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(true);
   const [isOvertime, setIsOvertime] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasInitialized = useRef(false);
+  
+  // Clave para localStorage basada en el ID de la clase
+  const storageKey = classId ? `class_timer_state_${classId}` : null;
 
+  // Inicializar el cronómetro cuando se monta con una clase en progreso
   useEffect(() => {
-    if (status === 'in_progress') {
-      // Usar la hora real de inicio si está disponible, sino usar la hora programada
-      const realStartTime = actualStartTime || startTime;
-      const startTimeMs = new Date(realStartTime).getTime();
-      const currentTime = Date.now();
-      const elapsed = Math.max(0, currentTime - startTimeMs); // Asegurar que no sea negativo
-      setTime(elapsed);
-      setIsRunning(true);
+    // Solo inicializar si el estado es 'in_progress' y no se ha inicializado
+    if (status === 'in_progress' && !hasInitialized.current) {
+      hasInitialized.current = true;
       
-      // Iniciar el intervalo inmediatamente para mantener el tiempo actualizado
+      console.log('🔄 Inicializando cronómetro para clase:', classId);
+      
+      // Limpiar intervalo anterior si existe
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
       
+      // Cargar siempre desde localStorage si existe
+      if (storageKey) {
+        const savedState = localStorage.getItem(storageKey);
+        if (savedState) {
+          try {
+            const { time: savedTime, isRunning: savedIsRunning } = JSON.parse(savedState);
+            console.log('✅ Estado persistido cargado:', savedState);
+            setTime(savedTime);
+            setIsRunning(savedIsRunning !== undefined ? savedIsRunning : true);
+          } catch (e) {
+            console.error('Error loading timer state:', e);
+            // Si hay error, usar tiempo calculado
+            const realStartTime = actualStartTime || startTime;
+            const startTimeMs = new Date(realStartTime).getTime();
+            const currentTime = Date.now();
+            const elapsed = Math.max(0, currentTime - startTimeMs);
+            setTime(elapsed);
+            setIsRunning(true);
+          }
+        } else {
+          // No hay estado guardado, calcular desde el tiempo de inicio
+          const realStartTime = actualStartTime || startTime;
+          const startTimeMs = new Date(realStartTime).getTime();
+          const currentTime = Date.now();
+          const elapsed = Math.max(0, currentTime - startTimeMs);
+          setTime(elapsed);
+          setIsRunning(true);
+          console.log('⏱️ Iniciando cronómetro desde:', elapsed);
+        }
+      }
+      
+      // Iniciar el intervalo
       intervalRef.current = setInterval(() => {
         setTime(prevTime => {
           const newTime = Math.max(0, prevTime + 1000);
           // Verificar si se excedió el tiempo programado
+          const realStartTime = actualStartTime || startTime;
           const startTimeMs = new Date(realStartTime).getTime();
           const endTimeMs = new Date(endTime).getTime();
           const scheduledDuration = Math.max(0, endTimeMs - startTimeMs);
@@ -42,17 +79,58 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime }: Clas
           return newTime;
         });
       }, 1000);
+    } else if (status !== 'in_progress') {
+      // Si no está en progreso, limpiar
+      hasInitialized.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     }
-  }, [startTime, status, endTime, actualStartTime]);
+    
+    return () => {
+      if (status !== 'in_progress' && intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [status, actualStartTime, startTime, endTime, storageKey, classId]);
 
-  // Limpiar el intervalo cuando el componente se desmonta o cambia el estado
+  // Limpiar el intervalo cuando el componente se desmonta
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, []);
+
+  // Limpiar flag cuando cambia el status
+  useEffect(() => {
+    if (status !== 'in_progress') {
+      hasInitialized.current = false;
+    }
+  }, [status]);
+
+  // Guardar estado en localStorage
+  useEffect(() => {
+    if (storageKey && status === 'in_progress') {
+      localStorage.setItem(storageKey, JSON.stringify({ time, isRunning }));
+    } else if (storageKey && status !== 'in_progress') {
+      // Limpiar el localStorage cuando la clase ya no está en progreso
+      localStorage.removeItem(storageKey);
+    }
+  }, [time, isRunning, storageKey, status]);
+  
+  // Limpiar el localStorage cuando el componente se desmonta o la clase se completa
+  useEffect(() => {
+    return () => {
+      if (storageKey && status !== 'in_progress') {
+        localStorage.removeItem(storageKey);
+      }
+    };
+  }, [storageKey, status]);
 
   // Pausar/reanudar el cronómetro
   useEffect(() => {
@@ -106,8 +184,8 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime }: Clas
   const scheduledDuration = Math.max(0, endTimeMs - startTimeMs); // Asegurar duración positiva
   const progress = scheduledDuration > 0 ? Math.min(100, (time / scheduledDuration) * 100) : 0;
   
-  // Calculamos el stroke-dashoffset (circunferencia = 2πr = 2π×180 ≈ 1130.97)
-  const circumference = 2 * Math.PI * 180;
+  // Calculamos el stroke-dashoffset (circunferencia = 2πr = 2π×84 ≈ 527.8)
+  const circumference = 2 * Math.PI * 84;
   const offset = circumference - (progress / 100) * circumference;
 
   return (
@@ -142,35 +220,35 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime }: Clas
 
       <div className="w-full">
         
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-xl">
           
           {/* Título */}
-          <h2 className="text-2xl font-bold text-white text-center mb-8 tracking-wider">
-            CRONÓMETRO DE CLASE
+          <h2 className="text-lg font-bold text-white text-center mb-4">
+            Cronómetro de Clase
           </h2>
 
           {/* Círculo de Progreso */}
-          <div className="flex justify-center mb-8">
-            <div className="relative w-96 h-96">
+          <div className="flex justify-center mb-4">
+            <div className="relative w-48 h-48">
               
               {/* SVG Círculo */}
               <svg className="transform -rotate-90 w-full h-full">
                 {/* Círculo de fondo */}
                 <circle
-                  cx="192"
-                  cy="192"
-                  r="180"
+                  cx="96"
+                  cy="96"
+                  r="84"
                   stroke="rgba(255,255,255,0.1)"
-                  strokeWidth="14"
+                  strokeWidth="8"
                   fill="none"
                 />
                 {/* Círculo de progreso */}
                 <circle
-                  cx="192"
-                  cy="192"
-                  r="180"
+                  cx="96"
+                  cy="96"
+                  r="84"
                   stroke={isOvertime ? "url(#gradient-red)" : "url(#gradient)"}
-                  strokeWidth="14"
+                  strokeWidth="8"
                   fill="none"
                   strokeDasharray={circumference}
                   strokeDashoffset={offset}
@@ -194,15 +272,15 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime }: Clas
               {/* Tiempo en el centro */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <div className={`text-center ${isRunning ? 'pulse-animation' : ''}`}>
-                  <div className="text-5xl md:text-6xl font-bold text-white font-mono mb-2">
+                  <div className="text-2xl font-bold text-white font-mono mb-1">
                     {timeFormatted.hours}
                     <span className={isOvertime ? "text-red-400" : "text-orange-400"}>:</span>
                     {timeFormatted.minutes}
                     <span className={isOvertime ? "text-red-400" : "text-pink-400"}>:</span>
                     {timeFormatted.seconds}
                   </div>
-                  <div className="text-xs text-gray-400 uppercase tracking-widest">
-                    Horas : Minutos : Segundos
+                  <div className="text-[10px] text-gray-400 uppercase tracking-wider">
+                    Hor : Min : Seg
                   </div>
                 </div>
               </div>
@@ -211,13 +289,13 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime }: Clas
           </div>
 
           {/* Botones de Control */}
-          <div className="flex gap-4 mb-6">
+          <div className="flex gap-2 mb-3">
             
             {/* Botón Start/Pause */}
             <button
               type="button"
               onClick={handleStartPause}
-              className={`btn-hover flex-1 h-16 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 ${
+              className={`btn-hover flex-1 h-10 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 ${
                 isRunning
                   ? 'bg-gradient-to-r from-red-500 to-red-600 text-white'
                   : 'bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white'
@@ -225,13 +303,13 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime }: Clas
             >
               {isRunning ? (
                 <>
-                  <Pause size={24} fill="white" />
-                  <span>PAUSAR</span>
+                  <Pause size={18} fill="white" />
+                  <span>Pausar</span>
                 </>
               ) : (
                 <>
-                  <Play size={24} fill="white" />
-                  <span>INICIAR</span>
+                  <Play size={18} fill="white" />
+                  <span>Iniciar</span>
                 </>
               )}
             </button>
@@ -240,18 +318,18 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime }: Clas
             <button
               type="button"
               onClick={handleReset}
-              className="btn-hover h-16 px-8 rounded-2xl font-bold text-lg bg-white/10 text-white border-2 border-white/20 hover:border-white/40 flex items-center justify-center gap-3"
+              className="btn-hover h-10 px-4 rounded-xl font-semibold text-sm bg-white/10 text-white border-2 border-white/20 hover:border-white/40 flex items-center justify-center"
             >
-              <RotateCcw size={24} />
+              <RotateCcw size={18} />
             </button>
 
           </div>
 
           {/* Indicador de progreso */}
           <div className="text-center">
-            <div className="text-sm text-gray-400">
+            <div className="text-xs text-gray-400">
               {isOvertime ? (
-                <span className="text-red-400 font-bold">⚠️ TIEMPO EXCEDIDO - {progress.toFixed(0)}%</span>
+                <span className="text-red-400 font-bold">⚠️ Tiempo excedido - {progress.toFixed(0)}%</span>
               ) : (
                 <>
                   Progreso: <span className="text-white font-bold">{progress.toFixed(0)}%</span> de la clase

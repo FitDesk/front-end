@@ -20,7 +20,12 @@ export const trainerClassKeys = {
   currentSession: () => [...trainerClassKeys.all, 'current-session'] as const,
   stats: () => [...trainerClassKeys.all, 'stats'] as const,
   byDate: (date: Date) => [...trainerClassKeys.all, 'by-date', date.toISOString().split('T')[0]] as const,
-  byRange: (startDate: Date, endDate: Date) => [...trainerClassKeys.all, 'by-range', startDate.toISOString(), endDate.toISOString()] as const,
+  byRange: (startDate: Date, endDate: Date) => {
+    // Normalizar fechas a medianoche para usar solo la fecha sin la hora
+    const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    return [...trainerClassKeys.all, 'by-range', start.toISOString().split('T')[0], end.toISOString().split('T')[0]] as const;
+  },
   locations: () => [...trainerClassKeys.all, 'locations'] as const,
 };
 
@@ -117,16 +122,29 @@ export function useClassesByDateRange(
   endDate: Date, 
   filters?: CalendarFilters
 ) {
+  // Crear una clave estable para el caché basada solo en las fechas
+  const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+  const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+  
+  console.log(`🔑 Buscando clases para rango: ${startDateStr} - ${endDateStr}`);
+  
+  // Usar solo el string de los filtros para el key, no el objeto
+  const filtersStr = filters ? JSON.stringify(filters) : 'none';
+  
   return useQuery({
-    queryKey: trainerClassKeys.byRange(startDate, endDate),
-    queryFn: () => TrainerClassService.getClassesByDateRange(startDate, endDate, filters),
+    queryKey: ['trainer-classes', 'by-range', startDateStr, endDateStr, filtersStr],
+    queryFn: () => {
+      console.log(`📞 Llamando al servicio con rango: ${startDateStr} - ${endDateStr}`);
+      const result = TrainerClassService.getClassesByDateRange(startDate, endDate, filters);
+      console.log(`📦 Llamada al servicio completada, resultado prometido`);
+      return result;
+    },
     enabled: !!startDate && !!endDate,
-    staleTime: 2 * 60 * 1000, // Los datos son frescos por 2 minutos
-    gcTime: 10 * 60 * 1000, // Cache por 10 minutos
+    staleTime: 0, // Siempre considerar los datos como obsoletos para refrescar
+    gcTime: 0, // No guardar en caché
     refetchOnWindowFocus: true, // Refrescar al volver a la ventana
-    refetchOnMount: false, // No refrescar en cada mount si hay datos en cache
-    refetchInterval: 5 * 60 * 1000, // Refrescar automáticamente cada 5 minutos
-    refetchIntervalInBackground: false, // No refrescar en background
+    refetchOnMount: 'always', // Siempre refrescar en cada mount para evitar datos obsoletos
+    refetchInterval: false, // No refrescar automáticamente
   });
 }
 
@@ -135,16 +153,53 @@ export function useStartClass() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: StartClassDTO) => TrainerClassService.startClass(data),
-    onSuccess: () => {
-      // Invalidar queries para refrescar los datos
-      queryClient.invalidateQueries({ queryKey: trainerClassKeys.all });
-      queryClient.invalidateQueries({ queryKey: trainerClassKeys.stats() });
-      // Prefetch para la próxima vista
-      queryClient.prefetchQuery({
-        queryKey: trainerClassKeys.stats(),
-        queryFn: () => TrainerClassService.getTrainerStats(),
+    mutationFn: async (data: StartClassDTO) => {
+      const result = await TrainerClassService.startClass(data);
+      return result;
+    },
+    onSuccess: async (_session, variables) => {
+      console.log('🔄 Clase iniciada, actualizando estado en cache...');
+      
+      // Actualizar manualmente el estado en todas las queries que puedan tener esta clase
+      queryClient.setQueryData(trainerClassKeys.all, (oldData: any) => {
+        if (!oldData || !Array.isArray(oldData)) return oldData;
+        return oldData.map((item: any) => {
+          if (item.id === variables.classId) {
+            return { ...item, status: 'in_progress' };
+          }
+          return item;
+        });
       });
+      
+      // Actualizar también en las queries de rango
+      const cache = queryClient.getQueryCache();
+      const queries = cache.findAll({ 
+        queryKey: ['trainer-classes', 'by-range'],
+        exact: false 
+      });
+      
+      queries.forEach(query => {
+        queryClient.setQueryData(query.queryKey, (oldData: any) => {
+          if (!oldData || !Array.isArray(oldData)) return oldData;
+          return oldData.map((item: any) => {
+            if (item.id === variables.classId) {
+              return { ...item, status: 'in_progress' };
+            }
+            return item;
+          });
+        });
+      });
+      
+      // Invalidar y refetch para asegurar consistencia
+      await Promise.all([
+        queryClient.invalidateQueries({ 
+          queryKey: trainerClassKeys.all,
+          refetchType: 'active'
+        }),
+        queryClient.invalidateQueries({ queryKey: trainerClassKeys.stats(), refetchType: 'active' }),
+        queryClient.invalidateQueries({ queryKey: trainerClassKeys.detail(variables.classId), refetchType: 'active' }),
+      ]);
+      
       toast.success('Clase iniciada exitosamente');
     },
     onError: (error: unknown) => {
@@ -162,8 +217,49 @@ export function useEndClass() {
 
   return useMutation({
     mutationFn: (data: EndClassDTO) => TrainerClassService.endClass(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: trainerClassKeys.all });
+    onSuccess: async (_session, variables) => {
+      console.log('🔄 Clase finalizada, actualizando estado en cache...');
+      
+      // Actualizar manualmente el estado en todas las queries que puedan tener esta clase
+      queryClient.setQueryData(trainerClassKeys.all, (oldData: any) => {
+        if (!oldData || !Array.isArray(oldData)) return oldData;
+        return oldData.map((item: any) => {
+          if (item.id === variables.sessionId) {
+            return { ...item, status: 'completed' };
+          }
+          return item;
+        });
+      });
+      
+      // Actualizar también en las queries de rango
+      const cache = queryClient.getQueryCache();
+      const queries = cache.findAll({ 
+        queryKey: ['trainer-classes', 'by-range'],
+        exact: false 
+      });
+      
+      queries.forEach(query => {
+        queryClient.setQueryData(query.queryKey, (oldData: any) => {
+          if (!oldData || !Array.isArray(oldData)) return oldData;
+          return oldData.map((item: any) => {
+            if (item.id === variables.sessionId) {
+              return { ...item, status: 'completed' };
+            }
+            return item;
+          });
+        });
+      });
+      
+      // Invalidar y refetch para asegurar consistencia
+      await Promise.all([
+        queryClient.invalidateQueries({ 
+          queryKey: trainerClassKeys.all,
+          refetchType: 'active'
+        }),
+        queryClient.invalidateQueries({ queryKey: trainerClassKeys.stats(), refetchType: 'active' }),
+        queryClient.invalidateQueries({ queryKey: trainerClassKeys.detail(variables.sessionId), refetchType: 'active' }),
+      ]);
+      
       toast.success('Clase finalizada exitosamente');
     },
     onError: (error: unknown) => {

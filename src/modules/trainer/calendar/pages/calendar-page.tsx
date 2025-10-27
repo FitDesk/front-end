@@ -1,24 +1,21 @@
 import { useState, useMemo, useEffect } from 'react';
+import { startOfWeek, endOfWeek } from 'date-fns';
 import { Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
-import { Card, CardContent } from '@/shared/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { CalendarHeader } from '../components/calendar-header';
 import { WeeklyCalendar } from '../components/weekly-calendar';
-import { MonthlyCalendar } from '../components/monthly-calendar';
 import { ClassManagementModal } from '../components/class-management-modal';
 import { TrainerStats } from '../components/trainer-stats';
-
 
 import { useCalendarStore } from '../store/calendar-store';
 import { 
   useClassesByDateRange, 
-  useTrainerStats, 
-  useAvailableLocations,
+  useTrainerStats,
   useCalendarPrefetching
 } from '../hooks/use-trainer-classes';
-
 
 import type { CalendarEvent } from '../types';
 import { convertClassesToEvents } from '../lib/calendar-utils';
@@ -26,29 +23,50 @@ import { convertClassesToEvents } from '../lib/calendar-utils';
 export default function CalendarPage() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  
   const {
     currentDate,
-    viewType,
-    filters,
-    dateRange,
-    calendarTitle,
-    setViewType,
-    updateFilters,
-    clearFilters,
     goToNext,
     goToPrevious,
     goToToday
   } = useCalendarStore();
-
+  
+  // Calcular el rango de fechas basado en currentDate usando useMemo
+  const dateRange = useMemo(() => {
+    const start = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const end = endOfWeek(currentDate, { weekStartsOn: 1 });
+    console.log(`📆 dateRange calculado:`, {
+      currentDate: currentDate.toISOString(),
+      start: start.toISOString(),
+      end: end.toISOString()
+    });
+    return { start, end };
+  }, [currentDate]);
+  
+  // Log para verificar el dateRange
+  useEffect(() => {
+    const startDateStr = `${dateRange.start.getFullYear()}-${String(dateRange.start.getMonth() + 1).padStart(2, '0')}-${String(dateRange.start.getDate()).padStart(2, '0')}`;
+    const endDateStr = `${dateRange.end.getFullYear()}-${String(dateRange.end.getMonth() + 1).padStart(2, '0')}-${String(dateRange.end.getDate()).padStart(2, '0')}`;
+    
+    console.log(`🗑️ Invalidando caché para rango: ${startDateStr} - ${endDateStr}`);
+    console.log(`🔎 dateRange completo:`, {
+      start: dateRange.start.toISOString(),
+      end: dateRange.end.toISOString()
+    });
+    
+    queryClient.invalidateQueries({ 
+      queryKey: ['trainer-classes', 'by-range', startDateStr, endDateStr],
+      refetchType: 'active'
+    });
+  }, [dateRange.start, dateRange.end, queryClient]);
 
   const { 
     data: classes = [], 
     isLoading: isLoadingClasses,
     error: classesError,
     refetch: refetchClasses,
-    isRefetching: isRefreshingClasses
+    isFetching: isRefreshingClasses
   } = useClassesByDateRange(dateRange.start, dateRange.end);
 
   const { 
@@ -57,28 +75,29 @@ export default function CalendarPage() {
     refetch: refetchStats
   } = useTrainerStats();
 
-  // Hook para prefetching proactivo
   const {
     prefetchNextWeek,
     prefetchPreviousWeek,
-    prefetchNextMonth,
-    prefetchPreviousMonth,
     prefetchClassDetails
   } = useCalendarPrefetching();
 
-  
   const events = useMemo(() => {
-    return convertClassesToEvents(classes);
+    console.log(`📦 calendar-page: Recibiendo ${classes.length} clases para convertir`);
+    const result = convertClassesToEvents(classes);
+    console.log(`📦 calendar-page: Resultado de conversión: ${result.length} eventos`);
+    return result;
   }, [classes]);
-
   
-  const { data: availableLocations = [] } = useAvailableLocations();
+  // Log para ver cuando se actualiza el calendario
+  useEffect(() => {
+    console.log('📊 Clases en calendario:', classes);
+    console.log('🎨 Eventos convertidos:', events);
+  }, [classes, events]);
 
   const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
   };
-
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -92,16 +111,11 @@ export default function CalendarPage() {
     ]);
   };
 
-  // Prefetching proactivo basado en la vista actual
+  // Prefetching proactivo para las semanas anteriores y siguientes
   useEffect(() => {
-    if (viewType === 'week') {
-      prefetchNextWeek(currentDate);
-      prefetchPreviousWeek(currentDate);
-    } else {
-      prefetchNextMonth(currentDate);
-      prefetchPreviousMonth(currentDate);
-    }
-  }, [currentDate, viewType, prefetchNextWeek, prefetchPreviousWeek, prefetchNextMonth, prefetchPreviousMonth]);
+    prefetchNextWeek(currentDate);
+    prefetchPreviousWeek(currentDate);
+  }, [currentDate, prefetchNextWeek, prefetchPreviousWeek]);
 
   // Prefetching de detalles de clases cuando se cargan los eventos
   useEffect(() => {
@@ -110,7 +124,25 @@ export default function CalendarPage() {
     });
   }, [events, prefetchClassDetails]);
 
-  
+  // Debug: Logs para verificar qué está pasando
+  useEffect(() => {
+    console.log('📅 Rango de fechas del calendario:', {
+      start: dateRange.start.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      end: dateRange.end.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      currentDate: currentDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    });
+    console.log('📊 Total de clases recibidas:', classes.length);
+    console.log('📝 Detalles de clases:', classes.map(c => ({
+      name: c.name,
+      fecha: c.classDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    })));
+    console.log('🎯 Total de eventos convertidos:', events.length);
+    console.log('📅 Detalles de eventos:', events.map(e => ({
+      title: e.title,
+      fecha: e.start.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    })));
+  }, [dateRange, currentDate, classes.length, events.length]);
+
   if (isLoadingClasses && !classes.length) {
     return (
       <div className="p-6 space-y-6">
@@ -119,7 +151,6 @@ export default function CalendarPage() {
           <h1 className="text-2xl font-bold">Mi Calendario</h1>
         </div>
         
-        {/* Stats skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <Card key={i}>
@@ -132,7 +163,6 @@ export default function CalendarPage() {
           ))}
         </div>
         
-        {/* Calendar skeleton */}
         <Card>
           <CardContent className="p-6">
             <Skeleton className="h-[600px] w-full" />
@@ -142,7 +172,6 @@ export default function CalendarPage() {
     );
   }
 
- 
   if (classesError) {
     return (
       <div className="p-6">
@@ -162,9 +191,9 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="container mx-auto py-6 px-4">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 mb-6">
         <CalendarIcon className="h-8 w-8 text-primary" />
         <h1 className="text-2xl font-bold">Mi Calendario</h1>
       </div>
@@ -176,38 +205,22 @@ export default function CalendarPage() {
       />
 
       {/* Calendario */}
-      <Card>
-        <CalendarHeader
-          title={calendarTitle}
-          viewType={viewType}
-          filters={filters}
-          onPrevious={goToPrevious}
-          onNext={goToNext}
-          onToday={goToToday}
-          onRefresh={handleRefresh}
-          isRefreshing={isRefreshingClasses}
-          onViewChange={setViewType}
-          onFiltersChange={updateFilters}
-          onClearFilters={clearFilters}
-          availableLocations={Array.isArray(availableLocations) ? availableLocations : []}
-        />
-        
-        <CardContent className="p-0">
-          {viewType === 'week' ? (
-            <WeeklyCalendar
-              events={events}
-              currentDate={currentDate}
-              onEventClick={handleEventClick}
-              className="h-[600px]"
-            />
-          ) : (
-            <MonthlyCalendar
-              events={events}
-              currentDate={currentDate}
-              onEventClick={handleEventClick}
-              className="h-[600px]"
-            />
-          )}
+      <Card className="mt-8">
+        <CardHeader className="pb-4">
+          <CardTitle>Horario Semanal</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <WeeklyCalendar
+            events={events}
+            currentDate={currentDate}
+            onEventClick={handleEventClick}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshingClasses}
+            onNextWeek={goToNext}
+            onPreviousWeek={goToPrevious}
+            onToday={goToToday}
+            className="h-[600px]"
+          />
         </CardContent>
       </Card>
 
@@ -216,6 +229,7 @@ export default function CalendarPage() {
         event={selectedEvent}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        onRefreshClasses={refetchClasses}
       />
     </div>
   );

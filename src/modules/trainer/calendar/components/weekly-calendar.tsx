@@ -1,255 +1,218 @@
-import { useMemo } from 'react';
-import { 
-  format, 
-  startOfWeek, 
-  addDays, 
-  isSameDay, 
-  isToday,
-  getHours,
-  getMinutes
-} from 'date-fns';
-import { es } from 'date-fns/locale';
-import { MapPin, Play, Square } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { format, startOfWeek, isToday, isSameDay, addDays } from 'date-fns';
+import { ChevronLeft, ChevronRight, Clock, RefreshCw, MapPin, Users } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/core/lib/utils';
 import type { CalendarEvent } from '../types';
-import { useStartClass, useEndClass } from '../hooks/use-trainer-classes';
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
-import { CLASS_STATUS_COLORS, CLASS_STATUS_LABELS } from '../types';
 
 interface WeeklyCalendarProps {
   events: CalendarEvent[];
   currentDate: Date;
   onEventClick?: (event: CalendarEvent) => void;
   onDateClick?: (date: Date) => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+  onNextWeek?: () => void;
+  onPreviousWeek?: () => void;
+  onToday?: () => void;
   className?: string;
 }
 
-const HOURS = Array.from({ length: 15 }, (_, i) => i + 6); 
-
 export function WeeklyCalendar({
-  events,
+  events = [],
   currentDate,
   onEventClick,
   onDateClick,
-  className
+  onRefresh,
+  isRefreshing = false,
+  onNextWeek,
+  onPreviousWeek,
+  onToday,
+  className,
 }: WeeklyCalendarProps) {
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const startClassMutation = useStartClass();
-  const endClassMutation = useEndClass();
-  
+  // Debug: mostrar todos los eventos recibidos
+  console.log(`🎯 Total de eventos recibidos por el calendario: ${events.length}`);
+  if (events.length > 0) {
+    console.log('📋 Detalles de eventos:', events.map(e => ({
+      title: e.title,
+      date: format(e.start, 'yyyy-MM-dd'),
+      status: e.status
+    })));
+  }
+
   const weekDays = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 });
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-  }, [currentDate]);
+    const days = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
+    console.log(`🌍 currentDate usado en calendario: ${format(currentDate, 'yyyy-MM-dd')}`);
+    console.log('📅 Días de la semana en el calendario:', days.map(d => format(d, 'yyyy-MM-dd (EEE)')));
+    console.log(`📊 Rango de la semana visual: ${format(start, 'yyyy-MM-dd')} - ${format(days[6], 'yyyy-MM-dd')}`);
+    return days;
+  }, [currentDate, events]);
 
- 
-  const eventsByDay = useMemo(() => {
-    const grouped: Record<string, CalendarEvent[]> = {};
-    
-    weekDays.forEach(day => {
-      const dayKey = format(day, 'yyyy-MM-dd');
-      grouped[dayKey] = events.filter(event => 
-        isSameDay(event.start, day)
-      ).sort((a, b) => a.start.getTime() - b.start.getTime());
-    });
-    
-    return grouped;
-  }, [events, weekDays]);
-
-  
-  const getEventPosition = (event: CalendarEvent) => {
-    const startHour = getHours(event.start);
-    const startMinute = getMinutes(event.start);
-    const endHour = getHours(event.end);
-    const endMinute = getMinutes(event.end);
-    
-    
-    const startPositionInMinutes = (startHour - 6) * 60 + startMinute;
-    const endPositionInMinutes = (endHour - 6) * 60 + endMinute;
-    const durationInMinutes = endPositionInMinutes - startPositionInMinutes;
-    
-    
-    const topPosition = startPositionInMinutes * (4 / 60); 
-    const height = durationInMinutes * (4 / 60); 
-    
-    return {
-      top: `${topPosition}rem`,
-      height: `${height}rem`,
-      left: '0',
-      right: '0', 
-      width: '100%',
-      durationInMinutes 
-    };
+  const handlePrevWeek = () => {
+    if (onPreviousWeek) {
+      onPreviousWeek();
+    }
   };
 
-  const handleDateClick = (date: Date) => {
-    onDateClick?.(date);
+  const handleNextWeek = () => {
+    if (onNextWeek) {
+      onNextWeek();
+    }
+  };
+
+  const handleToday = () => {
+    if (onToday) {
+      onToday();
+    }
+  };
+
+  const getDayEvents = (day: Date) => {
+    const dayEvents = events.filter(event => {
+      const dayStr = format(day, 'yyyy-MM-dd');
+      const eventDayStr = format(event.start, 'yyyy-MM-dd');
+      const matches = dayStr === eventDayStr;
+      if (matches) {
+        console.log(`✅ Evento "${event.title}" coincide con día ${dayStr}`);
+      }
+      return matches;
+    });
+    if (dayEvents.length > 0) {
+      console.log(`📆 Día ${format(day, 'yyyy-MM-dd')} tiene ${dayEvents.length} evento(s):`, dayEvents.map(e => e.title));
+    }
+    return dayEvents;
+  };
+
+  const formatTime = (date: Date) => format(date, 'HH:mm');
+
+  const handleDateClick = (day: Date) => {
+    setSelectedDate(day);
+    onDateClick?.(day);
   };
 
   const handleEventClick = (event: CalendarEvent) => {
     onEventClick?.(event);
   };
 
-  const handleStartClass = async (event: CalendarEvent, e: React.MouseEvent) => {
-    e.stopPropagation();
-    await startClassMutation.mutateAsync({
-      classId: event.id,
-      sessionDate: new Date(),
-      notes: ''
-    });
-  };
-
-  const handleEndClass = async (event: CalendarEvent, e: React.MouseEvent) => {
-    e.stopPropagation();
-    await endClassMutation.mutateAsync({
-      sessionId: event.id,
-      endTime: new Date(),
-      attendees: [],
-      notes: ''
-    });
-  };
-
   return (
-    <div className={cn("flex flex-col h-full", className)}>
-      {/* Header con días de la semana */}
-      <div className="grid grid-cols-8 border-b">
-        <div className="p-4 border-r bg-muted/30">
-          <span className="text-sm font-medium text-muted-foreground">Hora</span>
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between mb-6 mt-2">
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-semibold">
+            {format(currentDate, 'MMMM yyyy')}
+          </h2>
+          {onToday && (
+            <Button variant="outline" size="sm" onClick={handleToday}>
+              Hoy
+            </Button>
+          )}
         </div>
-        {weekDays.map((day) => (
-          <div
-            key={day.toISOString()}
-            className={cn(
-              "p-4 border-r cursor-pointer hover:bg-accent/50 transition-colors",
-              isToday(day) && "bg-primary/10"
-            )}
-            onClick={() => handleDateClick(day)}
-          >
-            <div className="text-center">
-              <div className="text-sm font-medium">
-                {format(day, 'EEE', { locale: es })}
-              </div>
-              <div className={cn(
-                "text-2xl font-bold mt-1",
-                isToday(day) && "text-primary"
-              )}>
-                {format(day, 'd')}
-              </div>
-            </div>
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              title="Refrescar calendario"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+          )}
+          <Button variant="outline" size="icon" onClick={handlePrevWeek}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={handleNextWeek}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Weekday Headers */}
+      <div className="grid grid-cols-7 gap-px bg-border rounded-t-md overflow-hidden">
+        {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day, i) => (
+          <div key={i} className="bg-muted/50 p-2 text-center text-sm font-medium">
+            {day}
           </div>
         ))}
       </div>
 
-      {/* Cuerpo del calendario */}
-      <div className="flex-1 overflow-auto">
-        <div className="grid grid-cols-8 relative">
-          {/* Columna de horas */}
-          <div className="border-r bg-muted/30">
-            {HOURS.map((hour) => (
-              <div
-                key={hour}
-                className="h-16 border-b flex items-start justify-end pr-2 pt-1"
-              >
-                <span className="text-xs text-muted-foreground">
-                  {format(new Date().setHours(hour, 0), 'HH:mm')}
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-px bg-border flex-1">
+        {weekDays.map((day, i) => {
+          const dayEvents = getDayEvents(day);
+          const isSelected = isSameDay(day, selectedDate);
+          const isCurrentDay = isToday(day);
+          
+          return (
+            <div 
+              key={i} 
+              className={cn(
+                'bg-background p-2 min-h-32 flex flex-col',
+                i > 4 && 'bg-muted/5', 
+                isSelected && 'ring-2 ring-primary/50'
+              )}
+              onClick={() => handleDateClick(day)}
+            >
+              <div className="flex justify-between items-center mb-1">
+                <span className={cn(
+                  'flex items-center justify-center rounded-full h-6 w-6 text-sm',
+                  isCurrentDay && 'bg-primary text-primary-foreground',
+                  isSelected && !isCurrentDay && 'font-semibold'
+                )}>
+                  {format(day, 'd')}
                 </span>
+                {isToday(day) && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                )}
               </div>
-            ))}
-          </div>
-
-          {/* Columnas de días */}
-          {weekDays.map((day) => {
-            const dayKey = format(day, 'yyyy-MM-dd');
-            const dayEvents = eventsByDay[dayKey] || [];
-
-            return (
-              <div
-                key={day.toISOString()}
-                className="border-r relative"
-                onClick={() => handleDateClick(day)}
-              >
-                {/* Líneas de horas */}
-                {HOURS.map((hour) => (
-                  <div
-                    key={hour}
-                    className="h-16 border-b hover:bg-accent/20 cursor-pointer"
-                  />
-                ))}
-
-                {/* Eventos del día */}
-                {dayEvents.map((event) => {
-                  const position = getEventPosition(event);
-                  
-                  return (
-                    <div
-                      key={event.id}
-                      className={cn(
-                        "absolute cursor-pointer transition-all duration-200 z-10",
-                        "border-l-4 backdrop-blur-sm",
-                        event.status === 'scheduled' && "border-l-blue-500 bg-blue-500/40 hover:bg-blue-500/50",
-                        event.status === 'in_progress' && "border-l-green-500 bg-green-500/40 hover:bg-green-500/50",
-                        event.status === 'completed' && "border-l-gray-500 bg-gray-500/40 hover:bg-gray-500/50",
-                        event.status === 'cancelled' && "border-l-red-500 bg-red-500/40 hover:bg-red-500/50"
-                      )}
-                      style={position}
-                      onClick={() => handleEventClick(event)}
-                    >
-                      <div className="h-full flex flex-col justify-center p-2 overflow-hidden">
-                        {/* Contenido para todos los eventos: título, ubicación y estado */}
-                        <div className="space-y-1">
-                          <div className="flex items-start justify-between">
-                            <h4 className="font-semibold text-sm text-white truncate leading-tight flex-1 mr-2">
-                              {event.title}
-                            </h4>
-                            <Badge 
-                              className={cn(
-                                "text-xs font-medium flex-shrink-0",
-                                CLASS_STATUS_COLORS[event.status]
-                              )}
-                            >
-                              {CLASS_STATUS_LABELS[event.status]}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center text-white/70">
-                              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                              <span className="truncate">{event.location}</span>
-                            </div>
-                            
-                            {/* Iconos de acción */}
-                            <div className="flex space-x-1">
-                              {event.status === 'scheduled' && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-6 w-6 p-0 text-white/80 hover:text-white hover:bg-white/20"
-                                  onClick={(e) => handleStartClass(event, e)}
-                                >
-                                  <Play className="h-3 w-3" />
-                                </Button>
-                              )}
-                              {event.status === 'in_progress' && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-6 w-6 p-0 text-white/80 hover:text-white hover:bg-white/20"
-                                  onClick={(e) => handleEndClass(event, e)}
-                                >
-                                  <Square className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+              
+              <div className="flex-1 overflow-y-auto space-y-2 mt-1">
+                {dayEvents.map((event) => (
+                  <div 
+                    key={event.id}
+                    className={cn(
+                      'text-xs p-3 rounded-lg text-left space-y-2 cursor-pointer transition-all duration-200 hover:shadow-md',
+                      event.status === 'scheduled' && 'bg-blue-500/10 border-2 border-blue-500/30',
+                      event.status === 'in_progress' && 'bg-yellow-500/10 border-2 border-yellow-500/30',
+                      event.status === 'completed' && 'bg-green-500/10 border-2 border-green-500/30',
+                      event.status === 'cancelled' && 'bg-red-500/10 border-2 border-red-500/30'
+                    )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEventClick(event);
+                    }}
+                  >
+                    <div className="font-medium text-sm mb-1">
+                      {event.title}
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3.5 w-3.5" />
+                        <span>{event.enrolledCount}/{event.capacity} inscritos</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5" />
+                        <span className="truncate">{event.location}</span>
                       </div>
                     </div>
-                  );
-                })}
+                    <div className={cn("flex items-center gap-1 text-xs font-medium mt-1",
+                      event.status === 'scheduled' && 'text-blue-600',
+                      event.status === 'in_progress' && 'text-yellow-600',
+                      event.status === 'completed' && 'text-green-600'
+                    )}>
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>{formatTime(event.start)} - {formatTime(event.end)}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

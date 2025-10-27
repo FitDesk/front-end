@@ -1,6 +1,8 @@
 import type { TrainerClass, CalendarEvent } from '../types';
 
 export function convertClassesToEvents(classes: TrainerClass[]): CalendarEvent[] {
+  console.log(`🔍 convertClassesToEvents llamado con ${classes?.length || 0} clases`);
+  
   if (!classes || !Array.isArray(classes)) {
     console.log('⚠️ No hay clases para convertir a eventos');
     return [];
@@ -20,7 +22,7 @@ export function convertClassesToEvents(classes: TrainerClass[]): CalendarEvent[]
     // Calcular la hora de fin
     const endTime = new Date(startTime.getTime() + cls.duration * 60000);
     
-    console.log(`📅 Evento creado: ${cls.name} - ${startTime.toISOString()}`);
+    console.log(`📅 Evento creado: "${cls.name}" - ${startTime.toISOString()} (fecha: ${cls.classDate.toLocaleDateString()})`);
     
     return {
       id: cls.id,
@@ -37,5 +39,6 @@ export function convertClassesToEvents(classes: TrainerClass[]): CalendarEvent[]
   });
   
   console.log(`✅ Total de eventos creados: ${events.length}`);
+  console.log(`📊 Fechas de los eventos:`, events.map(e => `${e.title}: ${e.start.toLocaleDateString()}`));
   return events;
 }

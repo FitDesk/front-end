@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { Button } from '@/shared/components/ui/button';
+import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/shared/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,73 +22,134 @@ import {
 import {
   CheckCircle2,
   Calendar as CalendarIcon,
-  List,
-  BarChart3,
-  Download,
-  Plus,
   Users,
-  TrendingUp
+  Clock,
+  MapPin,
+  CheckCircle,
+  XCircle,
+  MoreHorizontal,
 } from 'lucide-react';
-import { AttendanceCalendar } from '../components/attendance-calendar';
-import { AttendanceSessionModal } from '../components/attendance-session-modal';
-import { AttendanceStatsCards } from '../components/attendance-stats-cards';
-import { SessionList } from '../components/session-list';
-import { useAttendanceStore } from '../store/attendance-store';
-import { useDaySessions } from '../hooks/use-attendance-calendar';
-import { useExportAttendanceReport, useCreateAttendanceSession } from '../hooks/use-attendance';
-import { toast } from 'sonner';
+import { cn } from '@/core/lib/utils';
+import { useTrainerClass, useEndClass } from '../../calendar/hooks/use-trainer-classes';
+import { TrainerClassService } from '../../calendar/services/trainer-class.service';
+
+type AttendanceStatus = 'present' | 'absent' | 'late';
+
+interface AttendanceRecord {
+  memberId: string;
+  memberName: string;
+  memberEmail: string;
+  status: AttendanceStatus;
+  notes?: string;
+}
+
+const ATTENDANCE_STATUS_LABELS: Record<AttendanceStatus, string> = {
+  present: 'Presente',
+  absent: 'Ausente',
+  late: 'Tarde'
+};
+
+const ATTENDANCE_STATUS_COLORS: Record<AttendanceStatus, string> = {
+  present: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200',
+  absent: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200',
+  late: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200',
+};
 
 export default function AttendanceMainPage() {
-  const {
-    selectedDate,
-    viewMode,
-    setViewMode,
-    isAttendanceModalOpen,
-    setAttendanceModalOpen,
-    selectedSessionId,
-    setSelectedSessionId
-  } = useAttendanceStore();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [classIdFromCalendar, setClassIdFromCalendar] = useState<string | null>(null);
+  const [attendanceRecords, setAttendanceRecords] = useState<Record<string, AttendanceRecord>>({});
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  
+  // Obtener detalles de la clase usando el hook del calendario
+  const { data: classDetail, isLoading: isLoadingClass } = useTrainerClass(classIdFromCalendar || '');
+  const endClassMutation = useEndClass();
 
-  const [exportLoading, setExportLoading] = useState(false);
-  const exportMutation = useExportAttendanceReport();
-  const createSessionMutation = useCreateAttendanceSession();
-
-  const { dayInfo, sessions: daySessions } = useDaySessions(selectedDate);
-
-  const handleDayClick = (date: Date) => {
-    // La fecha ya se actualiza automáticamente en el store
-    console.log('Día seleccionado:', format(date, 'yyyy-MM-dd'));
-  };
-
-  const handleSessionClick = (sessionId: string) => {
-    setSelectedSessionId(sessionId);
-    setAttendanceModalOpen(true);
-  };
-
-  const handleStartSession = async (_sessionId: string) => {
-    // Esta funcionalidad se implementaría con el módulo de calendario
-    toast.info('Funcionalidad de iniciar sesión disponible en el módulo de calendario');
-  };
-
-  const handleCompleteSession = async (_sessionId: string) => {
-    // Esta funcionalidad se implementaría con el módulo de calendario
-    toast.info('Funcionalidad de completar sesión disponible en el módulo de calendario');
-  };
-
-  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
-    setExportLoading(true);
-    try {
-      await exportMutation.mutateAsync({ format });
-    } catch (error) {
-      console.error('Error exporting:', error);
-    } finally {
-      setExportLoading(false);
+  // Detectar cuando se viene desde el calendario del trainer
+  useEffect(() => {
+    const state = location.state as { classId?: string; autoOpen?: boolean } | null;
+    
+    if (state?.classId && state?.autoOpen) {
+      console.log('📍 Navegando desde calendario con classId:', state.classId);
+      setClassIdFromCalendar(state.classId);
+      window.history.replaceState({}, '');
     }
+  }, [location.state]);
+  
+  // Abrir el modal cuando se cargue la clase
+  useEffect(() => {
+    if (classDetail && classIdFromCalendar && !isModalOpen) {
+      console.log('✅ Clase cargada para asistencia:', classDetail);
+      console.log('👥 Estudiantes inscritos:', classDetail.enrolledMembers);
+      // Inicializar records de asistencia para todos los estudiantes
+      const initialRecords: Record<string, AttendanceRecord> = {};
+      classDetail.enrolledMembers.forEach(member => {
+        console.log('📝 Inicializando record para:', member.name, member.id);
+        initialRecords[member.id] = {
+          memberId: member.id,
+          memberName: member.name,
+          memberEmail: member.email,
+          status: 'present', // Por defecto presente
+        };
+      });
+      console.log('📋 Records de asistencia inicializados:', initialRecords);
+      setAttendanceRecords(initialRecords);
+      setSessionId(classDetail.id);
+      setIsModalOpen(true);
+    }
+  }, [classDetail, classIdFromCalendar, isModalOpen]);
+
+  const handleStatusChange = (memberId: string, status: AttendanceStatus) => {
+    setAttendanceRecords(prev => ({
+      ...prev,
+      [memberId]: {
+        ...prev[memberId],
+        status
+      }
+    }));
   };
 
-  const handleCreateSession = async () => {
-    // Modal para crear nueva sesión - se implementaría posteriormente
-    toast.info('Funcionalidad de crear sesión en desarrollo');
+  const handleSaveAttendance = async () => {
+    if (!classDetail || !sessionId) return;
+
+    try {
+      console.log('💾 Iniciando guardado de asistencia...');
+      
+      // Mapear el estado de asistencia al formato del backend
+      const attendanceStatusMap: Record<string, string> = {
+        'present': 'PRESENTE',
+        'absent': 'AUSENTE',
+        'late': 'TARDE'
+      };
+      
+      // Preparar los datos de asistencia como un objeto con memberId como key
+      const attendanceData: Record<string, string> = {};
+      Object.values(attendanceRecords).forEach(record => {
+        attendanceData[record.memberId] = attendanceStatusMap[record.status] || 'AUSENTE';
+      });
+
+      console.log('💾 Datos de asistencia preparados:', {
+        classId: sessionId,
+        totalRecords: Object.keys(attendanceData).length,
+        attendanceData
+      });
+
+      // Guardar SOLO la asistencia sin completar la clase
+      await TrainerClassService.saveAttendance(sessionId, attendanceData);
+
+      console.log('✅ Asistencia guardada exitosamente (clase sigue en progreso)');
+      
+      setIsModalOpen(false);
+      setClassIdFromCalendar(null);
+      // Navegar de vuelta al calendario sin recargar la página
+      setTimeout(() => {
+        navigate('/trainer/calendar');
+      }, 6000); // Esperar 6 segundos para ver los logs
+    } catch (error) {
+      console.error('Error guardando asistencia:', error);
+    }
   };
 
   return (
@@ -92,205 +161,256 @@ export default function AttendanceMainPage() {
           <div>
             <h1 className="text-3xl font-bold">Control de Asistencia</h1>
             <p className="text-muted-foreground">
-              Gestiona la asistencia de tus clases y obtén estadísticas detalladas
+              Gestiona la asistencia de tus clases
             </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={handleCreateSession}
-            disabled={createSessionMutation.isPending}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Sesión
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" disabled={exportLoading}>
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleExport('pdf')}>
-                <Download className="h-4 w-4 mr-2" />
-                Exportar PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('excel')}>
-                <Download className="h-4 w-4 mr-2" />
-                Exportar Excel
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('csv')}>
-                <Download className="h-4 w-4 mr-2" />
-                Exportar CSV
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
       </div>
 
-      {/* Estadísticas principales */}
-      <AttendanceStatsCards />
-
-      {/* Información del día seleccionado */}
-      {dayInfo && (
+      {/* Información de la clase actual */}
+      {isLoadingClass ? (
+        <Card>
+          <CardContent className="p-6 text-center">
+            <div className="text-muted-foreground">Cargando clase...</div>
+          </CardContent>
+        </Card>
+      ) : classDetail ? (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5" />
-                {dayInfo.dayDate}
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  {dayInfo.totalSessions} sesiones
-                </Badge>
-                {dayInfo.attendanceRate > 0 && (
-                  <Badge variant="outline" className="text-green-600">
-                    {dayInfo.attendanceRate.toFixed(0)}% asistencia
-                  </Badge>
-                )}
-              </div>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              {classDetail.name}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{dayInfo.scheduledSessions}</div>
-                <div className="text-sm text-muted-foreground">Programadas</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium">{format(new Date(classDetail.classDate), 'EEEE, d MMMM yyyy', { locale: es })}</div>
+                  <div className="text-xs text-muted-foreground">Fecha</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{dayInfo.inProgressSessions}</div>
-                <div className="text-sm text-muted-foreground">En Progreso</div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium">{classDetail.startTime} ({classDetail.duration} min)</div>
+                  <div className="text-xs text-muted-foreground">Horario</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-600">{dayInfo.completedSessions}</div>
-                <div className="text-sm text-muted-foreground">Completadas</div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium">{classDetail.location}</div>
+                  <div className="text-xs text-muted-foreground">Ubicación</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{dayInfo.totalPresent}</div>
-                <div className="text-sm text-muted-foreground">Presentes</div>
+            </div>
+            <div className="pt-4 border-t">
+              <div className="flex items-center gap-4">
+                <Badge variant="outline" className="text-lg px-4 py-2">
+                  {classDetail.enrolledCount}/{classDetail.capacity} estudiantes
+                </Badge>
+                <Badge
+                  variant={
+                    classDetail.status === 'completed' ? 'default' :
+                    classDetail.status === 'in_progress' ? 'secondary' :
+                    classDetail.status === 'cancelled' ? 'destructive' : 'outline'
+                  }
+                  className="text-lg px-4 py-2"
+                >
+                  {classDetail.status === 'scheduled' && 'Programada'}
+                  {classDetail.status === 'in_progress' && 'En Progreso'}
+                  {classDetail.status === 'completed' && 'Completada'}
+                  {classDetail.status === 'cancelled' && 'Cancelada'}
+                </Badge>
               </div>
             </div>
           </CardContent>
         </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h3 className="text-lg font-medium mb-2 text-muted-foreground">
+              No hay clase seleccionada
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Selecciona una clase desde el calendario para tomar asistencia
+            </p>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Pestañas principales */}
-      <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
-        <TabsList className="grid w-full grid-cols-3 bg-transparent border border-border rounded-lg">
-          <TabsTrigger value="calendar" className="flex items-center gap-2">
-            <CalendarIcon className="h-4 w-4" />
-            Calendario
-          </TabsTrigger>
-          <TabsTrigger value="list" className="flex items-center gap-2">
-            <List className="h-4 w-4" />
-            Lista de Sesiones
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Historial
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="calendar" className="space-y-6">
-          <AttendanceCalendar
-            onDayClick={handleDayClick}
-            onSessionClick={handleSessionClick}
-          />
-
-          {/* Sesiones del día seleccionado */}
-          {daySessions && daySessions.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Sesiones del {format(selectedDate, 'd MMMM yyyy', { locale: es })}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {daySessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
-                      onClick={() => handleSessionClick(session.id)}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <CalendarIcon className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <div className="font-medium">{session.className}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {format(new Date(session.startTime), 'HH:mm')} - {session.location}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">
-                          {session.presentCount}/{session.totalMembers}
-                        </Badge>
-                        <Badge
-                          variant={session.status === 'completed' ? 'default' : 'secondary'}
-                        >
-                          {session.status === 'scheduled' && 'Programada'}
-                          {session.status === 'in_progress' && 'En Progreso'}
-                          {session.status === 'completed' && 'Completada'}
-                          {session.status === 'cancelled' && 'Cancelada'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
+      {/* Modal de Asistencia */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] max-h-[90vh] overflow-hidden flex flex-col min-w-[1400px] p-6">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="flex items-center justify-between text-xl">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl font-bold">{classDetail?.name}</div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>{classDetail && format(new Date(classDetail.classDate), 'EEEE, d MMMM yyyy', { locale: es })}</span>
+                  <span>•</span>
+                  <span>{classDetail?.startTime}</span>
+                  <span>•</span>
+                  <span>{classDetail?.location}</span>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="list" className="space-y-6">
-          <SessionList
-            onSessionClick={handleSessionClick}
-            onStartSession={handleStartSession}
-            onCompleteSession={handleCompleteSession}
-          />
-        </TabsContent>
-
-        <TabsContent value="history" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Historial de Asistencia
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">Historial en desarrollo</h3>
-                <p>
-                  Esta sección mostrará gráficos y estadísticas históricas de asistencia.
-                </p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <Badge className="border text-sm px-3 py-1 rounded-md" variant="outline">
+                {classDetail?.status === 'completed' ? 'Completada' : 
+                 classDetail?.status === 'in_progress' ? 'En Progreso' : 'Programada'}
+              </Badge>
+            </DialogTitle>
+          </DialogHeader>
 
-      {/* Modal de sesión de asistencia */}
-      <AttendanceSessionModal
-        sessionId={selectedSessionId}
-        open={isAttendanceModalOpen}
-        onOpenChange={(open) => {
-          setAttendanceModalOpen(open);
-          if (!open) {
-            setSelectedSessionId(null);
-          }
-        }}
-      />
+          <div className="flex-1 overflow-hidden grid grid-cols-4 gap-6 mt-4">
+          {classDetail && (
+            <>
+              {/* Columna Izquierda - Información de la clase */}
+              <Card className="col-span-1 border-2 h-fit">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold">Estadísticas</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/30">
+                    <Users className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">Total</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{classDetail.enrolledMembers.length} alumnos</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/30">
+                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">Presentes</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {classDetail.enrolledMembers.filter(m => 
+                          !attendanceRecords[m.id] || attendanceRecords[m.id]?.status === 'present'
+                        ).length}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/30">
+                    <XCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">Ausentes</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {classDetail.enrolledMembers.filter(m => 
+                          attendanceRecords[m.id]?.status === 'absent'
+                        ).length}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/30">
+                    <Clock className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">Tarde</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {classDetail.enrolledMembers.filter(m => 
+                          attendanceRecords[m.id]?.status === 'late'
+                        ).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Columna Derecha - Lista de estudiantes */}
+              <Card className="col-span-3 flex flex-col border-2">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span>Estudiantes ({classDetail.enrolledMembers.length})</span>
+                    <span className="text-sm font-normal text-muted-foreground">Scroll para ver todos</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-hidden flex flex-col">
+                  <div className="flex-1 overflow-y-auto space-y-2 p-1">
+                    {classDetail.enrolledMembers.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No hay estudiantes inscritos en esta clase
+                      </div>
+                    ) : (
+                      classDetail.enrolledMembers.map((member) => {
+                      const record = attendanceRecords[member.id];
+                      const status = record?.status || 'present';
+
+                      return (
+                        <div
+                          key={member.id}
+                          className="flex items-center justify-between p-3 rounded-lg border-2 transition-all hover:shadow-md hover:border-primary/50"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <Avatar className="h-10 w-10 flex-shrink-0">
+                              <AvatarFallback className="text-sm">
+                                {member.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-sm truncate">{member.name}</div>
+                              <div className="text-xs text-muted-foreground truncate">{member.email}</div>
+                            </div>
+                          </div>
+
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-9 px-3">
+                                <Badge className={cn("text-xs px-2 py-1", ATTENDANCE_STATUS_COLORS[status])}>
+                                  {ATTENDANCE_STATUS_LABELS[status]}
+                                </Badge>
+                                <MoreHorizontal className="h-4 w-4 ml-2" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleStatusChange(member.id, 'present')}>
+                                <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                                Presente
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(member.id, 'late')}>
+                                <Clock className="h-4 w-4 mr-2 text-yellow-600" />
+                                Tarde
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(member.id, 'absent')}>
+                                <XCircle className="h-4 w-4 mr-2 text-red-600" />
+                                Ausente
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      );
+                      })
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+          </div>
+
+          <DialogFooter className="mt-4 pt-4 border-t flex justify-end gap-3">
+            <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
+              Cerrar
+            </Button>
+            <Button
+              onClick={handleSaveAttendance}
+              disabled={endClassMutation.isPending}
+              className="bg-primary hover:bg-primary/90 min-w-[150px]"
+            >
+              {endClassMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Guardar Asistencia
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
