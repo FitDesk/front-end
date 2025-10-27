@@ -19,36 +19,22 @@ interface TrainerClassFilters extends CalendarFilters {
 export class TrainerClassService {
   private static readonly ENDPOINT = '/classes';
   private static readonly STATS_ENDPOINT = '/classes/stadistic';
+  private static readonly CLASSES_ENDPOINT = '/classes/classes';
 
-  /**
-   * Obtiene todas las clases asignadas al trainer actual con filtros
-   */
+
   static async getMyClasses(_filters?: TrainerClassFilters): Promise<TrainerClass[]> {
-    // Por ahora retornamos un array vacío ya que este endpoint necesita implementarse en el backend
-    // El calendario usa getClassesByDateRange que sí funciona
     return [];
   }
 
-  /**
-   * Obtiene las clases en un rango de fechas (para calendario)
-   */
+ 
   static async getClassesByDateRange(startDate: Date, endDate: Date, filters?: CalendarFilters): Promise<TrainerClass[]> {
-    // Usar el endpoint correcto que ya existe en el backend
     const response = await fitdeskApi.get<any[]>(
       `${this.STATS_ENDPOINT}/my-classes/stats`
     );
     
-    // Debug: Ver los datos exactos del backend
-    console.log('📊 Datos del backend:', response.data);
-    
-    // Mapear la respuesta del backend al formato del frontend
     const mappedClasses: TrainerClass[] = response.data.map((classData: any) => {
-      console.log(`📝 Clase: ${classData.className}, Estudiantes: ${classData.currentStudents}, Estado: ${classData.status}`);
-      console.log(`📅 Fecha recibida del backend: ${classData.classDate}`);
-      // Parsear la fecha que viene en formato dd-MM-yyyy
       const [day, month, year] = classData.classDate.split('-');
-      const classDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      console.log(`📆 Fecha parseada: ${classDate.toISOString()} (día: ${day}, mes: ${month}, año: ${year})`);
+      const classDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0);
       
       const [startHour, startMinute] = classData.startTime.split(':');
       const [endHour, endMinute] = classData.endTime.split(':');
@@ -59,16 +45,16 @@ export class TrainerClassService {
       const endDateTime = new Date(classDate);
       endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
       
-      // Calcular duración en minutos
+ 
       const duration = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60);
       
-      // Mapear el status del backend al formato del frontend
+      
       let status = 'scheduled';
       
-      // Mapear los estados directamente
+  
       const statusMap: Record<string, string> = {
         'PROGRAMADA': 'scheduled',
-        'Activa': 'in_progress', // 'Activa' significa en progreso según el detalle
+        'Activa': 'scheduled', 
         'EN_PROCESO': 'in_progress',
         'COMPLETADA': 'completed',
         'CANCELADA': 'cancelled'
@@ -76,14 +62,12 @@ export class TrainerClassService {
       
       status = statusMap[classData.status] || 'scheduled';
       
-      console.log(`🏷️ Estado backend: "${classData.status}" → Estado frontend: "${status}"`);
-      
       return {
         id: classData.id,
         name: classData.className,
         description: classData.description || '',
         dayOfWeek: this.getDayOfWeekFromDate(classDate),
-        classDate: classDate, // Fecha real de la clase
+        classDate: classDate,
         startTime: classData.startTime,
         duration: duration,
         capacity: classData.maxCapacity,
@@ -96,19 +80,18 @@ export class TrainerClassService {
       };
     });
     
-    // Aplicar filtros del frontend y filtrar por rango de fechas
-    console.log(`🔍 Rango de fechas del calendario: ${startDate.toISOString()} - ${endDate.toISOString()}`);
     let filteredClasses = mappedClasses.filter(c => {
-      // Usar classDate directamente para el filtro
       const classDate = new Date(c.classDate);
+
+      const classDateOnly = new Date(classDate.getFullYear(), classDate.getMonth(), classDate.getDate());
+      const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+      const classDateStr = `${classDateOnly.getFullYear()}-${String(classDateOnly.getMonth() + 1).padStart(2, '0')}-${String(classDateOnly.getDate()).padStart(2, '0')}`;
+      const startDateStr = `${startDateOnly.getFullYear()}-${String(startDateOnly.getMonth() + 1).padStart(2, '0')}-${String(startDateOnly.getDate()).padStart(2, '0')}`;
+      const endDateStr = `${endDateOnly.getFullYear()}-${String(endDateOnly.getMonth() + 1).padStart(2, '0')}-${String(endDateOnly.getDate()).padStart(2, '0')}`;
       
-      // Normalizar las fechas a medianoche UTC para comparar solo día/mes/año
-      const classDateOnly = Date.UTC(classDate.getFullYear(), classDate.getMonth(), classDate.getDate());
-      const startDateOnly = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-      const endDateOnly = Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-      
-      const isInRange = classDateOnly >= startDateOnly && classDateOnly <= endDateOnly;
-      console.log(`🔎 Clase "${c.name}": fecha=${new Date(classDateOnly).toISOString()} en rango [${new Date(startDateOnly).toISOString()} - ${new Date(endDateOnly).toISOString()}]? ${isInRange}`);
+      const isInRange = classDateStr >= startDateStr && classDateStr <= endDateStr;
       return isInRange;
     });
     
@@ -120,7 +103,6 @@ export class TrainerClassService {
       filteredClasses = filteredClasses.filter(c => c.location === filters.location);
     }
     
-    console.log(`✅ Total de clases filtradas: ${filteredClasses.length}`);
     return filteredClasses;
   }
   
@@ -133,10 +115,7 @@ export class TrainerClassService {
   static async getClassById(classId: string): Promise<TrainerClass> {
     const response = await fitdeskApi.get<any>(`${this.STATS_ENDPOINT}/${classId}/detail`);
     
-    console.log('📋 Detalle de clase:', response.data);
-    console.log('👥 Estudiantes:', response.data.students);
-    
-    // Parsear la fecha
+   
     const [day, month, year] = response.data.classDate.split('-');
     const classDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     const [startHour, startMinute] = response.data.startTime.split(':');
@@ -150,26 +129,22 @@ export class TrainerClassService {
     
     const duration = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60);
     
-    // Obtener todos los estudiantes sin filtrar duplicados
     const students = response.data.students || [];
-    console.log(`🔍 Total de estudiantes en la respuesta: ${students.length}`);
     
-    // Mostrar información de depuración para cada estudiante
-    students.forEach((student: any, index: number) => {
-      console.log(`  Estudiante ${index + 1}:`, {
-        id: student.id,
-        name: student.name,
-        email: student.email
-      });
-    });
+    const uniqueStudents = students.map((student: any) => ({
+      id: String(student.memberId || student.id || ''),
+      name: student.name,
+      email: student.email,
+      phone: student.phone,
+      avatar: student.profileImageUrl,
+      enrolledAt: new Date(),
+      attendanceStatus: student.attendanceStatus
+    }));
     
-    // No filtrar estudiantes duplicados para mostrar a todos los inscritos
-    const uniqueStudents = [...students];
-    
-    // Mapear el status del backend al formato del frontend
+
     const statusMap: Record<string, string> = {
       'PROGRAMADA': 'scheduled',
-      'Activa': 'in_progress', // 'Activa' significa en progreso
+      'Activa': 'scheduled',
       'EN_PROCESO': 'in_progress',
       'COMPLETADA': 'completed',
       'CANCELADA': 'cancelled'
@@ -177,20 +152,18 @@ export class TrainerClassService {
     
     const status = statusMap[response.data.status] || 'scheduled';
     
-    console.log(`🏷️ Estado backend en getClassById: "${response.data.status}" → Estado frontend: "${status}"`);
-    
     return {
       id: response.data.id,
       name: response.data.className,
       description: response.data.description || '',
       dayOfWeek: this.getDayOfWeekFromDate(classDate),
-      classDate: classDate, // Fecha real de la clase
+      classDate: classDate,
       startTime: response.data.startTime,
       duration: duration,
       capacity: response.data.maxCapacity,
       location: response.data.locationName,
       status: status as any,
-      enrolledCount: uniqueStudents.length, // Usar el conteo de únicos
+      enrolledCount: uniqueStudents.length,
       enrolledMembers: uniqueStudents,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -209,18 +182,13 @@ export class TrainerClassService {
     return response.data;
   }
 
-  /**
-   * Obtiene los detalles de una clase específica
-   */
   static async getClassDetails(classId: string): Promise<{ status: string }> {
     try {
-      // Usamos el endpoint de estadísticas para obtener los detalles de la clase
       const response = await fitdeskApi.get<any>(`${this.STATS_ENDPOINT}/${classId}/detail`);
       return {
         status: response.data.status
       };
     } catch (error) {
-      console.error('Error al obtener detalles de la clase:', error);
       throw new Error('No se pudieron obtener los detalles de la clase');
     }
   }
@@ -228,14 +196,9 @@ export class TrainerClassService {
   
   static async startClass(startData: StartClassDTO): Promise<ClassSession> {
     try {
-      console.log(`🚀 Intentando iniciar clase ${startData.classId}`);
-      // Primero obtenemos el estado actual de la clase
       const classDetails = await this.getClassDetails(startData.classId);
-      console.log(`📊 Estado actual de la clase: ${classDetails.status}`);
       
-      // Si la clase ya está en progreso, retornamos los datos actuales
       if (classDetails.status === 'EN_PROCESO' || classDetails.status === 'Activa') {
-        console.log(`ℹ️ La clase ya está en progreso. Estado actual: ${classDetails.status}`);
         return {
           id: startData.classId,
           classId: startData.classId,
@@ -247,21 +210,15 @@ export class TrainerClassService {
         };
       }
       
-      // Verificar que la clase esté en un estado que permita iniciarla
-      if (classDetails.status !== 'PROGRAMADA') {
+      if (classDetails.status !== 'PROGRAMADA' && classDetails.status !== 'Activa') {
         throw new Error(`No se puede iniciar la clase. Estado actual: ${classDetails.status}`);
       }
       
-      // Intentar iniciar la clase
-      const response = await fitdeskApi.patch<any>(`${this.ENDPOINT}/${startData.classId}/start`);
+      const response = await fitdeskApi.patch<any>(`${this.CLASSES_ENDPOINT}/${startData.classId}/start`);
       
-      console.log('🚀 Respuesta de startClass:', response.data);
-      console.log('📊 Estado devuelto por backend:', response.data.status);
-      
-      // Mapear el status del backend al formato del frontend
       const statusMap: Record<string, string> = {
         'PROGRAMADA': 'scheduled',
-        'Activa': 'in_progress',
+        'Activa': 'scheduled',
         'EN_PROCESO': 'in_progress',
         'COMPLETADA': 'completed',
         'CANCELADA': 'cancelled'
@@ -279,23 +236,37 @@ export class TrainerClassService {
         notes: startData.notes
       };
     } catch (error) {
-      console.error('Error en startClass:', error);
-      throw error; // Re-lanzar el error para que el componente lo maneje
+      throw error;
     }
   }
 
   
   static async endClass(endData: EndClassDTO): Promise<ClassSession> {
-    // Extraer el classId del sessionId (formato: session-{classId})
-    const classId = endData.sessionId.replace('session-', '');
-    const response = await fitdeskApi.patch<any>(`${this.ENDPOINT}/${classId}/complete`);
+    const classId = endData.sessionId;
+    
+    const attendanceStatusMap: Record<string, string> = {
+      'present': 'PRESENTE',
+      'absent': 'AUSENTE',
+      'late': 'TARDE'
+    };
+    
+    const attendanceData: Record<string, string> = {};
+    endData.attendees.forEach(attendee => {
+      attendanceData[attendee.memberId] = attendanceStatusMap[attendee.status] || 'AUSENTE';
+    });
+    
+    const response = await fitdeskApi.patch<any>(
+      `${this.CLASSES_ENDPOINT}/${classId}/complete`,
+      attendanceData
+    );
+    
     return {
       id: response.data.id,
       classId: classId,
       date: new Date(),
       startTime: new Date(),
       endTime: endData.endTime,
-      status: response.data.status,
+      status: 'completed' as any,
       attendees: endData.attendees,
       notes: endData.notes
     };
@@ -325,7 +296,7 @@ export class TrainerClassService {
 
 
   static async cancelClass(classId: string, reason?: string): Promise<void> {
-    await fitdeskApi.patch(`${this.ENDPOINT}/${classId}/cancel`, { reason });
+    await fitdeskApi.patch(`${this.CLASSES_ENDPOINT}/${classId}/cancel`, { reason });
   }
 
  
@@ -336,7 +307,6 @@ export class TrainerClassService {
     averageAttendance: number;
     upcomingClasses: number;
   }> {
-    // Obtener las clases y calcular las estadísticas
     const response = await fitdeskApi.get<any[]>(`${this.STATS_ENDPOINT}/my-classes/stats`);
     const classes = response.data;
     
@@ -378,10 +348,12 @@ export class TrainerClassService {
     });
   }
 
+  static async saveAttendance(classId: string, attendanceData: Record<string, string>): Promise<void> {
+    await fitdeskApi.post(`${this.CLASSES_ENDPOINT}/${classId}/save-attendance`, attendanceData);
+  }
+
   
   static async getAvailableLocations(): Promise<string[]> {
-    // Por ahora retornamos un array vacío ya que este endpoint necesita implementarse
-    // o usar el endpoint de locations del módulo de ubicaciones
     return [];
   }
 }

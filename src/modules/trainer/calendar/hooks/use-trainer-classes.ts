@@ -20,7 +20,11 @@ export const trainerClassKeys = {
   currentSession: () => [...trainerClassKeys.all, 'current-session'] as const,
   stats: () => [...trainerClassKeys.all, 'stats'] as const,
   byDate: (date: Date) => [...trainerClassKeys.all, 'by-date', date.toISOString().split('T')[0]] as const,
-  byRange: (startDate: Date, endDate: Date) => [...trainerClassKeys.all, 'by-range', startDate.toISOString(), endDate.toISOString()] as const,
+  byRange: (startDate: Date, endDate: Date) => {
+    const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    return [...trainerClassKeys.all, 'by-range', start.toISOString().split('T')[0], end.toISOString().split('T')[0]] as const;
+  },
   locations: () => [...trainerClassKeys.all, 'locations'] as const,
 };
 
@@ -53,11 +57,11 @@ export function useTrainerClass(classId: string) {
     queryKey: trainerClassKeys.detail(classId),
     queryFn: () => TrainerClassService.getClassById(classId),
     enabled: !!classId,
-    staleTime: 30 * 1000, // Los datos son frescos por 30 segundos
-    refetchOnMount: true, // Refrescar cada vez que se monta
-    refetchOnWindowFocus: true, // Refrescar cuando se enfoca la ventana
-    refetchInterval: 60 * 1000, // Refrescar automáticamente cada minuto
-    refetchIntervalInBackground: false, // No refrescar en background
+    staleTime: 30 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60 * 1000,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -93,12 +97,12 @@ export function useTrainerStats() {
   return useQuery({
     queryKey: trainerClassKeys.stats(),
     queryFn: () => TrainerClassService.getTrainerStats(),
-    staleTime: 5 * 60 * 1000, // Los datos son frescos por 5 minutos
-    gcTime: 15 * 60 * 1000, // Cache por 15 minutos
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     refetchOnWindowFocus: true,
     refetchOnMount: false,
-    refetchInterval: 10 * 60 * 1000, // Refrescar automáticamente cada 10 minutos
-    refetchIntervalInBackground: false, // No refrescar en background
+    refetchInterval: 10 * 60 * 1000,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -117,16 +121,22 @@ export function useClassesByDateRange(
   endDate: Date, 
   filters?: CalendarFilters
 ) {
+  const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+  const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+  
+  const filtersStr = filters ? JSON.stringify(filters) : 'none';
+  
   return useQuery({
-    queryKey: trainerClassKeys.byRange(startDate, endDate),
-    queryFn: () => TrainerClassService.getClassesByDateRange(startDate, endDate, filters),
+    queryKey: ['trainer-classes', 'by-range', startDateStr, endDateStr, filtersStr],
+    queryFn: () => {
+      return TrainerClassService.getClassesByDateRange(startDate, endDate, filters);
+    },
     enabled: !!startDate && !!endDate,
-    staleTime: 2 * 60 * 1000, // Los datos son frescos por 2 minutos
-    gcTime: 10 * 60 * 1000, // Cache por 10 minutos
-    refetchOnWindowFocus: true, // Refrescar al volver a la ventana
-    refetchOnMount: false, // No refrescar en cada mount si hay datos en cache
-    refetchInterval: 5 * 60 * 1000, // Refrescar automáticamente cada 5 minutos
-    refetchIntervalInBackground: false, // No refrescar en background
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    refetchInterval: false,
   });
 }
 
@@ -135,16 +145,49 @@ export function useStartClass() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: StartClassDTO) => TrainerClassService.startClass(data),
-    onSuccess: () => {
-      // Invalidar queries para refrescar los datos
-      queryClient.invalidateQueries({ queryKey: trainerClassKeys.all });
-      queryClient.invalidateQueries({ queryKey: trainerClassKeys.stats() });
-      // Prefetch para la próxima vista
-      queryClient.prefetchQuery({
-        queryKey: trainerClassKeys.stats(),
-        queryFn: () => TrainerClassService.getTrainerStats(),
+    mutationFn: async (data: StartClassDTO) => {
+      const result = await TrainerClassService.startClass(data);
+      return result;
+    },
+    onSuccess: async (_session, variables) => {
+      queryClient.setQueryData(trainerClassKeys.all, (oldData: any) => {
+        if (!oldData || !Array.isArray(oldData)) return oldData;
+        return oldData.map((item: any) => {
+          if (item.id === variables.classId) {
+            return { ...item, status: 'in_progress' };
+          }
+          return item;
+        });
       });
+      
+
+      const cache = queryClient.getQueryCache();
+      const queries = cache.findAll({ 
+        queryKey: ['trainer-classes', 'by-range'],
+        exact: false 
+      });
+      
+      queries.forEach(query => {
+        queryClient.setQueryData(query.queryKey, (oldData: any) => {
+          if (!oldData || !Array.isArray(oldData)) return oldData;
+          return oldData.map((item: any) => {
+            if (item.id === variables.classId) {
+              return { ...item, status: 'in_progress' };
+            }
+            return item;
+          });
+        });
+      });
+
+      await Promise.all([
+        queryClient.invalidateQueries({ 
+          queryKey: trainerClassKeys.all,
+          refetchType: 'active'
+        }),
+        queryClient.invalidateQueries({ queryKey: trainerClassKeys.stats(), refetchType: 'active' }),
+        queryClient.invalidateQueries({ queryKey: trainerClassKeys.detail(variables.classId), refetchType: 'active' }),
+      ]);
+      
       toast.success('Clase iniciada exitosamente');
     },
     onError: (error: unknown) => {
@@ -162,8 +205,46 @@ export function useEndClass() {
 
   return useMutation({
     mutationFn: (data: EndClassDTO) => TrainerClassService.endClass(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: trainerClassKeys.all });
+    onSuccess: async (_session, variables) => {
+      queryClient.setQueryData(trainerClassKeys.all, (oldData: any) => {
+        if (!oldData || !Array.isArray(oldData)) return oldData;
+        return oldData.map((item: any) => {
+          if (item.id === variables.sessionId) {
+            return { ...item, status: 'completed' };
+          }
+          return item;
+        });
+      });
+      
+      // Actualizar también en las queries de rango
+      const cache = queryClient.getQueryCache();
+      const queries = cache.findAll({ 
+        queryKey: ['trainer-classes', 'by-range'],
+        exact: false 
+      });
+      
+      queries.forEach(query => {
+        queryClient.setQueryData(query.queryKey, (oldData: any) => {
+          if (!oldData || !Array.isArray(oldData)) return oldData;
+          return oldData.map((item: any) => {
+            if (item.id === variables.sessionId) {
+              return { ...item, status: 'completed' };
+            }
+            return item;
+          });
+        });
+      });
+      
+      // Invalidar y refetch para asegurar consistencia
+      await Promise.all([
+        queryClient.invalidateQueries({ 
+          queryKey: trainerClassKeys.all,
+          refetchType: 'active'
+        }),
+        queryClient.invalidateQueries({ queryKey: trainerClassKeys.stats(), refetchType: 'active' }),
+        queryClient.invalidateQueries({ queryKey: trainerClassKeys.detail(variables.sessionId), refetchType: 'active' }),
+      ]);
+      
       toast.success('Clase finalizada exitosamente');
     },
     onError: (error: unknown) => {
@@ -246,9 +327,7 @@ export function useAvailableLocations() {
   });
 }
 
-/**
- * Hook para prefetching proactivo de datos del calendario
- */
+
 export function useCalendarPrefetching() {
   const queryClient = useQueryClient();
 

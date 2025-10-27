@@ -6,7 +6,7 @@ import { Calendar, Clock, MapPin, User, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { ClientClass } from '../types';
-import { useConfirmAttendance, useCancelClass, useCompleteReservation } from '../hooks/use-client-classes';
+import { useConfirmAttendance, useCancelClass } from '../hooks/use-client-classes';
 
 interface ClassCardProps {
   classItem: ClientClass;
@@ -16,7 +16,6 @@ interface ClassCardProps {
 export function ClassCard({ classItem, index }: ClassCardProps) {
   const confirmAttendanceMutation = useConfirmAttendance();
   const cancelClassMutation = useCancelClass();
-  const completeReservationMutation = useCompleteReservation();
 
  
   const formattedDate = format(parseISO(classItem.date), 'EEEE', { locale: es });
@@ -42,12 +41,6 @@ export function ClassCard({ classItem, index }: ClassCardProps) {
 
   const handleCancelClass = () => {
     cancelClassMutation.mutate(classItem.id);
-  };
-
-  const handleCompleteReservation = () => {
-    if (classItem.reservationId) {
-      completeReservationMutation.mutate(classItem.reservationId);
-    }
   };
 
   const getStatusConfig = (status: string) => {
@@ -133,11 +126,13 @@ export function ClassCard({ classItem, index }: ClassCardProps) {
             <span>{formattedTime}</span>
           </div>
 
-          {/* Información de capacidad */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>{classItem.currentParticipants}/{classItem.maxParticipants} inscritos</span>
-          </div>
+          {/* Información de capacidad - solo para clases próximas */}
+          {classItem.status === 'upcoming' && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span>{classItem.currentParticipants}/{classItem.maxParticipants} inscritos</span>
+            </div>
+          )}
         </div>
 
         {/* Botones de acción */}
@@ -167,26 +162,12 @@ export function ClassCard({ classItem, index }: ClassCardProps) {
           </div>
         )}
 
-        {/* Botones para clases pendientes */}
+        {/* Información para clases pendientes */}
         {classItem.status === 'pending' && (
-          <div className="flex gap-2 pt-2">
-            <Button
-              size="sm"
-              onClick={handleCompleteReservation}
-              disabled={completeReservationMutation.isPending}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              {completeReservationMutation.isPending ? 'Completando...' : 'Marcar como Completada'}
-            </Button>
-            
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={handleCancelClass}
-              disabled={cancelClassMutation.isPending}
-            >
-              {cancelClassMutation.isPending ? 'Cancelando...' : 'Cancelar Reserva'}
-            </Button>
+          <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+            <p className="text-sm text-orange-700 dark:text-orange-300">
+              Esperando confirmación del entrenador
+            </p>
           </div>
         )}
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import { 
   Clock, 
@@ -33,30 +34,55 @@ interface ClassManagementModalProps {
   event: CalendarEvent | null;
   isOpen: boolean;
   onClose: () => void;
+  onRefreshClasses?: () => void;
 }
 
 export function ClassManagementModal({
   event,
   isOpen,
-  onClose
+  onClose,
+  onRefreshClasses
 }: ClassManagementModalProps) {
   const [actualClassStartTime, setActualClassStartTime] = useState<Date | null>(null);
   const [isRefreshingStudents, setIsRefreshingStudents] = useState(false);
+  const navigate = useNavigate();
 
-  // Cargar el detalle completo de la clase con los estudiantes
+
   const { data: classDetail, refetch: refetchClassDetail, isLoading: isLoadingClassDetail } = useTrainerClass(event?.id || '');
   
   const startClassMutation = useStartClass();
   const endClassMutation = useEndClass();
   const cancelClassMutation = useCancelClass();
+  
+  
+  const currentStatus = classDetail?.status || event?.status;
+  
 
-  // Refrescar los datos cuando se abre el modal
+  useEffect(() => {
+    if (startClassMutation.isSuccess || endClassMutation.isSuccess) {
+      refetchClassDetail();
+
+      if (onRefreshClasses) {
+        setTimeout(() => {
+          onRefreshClasses();
+        }, 500);
+      }
+      
+
+      if (endClassMutation.isSuccess && event?.id) {
+        localStorage.removeItem(`class_timer_state_${event.id}`);
+        localStorage.removeItem(`class_start_time_${event.id}`);
+      }
+    }
+  }, [startClassMutation.isSuccess, endClassMutation.isSuccess, refetchClassDetail, onRefreshClasses, event?.id]);
+
+
   useEffect(() => {
     if (isOpen && event?.id) {
-      // Prefetching: cargar los datos inmediatamente
+
       refetchClassDetail();
       
-      // Si la clase está en progreso, intentar recuperar la hora real de inicio del localStorage
+     
       if (event.status === 'in_progress') {
         const storedStartTime = localStorage.getItem(`class_start_time_${event.id}`);
         if (storedStartTime) {
@@ -71,18 +97,15 @@ export function ClassManagementModal({
     }
   }, [isOpen, event?.id, refetchClassDetail, event?.status, actualClassStartTime]);
 
-  // Prefetching: cargar los datos de los estudiantes cuando el modal se está preparando para abrir
+ 
   useEffect(() => {
     if (event?.id && !isOpen) {
-      // Prefetching silencioso cuando el evento está disponible pero el modal no está abierto
       refetchClassDetail();
     }
   }, [event?.id, isOpen, refetchClassDetail]);
 
-  // Prefetching adicional cuando se detecta que el modal se va a abrir
   useEffect(() => {
     if (event?.id) {
-      // Prefetching inmediato cuando hay un evento seleccionado
       refetchClassDetail();
     }
   }, [event?.id, refetchClassDetail]);
@@ -120,7 +143,6 @@ export function ClassManagementModal({
   };
 
   const handleEndClass = async () => {
-    // Limpiar la hora de inicio del localStorage
     localStorage.removeItem(`class_start_time_${event.id}`);
     setActualClassStartTime(null);
 
@@ -147,8 +169,8 @@ export function ClassManagementModal({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <span>{event.title}</span>
-            <Badge className={cn("ml-2", CLASS_STATUS_COLORS[event.status])}>
-              {CLASS_STATUS_LABELS[event.status]}
+            <Badge className={cn("ml-2 rounded-md px-3 py-1", CLASS_STATUS_COLORS[currentStatus || event.status])}>
+              {CLASS_STATUS_LABELS[currentStatus || event.status]}
             </Badge>
           </DialogTitle>
         </DialogHeader>
@@ -156,36 +178,34 @@ export function ClassManagementModal({
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Columna Izquierda - Información de la clase */}
           <div className="xl:col-span-1 space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Información de la Clase</CardTitle>
+            <Card className="border-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold">Información de la Clase</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">{format(event.start, 'HH:mm')} - {format(event.end, 'HH:mm')}</p>
-                    <p className="text-sm text-muted-foreground">{format(event.start, 'EEEE, dd MMMM')}</p>
+              <CardContent className="space-y-3">
+                <div className="flex items-start space-x-3 p-2 rounded-lg bg-muted/30">
+                  <Clock className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm">{format(event.start, 'HH:mm')} - {format(event.end, 'HH:mm')}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{format(event.start, 'EEEE, dd MMMM')}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">{event.location}</p>
-                    <p className="text-sm text-muted-foreground">Ubicación</p>
+                <div className="flex items-start space-x-3 p-2 rounded-lg bg-muted/30">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm">{event.location}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">{event.enrolledCount}/{event.capacity} alumnos</p>
-                    <p className="text-sm text-muted-foreground">Inscritos</p>
+                <div className="flex items-start space-x-3 p-2 rounded-lg bg-muted/30">
+                  <Users className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm">{event.enrolledCount}/{event.capacity} alumnos inscritos</p>
                   </div>
                 </div>
                 {event.description && (
-                  <div className="pt-4 border-t">
-                    <h4 className="font-medium mb-2">Descripción</h4>
-                    <p className="text-sm text-muted-foreground">{event.description}</p>
+                  <div className="pt-3 border-t">
+                    <h4 className="font-medium text-sm mb-2">Descripción</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>
                   </div>
                 )}
               </CardContent>
@@ -195,15 +215,17 @@ export function ClassManagementModal({
 
           {/* Columna Derecha - Cronómetro */}
           <div className="xl:col-span-2">
-            {event.status === 'in_progress' && (
+            {currentStatus === 'in_progress' && (
               <ClassTimer
+                key={`timer-${event.id}-${isOpen}`}
                 startTime={event.start}
                 endTime={event.end}
-                status={event.status}
+                status={currentStatus || event.status}
                 actualStartTime={actualClassStartTime || undefined}
+                classId={event.id}
               />
             )}
-            {event.status !== 'in_progress' && (
+            {currentStatus !== 'in_progress' && (
               <Card>
                 <CardContent className="p-8 text-center text-muted-foreground">
                   El cronómetro se mostrará cuando la clase esté en progreso
@@ -269,11 +291,14 @@ export function ClassManagementModal({
         {/* Botones de acción */}
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex space-x-3">
-            {event.status === 'in_progress' && (
+            {currentStatus === 'in_progress' && (
               <Button 
                 onClick={() => {
-                  // TODO: Navegar a la vista de asistencia
-                  console.log('Navegar a vista de asistencia');
+                
+                  navigate('/trainer/attendance', { 
+                    state: { classId: event.id, autoOpen: true }
+                  });
+                  onClose();
                 }}
                 className="bg-blue-600 hover:bg-blue-700"
               >
@@ -288,7 +313,7 @@ export function ClassManagementModal({
               Cerrar
             </Button>
             
-            {event.status === 'scheduled' && (
+            {currentStatus === 'scheduled' && (
               <Button 
                 onClick={handleStartClass}
                 disabled={isLoading}
@@ -299,7 +324,7 @@ export function ClassManagementModal({
               </Button>
             )}
             
-            {event.status === 'in_progress' && (
+            {currentStatus === 'in_progress' && (
               <Button 
                 onClick={handleEndClass}
                 disabled={isLoading}

@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// Enums y constantes
 export const ClassStatusEnum = {
   SCHEDULED: 'scheduled',
   IN_PROGRESS: 'in_progress',
@@ -22,13 +21,12 @@ export const DayOfWeekEnum = {
 
 export type DayOfWeek = typeof DayOfWeekEnum[keyof typeof DayOfWeekEnum];
 
-// Interfaces para el trainer
 export interface TrainerClass {
   id: string;
   name: string;
   description?: string;
   dayOfWeek: DayOfWeek;
-  classDate: Date; // Fecha real de la clase
+  classDate: Date;
   startTime: string;
   duration: number; 
   capacity: number;
@@ -147,10 +145,10 @@ export const CLASS_STATUS_LABELS: Record<ClassStatus, string> = {
 };
 
 export const CLASS_STATUS_COLORS: Record<ClassStatus, string> = {
-  [ClassStatusEnum.SCHEDULED]: 'bg-blue-100 text-blue-800',
-  [ClassStatusEnum.IN_PROGRESS]: 'bg-green-100 text-green-800',
-  [ClassStatusEnum.COMPLETED]: 'bg-gray-100 text-gray-800',
-  [ClassStatusEnum.CANCELLED]: 'bg-red-100 text-red-800'
+  [ClassStatusEnum.SCHEDULED]: 'bg-blue-500/10 text-blue-600 border-2 border-blue-500/30',
+  [ClassStatusEnum.IN_PROGRESS]: 'bg-yellow-500/10 text-yellow-600 border-2 border-yellow-500/30',
+  [ClassStatusEnum.COMPLETED]: 'bg-green-500/10 text-green-600 border-2 border-green-500/30',
+  [ClassStatusEnum.CANCELLED]: 'bg-red-500/10 text-red-600 border-2 border-red-500/30'
 };
 
 export const DAYS_OF_WEEK = Object.values(DayOfWeekEnum);
