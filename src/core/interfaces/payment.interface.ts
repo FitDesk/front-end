@@ -17,19 +17,19 @@ export interface CardData {
 }
 
 export interface CreatePaymentRequest {
-    externalReference: string;
-    userId: string;
-    planId: string;
-    amount: number;
-    payerEmail: string;
-    payerFirstName: string;
-    payerLastName: string;
-    description: string;
-    token: string;
-    installments: number;
-    paymentMethodId: string;
-    identificationType: string;
-    identificationNumber: string;
+  externalReference: string;
+  userId: string;
+  planId: string;
+  amount: number;
+  payerEmail: string;
+  payerFirstName: string;
+  payerLastName: string;
+  description: string;
+  token: string;
+  installments: number;
+  paymentMethodId: string;
+  identificationType: string;
+  identificationNumber: string;
 }
 
 export interface PaymentResponse {
@@ -46,5 +46,13 @@ export interface PaymentResponse {
   transactionAmount: number;
   transactionId: string;
 }
-
+export interface PlanUpgradeRequest {
+  userId: string;
+  newPlanId: string;
+  token: string;
+  installments: number;
+  paymentMethodId: string;
+  identificationType: string;
+  identificationNumber: string;
+}
 export type STATUS_PAYMENT = "approved" | "pending" | "rejected";

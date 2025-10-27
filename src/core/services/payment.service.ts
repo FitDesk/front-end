@@ -3,6 +3,7 @@ import type {
   CreatePaymentRequest,
   CreateTokenPaymentResponse,
   PaymentResponse,
+  PlanUpgradeRequest,
 } from "../interfaces/payment.interface";
 import { fitdeskApi } from "../api/fitdeskApi";
 
@@ -65,7 +66,7 @@ export class PaymentService {
       console.log("✅ Token creado exitosamente:", cardToken.id);
       return cardToken;
     } catch (error: any) {
-      console.error("❌ Error detallado creando token:", error);
+      console.error(" Error detallado creando token:", error);
 
       // Manejo específico de errores de MP
       if (error.message?.includes("primary field")) {
@@ -112,6 +113,25 @@ export class PaymentService {
       }
 
       throw new Error("Error de conexión con el servidor");
+    }
+  }
+  // --- NUEVO MÉTODO PARA EL UPGRADE ---
+  static async processPlanUpgrade(paymentData: PlanUpgradeRequest): Promise<PaymentResponse> {
+    try {
+      const response = await fitdeskApi.post<PaymentResponse>(
+        "/billing/payments/upgrade-plan",
+        paymentData
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error procesando upgrade de plan:", error);
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      if (error.message) {
+        throw new Error(error.message);
+      }
+      throw new Error("Error de conexión con el servidor al actualizar el plan");
     }
   }
 
