@@ -2,17 +2,49 @@ import { useAuthStore } from "@/core/store/auth.store";
 import PaymentForm from "@/shared/components/payment-form";
 import { useLocation, useNavigate } from "react-router";
 import type { PaymentResponse } from "@/core/interfaces/payment.interface";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
+import { useMembershipStore } from "@/modules/client/payments/store/useMembershipState";
+import type { PlanResponse } from "@/core/interfaces/plan.interface";
+import type { UpgradeCostResponse } from "@/core/interfaces/payment.interface";
 
 export default function PaymentsPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const selectedPlan = location.state?.selectedPlan;
-  const isUpgrade = location.state?.isUpgrade ?? false; 
+  const [selectedPlan, setSelectedPlan] = useState<PlanResponse | null>(null);
+  const [isUpgrade, setIsUpgrade] = useState<boolean>(false);
+  const [upgradeInfo, setUpgradeInfo] = useState<UpgradeCostResponse | null>(null);
   const user = useAuthStore((state) => state.user);
   const authStatus = useAuthStore((state) => state.authStatus);
   const [isProcessing, setIsProcessing] = useState(false);
+  const setIsUpgradeStore = useMembershipStore((state) => state.setIsUpgrade);
+
+  useEffect(() => {
+    const state = location.state as {
+      selectedPlan?: PlanResponse;
+      isUpgrade?: boolean;
+      upgradeInfo?: UpgradeCostResponse;
+    };
+    
+    if (state?.selectedPlan) {
+      setSelectedPlan(state.selectedPlan);
+      setIsUpgrade(state.isUpgrade || false);
+      setUpgradeInfo(state.upgradeInfo || null);
+      console.log("📄 PaymentsPage montado con isUpgrade:", state.isUpgrade);
+      console.log("💰 Upgrade info:", state.upgradeInfo);
+    } else {
+      // Si no hay plan seleccionado, redirigir
+      navigate('/');
+    }
+  }, [location, navigate]);
+
+  // Limpiar el flag cuando se desmonte el componente
+  useEffect(() => {
+    return () => {
+      console.log("🧹 Limpiando flag isUpgrade");
+      setIsUpgradeStore(false);
+    };
+  }, [setIsUpgradeStore]);
 
   const handlePaymentSuccess = async (paymentData: PaymentResponse) => {
     console.log("Pago exitoso:", paymentData);
@@ -60,6 +92,7 @@ export default function PaymentsPage() {
       onPaymentSuccess={handlePaymentSuccess}
       isProcessingPayment={isProcessing}
       isUpgrade={isUpgrade}
+      upgradeInfo={upgradeInfo}  // Pasar la información del upgrade al formulario
     />
   );
 }

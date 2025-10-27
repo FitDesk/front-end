@@ -4,6 +4,7 @@ import type {
   CreateTokenPaymentResponse,
   PaymentResponse,
   PlanUpgradeRequest,
+  UpgradeCostResponse,
 } from "../interfaces/payment.interface";
 import { fitdeskApi } from "../api/fitdeskApi";
 
@@ -44,6 +45,24 @@ export class PaymentService {
         reject(new Error("Error cargando SDK de Mercado Pago"));
       document.body.appendChild(script);
     });
+  }
+  static async calculateUpgradeCost(userId: string, newPlanId: string): Promise<UpgradeCostResponse> {
+    try {
+      const response = await fitdeskApi.post<UpgradeCostResponse>(
+        "/billing/payments/calculate-upgrade-cost",
+        {
+          userId,
+          newPlanId
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error calculando costo de upgrade:", error);
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw new Error("Error al calcular el costo del upgrade");
+    }
   }
 
   static async createCardToken(

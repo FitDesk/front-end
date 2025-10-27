@@ -15,6 +15,14 @@ export interface CardData {
   identificationType: string;
   identificationNumber: string;
 }
+export interface UpgradeCostResponse {
+  originalPrice: number;
+  upgradeCost: number;
+  unusedCredit: number;
+  daysRemaining: number;
+  newPlanName: string;
+  newPlanDescription: string;
+}
 
 export interface CreatePaymentRequest {
   externalReference: string;

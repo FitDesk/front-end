@@ -4,6 +4,7 @@ import type {
   CreatePaymentRequest,
   PaymentResponse,
   PlanUpgradeRequest,
+  UpgradeCostResponse,
 } from "@/core/interfaces/payment.interface";
 import type { PlanResponse } from "@/core/interfaces/plan.interface";
 import { toast } from "@/shared/components/ui/toast-provider";
@@ -26,8 +27,9 @@ export function usePaymentForm(options: {
   plan: PlanResponse;
   onPaymentSuccess: (data: PaymentResponse) => void;
   isUpgrade: boolean;
+  upgradeInfo?: UpgradeCostResponse | null; // ✅ NUEVO: Añadir upgradeInfo
 }) {
-  const { userId, userEmail, plan, onPaymentSuccess ,isUpgrade} = options;
+  const { userId, userEmail, plan, onPaymentSuccess, isUpgrade, upgradeInfo } = options; // ✅ Desestructurar upgradeInfo
   const [detectedPaymentMethod, setDetectedPaymentMethod] = useState("visa");
   const [formData, setFormData] = useState<PaymentFormData>({
     cardNumber: "",
@@ -115,20 +117,26 @@ export function usePaymentForm(options: {
 
     setIsSubmitting(true);
     try {
-      const cardToken = await PaymentService.createCardToken({
-        cardNumber: formData.cardNumber,
-        cardholderName: formData.cardName,
-        cardExpirationMonth: formData.expDate.slice(0, 2),
-        cardExpirationYear: formData.expDate.slice(3, 5),
-        securityCode: formData.ccv,
-        identificationType: "DNI",
-        identificationNumber: formData.dni,
-      });
+        const expMonth = formData.expDate.slice(0, 2);
+        const expYear = formData.expDate.slice(3, 5);
+        const fullYear = expYear.length === 2 ? `20${expYear}` : expYear;
+
+        const cardToken = await PaymentService.createCardToken({
+            cardNumber: formData.cardNumber,
+            cardholderName: formData.cardName,
+            cardExpirationMonth: expMonth,
+            cardExpirationYear: fullYear,
+            securityCode: formData.ccv,
+            identificationType: "DNI",
+            identificationNumber: formData.dni,
+        });
 
       let paymentResponse: PaymentResponse;
 
       if (isUpgrade) {
         console.log("🚀 Iniciando proceso de Upgrade de Plan...");
+        console.log("💰 Usando costo prorrateado:", upgradeInfo?.upgradeCost); // ✅ Log para debug
+        
         const upgradeRequest: PlanUpgradeRequest = {
           userId,
           newPlanId: plan.id,
@@ -138,8 +146,7 @@ export function usePaymentForm(options: {
           identificationType: "DNI",
           identificationNumber: formData.dni,
         };
-        paymentResponse =
-          await PaymentService.processPlanUpgrade(upgradeRequest);
+        paymentResponse = await PaymentService.processPlanUpgrade(upgradeRequest);
       } else {
         console.log("💳 Procesando pago para nueva membresía...");
         const externalReference = `MEMBERSHIP_${userId}_${Date.now()}`;
@@ -147,11 +154,10 @@ export function usePaymentForm(options: {
           externalReference,
           userId,
           planId: plan.id,
-          amount: plan.price,
+          amount: plan.price, // ✅ Para nuevo pago, usa el precio del plan
           payerEmail: userEmail,
           payerFirstName: formData.cardName.split(" ")[0],
-          payerLastName:
-            formData.cardName.split(" ").slice(1).join(" ") || "N/A",
+          payerLastName: formData.cardName.split(" ").slice(1).join(" ") || "N/A",
           description: `Membresía ${plan.name} - FitDesk`,
           token: cardToken.id,
           installments: 1,
@@ -159,15 +165,13 @@ export function usePaymentForm(options: {
           identificationType: "DNI",
           identificationNumber: formData.dni,
         };
-        paymentResponse =
-          await PaymentService.processDirectPayment(paymentRequest);
+        paymentResponse = await PaymentService.processDirectPayment(paymentRequest);
       }
-
       console.log("✅ Proceso de pago finalizado en backend:", paymentResponse);
 
       if (paymentResponse.status === "approved") {
         toast.success(
-          `¡${isUpgrade ? "Upgrade" : "Pago"} exitoso! Tu membresía ha sido actualizada.`,
+          `¡${isUpgrade ? "Upgrade" : "Pago"} exitoso! Tu membresía ha sido ${isUpgrade ? "actualizada" : "activada"}.`,
         );
         onPaymentSuccess(paymentResponse);
       } else if (paymentResponse.status === "pending") {
@@ -203,6 +207,11 @@ export function usePaymentForm(options: {
     }
   };
 
+  // ✅ NUEVO: Función para obtener el monto a mostrar
+  const getDisplayAmount = () => {
+    return isUpgrade && upgradeInfo ? upgradeInfo.upgradeCost : plan.price;
+  };
+
   return {
     formData,
     cardRef,
@@ -219,5 +228,7 @@ export function usePaymentForm(options: {
     hideBackCard,
     handleSubmit,
     getCardGradient,
+    getDisplayAmount, // ✅ NUEVO: Exportar función para obtener el monto
+    upgradeInfo, // ✅ NUEVO: Exportar upgradeInfo para usar en el componente
   };
 }
