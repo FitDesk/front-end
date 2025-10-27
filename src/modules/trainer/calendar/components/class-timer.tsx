@@ -5,8 +5,8 @@ interface ClassTimerProps {
   startTime: Date;
   endTime: Date;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  actualStartTime?: Date; // Hora real cuando se inició la clase (usado para calcular el tiempo transcurrido)
-  classId?: string; // ID de la clase para persistir el estado
+  actualStartTime?: Date;
+  classId?: string;
 }
 
 export function ClassTimer({ startTime, endTime, status, actualStartTime, classId }: ClassTimerProps) {
@@ -16,35 +16,29 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime, classI
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasInitialized = useRef(false);
   
-  // Clave para localStorage basada en el ID de la clase
   const storageKey = classId ? `class_timer_state_${classId}` : null;
 
-  // Inicializar el cronómetro cuando se monta con una clase en progreso
+  
   useEffect(() => {
-    // Solo inicializar si el estado es 'in_progress' y no se ha inicializado
+ 
     if (status === 'in_progress' && !hasInitialized.current) {
       hasInitialized.current = true;
       
-      console.log('🔄 Inicializando cronómetro para clase:', classId);
-      
-      // Limpiar intervalo anterior si existe
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
       
-      // Cargar siempre desde localStorage si existe
+     
       if (storageKey) {
         const savedState = localStorage.getItem(storageKey);
         if (savedState) {
           try {
             const { time: savedTime, isRunning: savedIsRunning } = JSON.parse(savedState);
-            console.log('✅ Estado persistido cargado:', savedState);
             setTime(savedTime);
             setIsRunning(savedIsRunning !== undefined ? savedIsRunning : true);
           } catch (e) {
-            console.error('Error loading timer state:', e);
-            // Si hay error, usar tiempo calculado
+       
             const realStartTime = actualStartTime || startTime;
             const startTimeMs = new Date(realStartTime).getTime();
             const currentTime = Date.now();
@@ -53,22 +47,19 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime, classI
             setIsRunning(true);
           }
         } else {
-          // No hay estado guardado, calcular desde el tiempo de inicio
+     
           const realStartTime = actualStartTime || startTime;
           const startTimeMs = new Date(realStartTime).getTime();
           const currentTime = Date.now();
           const elapsed = Math.max(0, currentTime - startTimeMs);
           setTime(elapsed);
           setIsRunning(true);
-          console.log('⏱️ Iniciando cronómetro desde:', elapsed);
         }
       }
       
-      // Iniciar el intervalo
       intervalRef.current = setInterval(() => {
         setTime(prevTime => {
           const newTime = Math.max(0, prevTime + 1000);
-          // Verificar si se excedió el tiempo programado
           const realStartTime = actualStartTime || startTime;
           const startTimeMs = new Date(realStartTime).getTime();
           const endTimeMs = new Date(endTime).getTime();
@@ -96,7 +87,6 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime, classI
     };
   }, [status, actualStartTime, startTime, endTime, storageKey, classId]);
 
-  // Limpiar el intervalo cuando el componente se desmonta
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
@@ -106,24 +96,22 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime, classI
     };
   }, []);
 
-  // Limpiar flag cuando cambia el status
   useEffect(() => {
     if (status !== 'in_progress') {
       hasInitialized.current = false;
     }
   }, [status]);
 
-  // Guardar estado en localStorage
   useEffect(() => {
     if (storageKey && status === 'in_progress') {
       localStorage.setItem(storageKey, JSON.stringify({ time, isRunning }));
     } else if (storageKey && status !== 'in_progress') {
-      // Limpiar el localStorage cuando la clase ya no está en progreso
+   
       localStorage.removeItem(storageKey);
     }
   }, [time, isRunning, storageKey, status]);
   
-  // Limpiar el localStorage cuando el componente se desmonta o la clase se completa
+ 
   useEffect(() => {
     return () => {
       if (storageKey && status !== 'in_progress') {
@@ -132,7 +120,7 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime, classI
     };
   }, [storageKey, status]);
 
-  // Pausar/reanudar el cronómetro
+ 
   useEffect(() => {
     if (status === 'in_progress') {
       if (!isRunning && intervalRef.current) {
@@ -148,7 +136,7 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime, classI
   }, [isRunning, status]);
 
   const formatTime = (milliseconds: number) => {
-    // Asegurar que el tiempo no sea negativo
+
     const safeTime = Math.max(0, milliseconds);
     const totalSeconds = Math.floor(safeTime / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -178,13 +166,13 @@ export function ClassTimer({ startTime, endTime, status, actualStartTime, classI
 
   const timeFormatted = formatTime(time);
   
-  // Progreso basado en la duración total de la clase
+
   const startTimeMs = new Date(startTime).getTime();
   const endTimeMs = new Date(endTime).getTime();
-  const scheduledDuration = Math.max(0, endTimeMs - startTimeMs); // Asegurar duración positiva
+  const scheduledDuration = Math.max(0, endTimeMs - startTimeMs);
   const progress = scheduledDuration > 0 ? Math.min(100, (time / scheduledDuration) * 100) : 0;
   
-  // Calculamos el stroke-dashoffset (circunferencia = 2πr = 2π×84 ≈ 527.8)
+
   const circumference = 2 * Math.PI * 84;
   const offset = circumference - (progress / 100) * circumference;
 

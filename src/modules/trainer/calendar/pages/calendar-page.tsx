@@ -32,28 +32,17 @@ export default function CalendarPage() {
     goToToday
   } = useCalendarStore();
   
-  // Calcular el rango de fechas basado en currentDate usando useMemo
+ 
   const dateRange = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 });
     const end = endOfWeek(currentDate, { weekStartsOn: 1 });
-    console.log(`📆 dateRange calculado:`, {
-      currentDate: currentDate.toISOString(),
-      start: start.toISOString(),
-      end: end.toISOString()
-    });
     return { start, end };
   }, [currentDate]);
   
-  // Log para verificar el dateRange
+
   useEffect(() => {
     const startDateStr = `${dateRange.start.getFullYear()}-${String(dateRange.start.getMonth() + 1).padStart(2, '0')}-${String(dateRange.start.getDate()).padStart(2, '0')}`;
     const endDateStr = `${dateRange.end.getFullYear()}-${String(dateRange.end.getMonth() + 1).padStart(2, '0')}-${String(dateRange.end.getDate()).padStart(2, '0')}`;
-    
-    console.log(`🗑️ Invalidando caché para rango: ${startDateStr} - ${endDateStr}`);
-    console.log(`🔎 dateRange completo:`, {
-      start: dateRange.start.toISOString(),
-      end: dateRange.end.toISOString()
-    });
     
     queryClient.invalidateQueries({ 
       queryKey: ['trainer-classes', 'by-range', startDateStr, endDateStr],
@@ -82,17 +71,9 @@ export default function CalendarPage() {
   } = useCalendarPrefetching();
 
   const events = useMemo(() => {
-    console.log(`📦 calendar-page: Recibiendo ${classes.length} clases para convertir`);
     const result = convertClassesToEvents(classes);
-    console.log(`📦 calendar-page: Resultado de conversión: ${result.length} eventos`);
     return result;
   }, [classes]);
-  
-  // Log para ver cuando se actualiza el calendario
-  useEffect(() => {
-    console.log('📊 Clases en calendario:', classes);
-    console.log('🎨 Eventos convertidos:', events);
-  }, [classes, events]);
 
   const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event);
@@ -111,37 +92,18 @@ export default function CalendarPage() {
     ]);
   };
 
-  // Prefetching proactivo para las semanas anteriores y siguientes
+
   useEffect(() => {
     prefetchNextWeek(currentDate);
-    prefetchPreviousWeek(currentDate);
+    prefetchPreviousWeek(currentDate    );
   }, [currentDate, prefetchNextWeek, prefetchPreviousWeek]);
 
-  // Prefetching de detalles de clases cuando se cargan los eventos
+  
   useEffect(() => {
     events.forEach(event => {
       prefetchClassDetails(event.id);
     });
   }, [events, prefetchClassDetails]);
-
-  // Debug: Logs para verificar qué está pasando
-  useEffect(() => {
-    console.log('📅 Rango de fechas del calendario:', {
-      start: dateRange.start.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-      end: dateRange.end.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-      currentDate: currentDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-    });
-    console.log('📊 Total de clases recibidas:', classes.length);
-    console.log('📝 Detalles de clases:', classes.map(c => ({
-      name: c.name,
-      fecha: c.classDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-    })));
-    console.log('🎯 Total de eventos convertidos:', events.length);
-    console.log('📅 Detalles de eventos:', events.map(e => ({
-      title: e.title,
-      fecha: e.start.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-    })));
-  }, [dateRange, currentDate, classes.length, events.length]);
 
   if (isLoadingClasses && !classes.length) {
     return (

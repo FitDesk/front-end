@@ -32,22 +32,9 @@ export function WeeklyCalendar({
 }: WeeklyCalendarProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Debug: mostrar todos los eventos recibidos
-  console.log(`🎯 Total de eventos recibidos por el calendario: ${events.length}`);
-  if (events.length > 0) {
-    console.log('📋 Detalles de eventos:', events.map(e => ({
-      title: e.title,
-      date: format(e.start, 'yyyy-MM-dd'),
-      status: e.status
-    })));
-  }
-
   const weekDays = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 });
     const days = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
-    console.log(`🌍 currentDate usado en calendario: ${format(currentDate, 'yyyy-MM-dd')}`);
-    console.log('📅 Días de la semana en el calendario:', days.map(d => format(d, 'yyyy-MM-dd (EEE)')));
-    console.log(`📊 Rango de la semana visual: ${format(start, 'yyyy-MM-dd')} - ${format(days[6], 'yyyy-MM-dd')}`);
     return days;
   }, [currentDate, events]);
 
@@ -73,15 +60,8 @@ export function WeeklyCalendar({
     const dayEvents = events.filter(event => {
       const dayStr = format(day, 'yyyy-MM-dd');
       const eventDayStr = format(event.start, 'yyyy-MM-dd');
-      const matches = dayStr === eventDayStr;
-      if (matches) {
-        console.log(`✅ Evento "${event.title}" coincide con día ${dayStr}`);
-      }
-      return matches;
+      return dayStr === eventDayStr;
     });
-    if (dayEvents.length > 0) {
-      console.log(`📆 Día ${format(day, 'yyyy-MM-dd')} tiene ${dayEvents.length} evento(s):`, dayEvents.map(e => e.title));
-    }
     return dayEvents;
   };
 

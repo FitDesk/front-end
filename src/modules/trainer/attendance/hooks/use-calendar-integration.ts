@@ -28,7 +28,6 @@ export function useCalendarIntegration() {
       toast.success(`Sesión de asistencia creada para ${classData.className}`);
       return session;
     } catch (error) {
-      console.error('Error creating attendance session:', error);
       toast.error('Error al crear la sesión de asistencia');
       throw error;
     }
@@ -54,19 +53,16 @@ export function useCalendarIntegration() {
       });
       return true;
     } catch (error) {
-      console.error('Error marking attendance from calendar:', error);
       return false;
     }
   }, [markAttendanceMutation]);
 
-  const syncCalendarData = useCallback((calendarData: {
+  const syncCalendarData = useCallback((_calendarData: {
     classId: string;
     sessionId?: string;
     members: unknown[];
     status: string;
-  }) => {
-    console.log('Syncing calendar data:', calendarData);
-  }, []);
+  }) => {}, []);
 
   const getAttendanceStatsForCalendar = useCallback((_sessionId: string) => {
     return {

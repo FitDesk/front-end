@@ -63,38 +63,33 @@ export default function AttendanceMainPage() {
   const [attendanceRecords, setAttendanceRecords] = useState<Record<string, AttendanceRecord>>({});
   const [sessionId, setSessionId] = useState<string | null>(null);
   
-  // Obtener detalles de la clase usando el hook del calendario
+
   const { data: classDetail, isLoading: isLoadingClass } = useTrainerClass(classIdFromCalendar || '');
   const endClassMutation = useEndClass();
 
-  // Detectar cuando se viene desde el calendario del trainer
+
   useEffect(() => {
     const state = location.state as { classId?: string; autoOpen?: boolean } | null;
     
     if (state?.classId && state?.autoOpen) {
-      console.log('📍 Navegando desde calendario con classId:', state.classId);
       setClassIdFromCalendar(state.classId);
       window.history.replaceState({}, '');
     }
   }, [location.state]);
   
-  // Abrir el modal cuando se cargue la clase
+
   useEffect(() => {
     if (classDetail && classIdFromCalendar && !isModalOpen) {
-      console.log('✅ Clase cargada para asistencia:', classDetail);
-      console.log('👥 Estudiantes inscritos:', classDetail.enrolledMembers);
-      // Inicializar records de asistencia para todos los estudiantes
+
       const initialRecords: Record<string, AttendanceRecord> = {};
       classDetail.enrolledMembers.forEach(member => {
-        console.log('📝 Inicializando record para:', member.name, member.id);
         initialRecords[member.id] = {
           memberId: member.id,
           memberName: member.name,
           memberEmail: member.email,
-          status: 'present', // Por defecto presente
+          status: 'present',
         };
       });
-      console.log('📋 Records de asistencia inicializados:', initialRecords);
       setAttendanceRecords(initialRecords);
       setSessionId(classDetail.id);
       setIsModalOpen(true);
@@ -115,40 +110,23 @@ export default function AttendanceMainPage() {
     if (!classDetail || !sessionId) return;
 
     try {
-      console.log('💾 Iniciando guardado de asistencia...');
-      
-      // Mapear el estado de asistencia al formato del backend
       const attendanceStatusMap: Record<string, string> = {
         'present': 'PRESENTE',
         'absent': 'AUSENTE',
         'late': 'TARDE'
       };
       
-      // Preparar los datos de asistencia como un objeto con memberId como key
       const attendanceData: Record<string, string> = {};
       Object.values(attendanceRecords).forEach(record => {
         attendanceData[record.memberId] = attendanceStatusMap[record.status] || 'AUSENTE';
       });
 
-      console.log('💾 Datos de asistencia preparados:', {
-        classId: sessionId,
-        totalRecords: Object.keys(attendanceData).length,
-        attendanceData
-      });
-
-      // Guardar SOLO la asistencia sin completar la clase
       await TrainerClassService.saveAttendance(sessionId, attendanceData);
-
-      console.log('✅ Asistencia guardada exitosamente (clase sigue en progreso)');
       
       setIsModalOpen(false);
       setClassIdFromCalendar(null);
-      // Navegar de vuelta al calendario sin recargar la página
-      setTimeout(() => {
-        navigate('/trainer/calendar');
-      }, 6000); // Esperar 6 segundos para ver los logs
+      navigate('/trainer/calendar');
     } catch (error) {
-      console.error('Error guardando asistencia:', error);
     }
   };
 

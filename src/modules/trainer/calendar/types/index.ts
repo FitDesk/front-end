@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// Enums y constantes
 export const ClassStatusEnum = {
   SCHEDULED: 'scheduled',
   IN_PROGRESS: 'in_progress',
@@ -22,13 +21,12 @@ export const DayOfWeekEnum = {
 
 export type DayOfWeek = typeof DayOfWeekEnum[keyof typeof DayOfWeekEnum];
 
-// Interfaces para el trainer
 export interface TrainerClass {
   id: string;
   name: string;
   description?: string;
   dayOfWeek: DayOfWeek;
-  classDate: Date; // Fecha real de la clase
+  classDate: Date;
   startTime: string;
   duration: number; 
   capacity: number;

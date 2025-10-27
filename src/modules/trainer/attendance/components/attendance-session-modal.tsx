@@ -96,7 +96,6 @@ export function AttendanceSessionModal({ sessionId, open, onOpenChange }: Attend
       });
       setHasUnsavedChanges(false);
     } catch (error) {
-      console.error('Error marking attendance:', error);
       setHasUnsavedChanges(true);
     }
   };
@@ -121,7 +120,6 @@ export function AttendanceSessionModal({ sessionId, open, onOpenChange }: Attend
       setSelectedMembers(new Set());
       setHasUnsavedChanges(false);
     } catch (error) {
-      console.error('Error in bulk update:', error);
       setHasUnsavedChanges(true);
     }
   };
@@ -132,7 +130,6 @@ export function AttendanceSessionModal({ sessionId, open, onOpenChange }: Attend
       setHasUnsavedChanges(false);
     } catch (error) {
       toast.error('Error al guardar los cambios');
-      console.error('Error saving changes:', error);
     }
   };
 
@@ -145,7 +142,6 @@ export function AttendanceSessionModal({ sessionId, open, onOpenChange }: Attend
       });
       onOpenChange(false);
     } catch (error) {
-      console.error('Error completing session:', error);
     }
   };
 

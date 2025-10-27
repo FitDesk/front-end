@@ -21,7 +21,6 @@ export const trainerClassKeys = {
   stats: () => [...trainerClassKeys.all, 'stats'] as const,
   byDate: (date: Date) => [...trainerClassKeys.all, 'by-date', date.toISOString().split('T')[0]] as const,
   byRange: (startDate: Date, endDate: Date) => {
-    // Normalizar fechas a medianoche para usar solo la fecha sin la hora
     const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
     const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
     return [...trainerClassKeys.all, 'by-range', start.toISOString().split('T')[0], end.toISOString().split('T')[0]] as const;
@@ -58,11 +57,11 @@ export function useTrainerClass(classId: string) {
     queryKey: trainerClassKeys.detail(classId),
     queryFn: () => TrainerClassService.getClassById(classId),
     enabled: !!classId,
-    staleTime: 30 * 1000, // Los datos son frescos por 30 segundos
-    refetchOnMount: true, // Refrescar cada vez que se monta
-    refetchOnWindowFocus: true, // Refrescar cuando se enfoca la ventana
-    refetchInterval: 60 * 1000, // Refrescar automáticamente cada minuto
-    refetchIntervalInBackground: false, // No refrescar en background
+    staleTime: 30 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60 * 1000,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -98,12 +97,12 @@ export function useTrainerStats() {
   return useQuery({
     queryKey: trainerClassKeys.stats(),
     queryFn: () => TrainerClassService.getTrainerStats(),
-    staleTime: 5 * 60 * 1000, // Los datos son frescos por 5 minutos
-    gcTime: 15 * 60 * 1000, // Cache por 15 minutos
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     refetchOnWindowFocus: true,
     refetchOnMount: false,
-    refetchInterval: 10 * 60 * 1000, // Refrescar automáticamente cada 10 minutos
-    refetchIntervalInBackground: false, // No refrescar en background
+    refetchInterval: 10 * 60 * 1000,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -122,29 +121,22 @@ export function useClassesByDateRange(
   endDate: Date, 
   filters?: CalendarFilters
 ) {
-  // Crear una clave estable para el caché basada solo en las fechas
   const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
   const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
   
-  console.log(`🔑 Buscando clases para rango: ${startDateStr} - ${endDateStr}`);
-  
-  // Usar solo el string de los filtros para el key, no el objeto
   const filtersStr = filters ? JSON.stringify(filters) : 'none';
   
   return useQuery({
     queryKey: ['trainer-classes', 'by-range', startDateStr, endDateStr, filtersStr],
     queryFn: () => {
-      console.log(`📞 Llamando al servicio con rango: ${startDateStr} - ${endDateStr}`);
-      const result = TrainerClassService.getClassesByDateRange(startDate, endDate, filters);
-      console.log(`📦 Llamada al servicio completada, resultado prometido`);
-      return result;
+      return TrainerClassService.getClassesByDateRange(startDate, endDate, filters);
     },
     enabled: !!startDate && !!endDate,
-    staleTime: 0, // Siempre considerar los datos como obsoletos para refrescar
-    gcTime: 0, // No guardar en caché
-    refetchOnWindowFocus: true, // Refrescar al volver a la ventana
-    refetchOnMount: 'always', // Siempre refrescar en cada mount para evitar datos obsoletos
-    refetchInterval: false, // No refrescar automáticamente
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    refetchInterval: false,
   });
 }
 
@@ -158,9 +150,6 @@ export function useStartClass() {
       return result;
     },
     onSuccess: async (_session, variables) => {
-      console.log('🔄 Clase iniciada, actualizando estado en cache...');
-      
-      // Actualizar manualmente el estado en todas las queries que puedan tener esta clase
       queryClient.setQueryData(trainerClassKeys.all, (oldData: any) => {
         if (!oldData || !Array.isArray(oldData)) return oldData;
         return oldData.map((item: any) => {
@@ -171,7 +160,7 @@ export function useStartClass() {
         });
       });
       
-      // Actualizar también en las queries de rango
+
       const cache = queryClient.getQueryCache();
       const queries = cache.findAll({ 
         queryKey: ['trainer-classes', 'by-range'],
@@ -189,8 +178,7 @@ export function useStartClass() {
           });
         });
       });
-      
-      // Invalidar y refetch para asegurar consistencia
+
       await Promise.all([
         queryClient.invalidateQueries({ 
           queryKey: trainerClassKeys.all,
@@ -218,9 +206,6 @@ export function useEndClass() {
   return useMutation({
     mutationFn: (data: EndClassDTO) => TrainerClassService.endClass(data),
     onSuccess: async (_session, variables) => {
-      console.log('🔄 Clase finalizada, actualizando estado en cache...');
-      
-      // Actualizar manualmente el estado en todas las queries que puedan tener esta clase
       queryClient.setQueryData(trainerClassKeys.all, (oldData: any) => {
         if (!oldData || !Array.isArray(oldData)) return oldData;
         return oldData.map((item: any) => {
@@ -342,9 +327,7 @@ export function useAvailableLocations() {
   });
 }
 
-/**
- * Hook para prefetching proactivo de datos del calendario
- */
+
 export function useCalendarPrefetching() {
   const queryClient = useQueryClient();
 

@@ -47,44 +47,42 @@ export function ClassManagementModal({
   const [isRefreshingStudents, setIsRefreshingStudents] = useState(false);
   const navigate = useNavigate();
 
-  // Cargar el detalle completo de la clase con los estudiantes
+
   const { data: classDetail, refetch: refetchClassDetail, isLoading: isLoadingClassDetail } = useTrainerClass(event?.id || '');
   
   const startClassMutation = useStartClass();
   const endClassMutation = useEndClass();
   const cancelClassMutation = useCancelClass();
   
-  // Estado actualizado de la clase (usa classDetail si está disponible, sino usa event)
+  
   const currentStatus = classDetail?.status || event?.status;
   
-  // Refrescar el detalle de la clase después de iniciar/completar
+
   useEffect(() => {
     if (startClassMutation.isSuccess || endClassMutation.isSuccess) {
       refetchClassDetail();
-      // Forzar refresh del calendario para actualizar el estado
+
       if (onRefreshClasses) {
-        console.log('🔄 Forzando refresh del calendario...');
         setTimeout(() => {
           onRefreshClasses();
-        }, 500); // Dar tiempo para que el backend actualice el estado
+        }, 500);
       }
       
-      // Si se completó la clase, limpiar el localStorage del cronómetro
+
       if (endClassMutation.isSuccess && event?.id) {
         localStorage.removeItem(`class_timer_state_${event.id}`);
         localStorage.removeItem(`class_start_time_${event.id}`);
-        console.log('🧹 Limpiando localStorage del cronómetro');
       }
     }
   }, [startClassMutation.isSuccess, endClassMutation.isSuccess, refetchClassDetail, onRefreshClasses, event?.id]);
 
-  // Refrescar los datos cuando se abre el modal
+
   useEffect(() => {
     if (isOpen && event?.id) {
-      // Prefetching: cargar los datos inmediatamente
+
       refetchClassDetail();
       
-      // Si la clase está en progreso, intentar recuperar la hora real de inicio del localStorage
+     
       if (event.status === 'in_progress') {
         const storedStartTime = localStorage.getItem(`class_start_time_${event.id}`);
         if (storedStartTime) {
@@ -99,18 +97,15 @@ export function ClassManagementModal({
     }
   }, [isOpen, event?.id, refetchClassDetail, event?.status, actualClassStartTime]);
 
-  // Prefetching: cargar los datos de los estudiantes cuando el modal se está preparando para abrir
+ 
   useEffect(() => {
     if (event?.id && !isOpen) {
-      // Prefetching silencioso cuando el evento está disponible pero el modal no está abierto
       refetchClassDetail();
     }
   }, [event?.id, isOpen, refetchClassDetail]);
 
-  // Prefetching adicional cuando se detecta que el modal se va a abrir
   useEffect(() => {
     if (event?.id) {
-      // Prefetching inmediato cuando hay un evento seleccionado
       refetchClassDetail();
     }
   }, [event?.id, refetchClassDetail]);
@@ -148,12 +143,11 @@ export function ClassManagementModal({
   };
 
   const handleEndClass = async () => {
-    // Limpiar la hora de inicio del localStorage
     localStorage.removeItem(`class_start_time_${event.id}`);
     setActualClassStartTime(null);
 
     await endClassMutation.mutateAsync({
-      sessionId: event.id, // El ID del evento es el classId
+      sessionId: event.id,
       endTime: new Date(),
       attendees: []
     });
@@ -300,7 +294,7 @@ export function ClassManagementModal({
             {currentStatus === 'in_progress' && (
               <Button 
                 onClick={() => {
-                  // Navegar a la vista de asistencia con la clase pre-seleccionada
+                
                   navigate('/trainer/attendance', { 
                     state: { classId: event.id, autoOpen: true }
                   });
