@@ -353,7 +353,6 @@ const attendanceStore = immer<AttendanceState>((set, get) => ({
       return record?.status || null;
     },
 
-    // Reset
     reset: () => set((state) => {
       state.sessions = [];
       state.currentSession = null;

@@ -1,7 +1,7 @@
 import { Search, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Calendar } from '@/shared/components/ui/calendar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { FeaturedClassCard } from '../components/featured-class-card';
@@ -16,7 +16,20 @@ export default function ReservaClasePage() {
     const [currentPage, setCurrentPage] = useState(0);
     const pageSize = 10;
 
-    const { data: clasesPaginated, isLoading: loadingClases } = useClasesPaginated(currentPage, pageSize, searchQuery);
+ 
+    const dateFilterString = format(selectedDate, 'yyyy-MM-dd');
+    
+    const clasesQuery = useClasesPaginated(
+        currentPage, 
+        pageSize, 
+        searchQuery, 
+        dateFilterString
+    );
+    
+    const clasesPaginated = clasesQuery.data;
+    const loadingClases = clasesQuery.isLoading;
+    const isError = clasesQuery.isError;
+    const error = clasesQuery.error;
     const reservarClaseMutation = useReservarClase();
 
     const { clasesDestacadas: clasesDestacadasFicticias, estadisticas } = clasesDestacadasData;
@@ -45,6 +58,11 @@ export default function ReservaClasePage() {
         setSearchQuery(query);
         setCurrentPage(0);
     };
+
+
+    useEffect(() => {
+        setCurrentPage(0);
+    }, [selectedDate]);
 
     return (
         <div className="min-h-screen bg-background">
@@ -208,6 +226,28 @@ export default function ReservaClasePage() {
                                     />
                                 ))}
                             </div>
+                        ) : isError ? (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.6 }}
+                                className="p-12 text-center"
+                            >
+                                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-8">
+                                    <h3 className="text-lg font-semibold text-destructive mb-2">
+                                        Error al cargar las clases
+                                    </h3>
+                                    <p className="text-muted-foreground mb-4">
+                                        {error?.message || 'No se pudo conectar con el servidor. Por favor, verifica tu conexión.'}
+                                    </p>
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                                    >
+                                        Recargar página
+                                    </button>
+                                </div>
+                            </motion.div>
                         ) : clasesPaginated ? (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}

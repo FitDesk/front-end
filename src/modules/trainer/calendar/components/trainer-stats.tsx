@@ -8,6 +8,7 @@ interface TrainerStatsProps {
   stats?: {
     totalClasses: number;
     completedClasses: number;
+    scheduledClasses: number;
     totalStudents: number;
     averageAttendance: number;
     upcomingClasses: number;
@@ -45,12 +46,12 @@ export function TrainerStats({ stats, isLoading, className }: TrainerStatsProps)
 
   const statCards = [
     {
-      title: 'Clases Totales',
-      value: stats.totalClasses || 0,
+      title: 'Clases Programadas',
+      value: stats.scheduledClasses || 0,
       icon: Calendar,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
-      description: 'Clases programadas'
+      description: 'Sin completar'
     },
     {
       title: 'Clases Completadas',

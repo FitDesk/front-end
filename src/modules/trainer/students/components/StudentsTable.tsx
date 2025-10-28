@@ -17,6 +17,7 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import { Button } from '@/shared/components/ui/button';
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
+import { Badge } from '@/shared/components/ui/badge';
 
 import type { Student, StudentStatus, PaginatedResponse } from '../types';
 import { StudentsPagination } from './StudentsPagination';
@@ -26,6 +27,7 @@ interface StudentsTableProps {
   pagination: PaginatedResponse<Student>;
   isLoading: boolean;
   isDeleting?: boolean;
+  isClassSpecific?: boolean;
   onStudentDelete: (student: Student) => void;
   onStudentStatusUpdate: (studentId: string, status: StudentStatus) => void;
   onStudentMessage: (student: Student) => void;
@@ -38,6 +40,7 @@ export function StudentsTable({
   pagination,
   isLoading,
   isDeleting = false,
+  isClassSpecific = false,
   onStudentDelete,
   onStudentStatusUpdate,
   onStudentMessage,
@@ -172,12 +175,25 @@ export function StudentsTable({
                   {getMembershipText(student.membership.type)}
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm">
-                    <div className="font-medium">85.5%</div>
-                    <div className="text-muted-foreground">
-                      24 clases
+                  {isClassSpecific ? (
+                  
+                    <Badge variant={
+                      (student as any).attendanceStatus === 'present' || (student as any).attendanceStatus === 'PRESENTE' ? 'default' :
+                      (student as any).attendanceStatus === 'absent' || (student as any).attendanceStatus === 'AUSENTE' ? 'destructive' :
+                      (student as any).attendanceStatus === 'late' || (student as any).attendanceStatus === 'TARDE' ? 'secondary' :
+                      'outline'
+                    }>
+                      {(student as any).attendanceStatus || 'Sin registrar'}
+                    </Badge>
+                  ) : (
+                    // Para vista general, mostrar estadísticas
+                    <div className="text-sm">
+                      <div className="font-medium">{student.stats.attendanceRate.toFixed(1)}%</div>
+                      <div className="text-muted-foreground">
+                        {student.stats.totalClasses} clases
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </TableCell>
                 <TableCell>
                   <div className="text-sm text-muted-foreground">
@@ -210,33 +226,37 @@ export function StudentsTable({
                         <MessageSquare className="mr-2 h-4 w-4" />
                         Enviar mensaje
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      {student.status === 'ACTIVE' ? (
-                        <DropdownMenuItem 
-                          onClick={() => onStudentStatusUpdate(student.id, 'SUSPENDED')}
-                          className="text-orange-600"
-                        >
-                          <UserX className="mr-2 h-4 w-4" />
-                          Suspender
-                        </DropdownMenuItem>
-                      ) : (
-                        <DropdownMenuItem 
-                          onClick={() => onStudentStatusUpdate(student.id, 'ACTIVE')}
-                          className="text-green-600"
-                        >
-                          <UserCheck className="mr-2 h-4 w-4" />
-                          Activar
-                        </DropdownMenuItem>
+                      {!isClassSpecific && (
+                        <>
+                          <DropdownMenuSeparator />
+                          {student.status === 'ACTIVE' ? (
+                            <DropdownMenuItem 
+                              onClick={() => onStudentStatusUpdate(student.id, 'SUSPENDED')}
+                              className="text-orange-600"
+                            >
+                              <UserX className="mr-2 h-4 w-4" />
+                              Suspender
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem 
+                              onClick={() => onStudentStatusUpdate(student.id, 'ACTIVE')}
+                              className="text-green-600"
+                            >
+                              <UserCheck className="mr-2 h-4 w-4" />
+                              Activar
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => onStudentDelete(student)}
+                            className="text-red-600"
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                          </DropdownMenuItem>
+                        </>
                       )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => onStudentDelete(student)}
-                        className="text-red-600"
-                        disabled={isDeleting}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        {isDeleting ? 'Eliminando...' : 'Eliminar'}
-                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

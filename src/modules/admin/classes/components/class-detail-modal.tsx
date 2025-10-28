@@ -64,7 +64,10 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-xl">{classData.className}</CardTitle>
-                  <Badge variant={classData.active ? "default" : "secondary"} className="mt-2">
+                  <Badge 
+                    variant={classData.active ? "default" : "secondary"} 
+                    className={`mt-2 ${!classData.active ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400' : ''}`}
+                  >
                     {classData.active ? "Activa" : "Inactiva"}
                   </Badge>
                 </div>

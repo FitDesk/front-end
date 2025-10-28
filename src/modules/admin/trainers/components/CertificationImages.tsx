@@ -24,6 +24,14 @@ export const CertificationImages: React.FC<CertificationImagesProps> = ({
 }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  const isPdf = (url: string) => url?.toLowerCase().endsWith('.pdf') || url?.startsWith('data:application/pdf');
+
+
+  const getPdfPreviewUrl = (url: string) => {
+    if (url.startsWith('data:application/pdf')) return url;
+    return `https://drive.google.com/viewerng/viewer?embedded=true&url=${encodeURIComponent(url)}`;
+  };
+
  
   const getCertificateTitle = (index: number) => {
     if (certifications) {
@@ -44,7 +52,8 @@ export const CertificationImages: React.FC<CertificationImagesProps> = ({
       const link = document.createElement('a');
       link.href = url;
       const certificateTitle = getCertificateTitle(index).replace(/\s+/g, '-').toLowerCase();
-      link.download = `${certificateTitle}-${trainerName.replace(/\s+/g, '-')}.jpg`;
+      const ext = isPdf(imageUrl) || blob.type === 'application/pdf' ? 'pdf' : 'jpg';
+      link.download = `${certificateTitle}-${trainerName.replace(/\s+/g, '-')}.${ext}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -87,12 +96,26 @@ export const CertificationImages: React.FC<CertificationImagesProps> = ({
         {images.map((image, index) => (
           <div key={index} className="space-y-3">
             {/* Imagen del certificado */}
-            <div className="aspect-[4/3] rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-              <img
-                src={image}
-                alt={`Certificado ${index + 1} de ${trainerName}`}
-                className="w-full h-full object-cover"
-              />
+            <div className="aspect-[4/3] rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 relative">
+              {isPdf(image) ? (
+                <>
+                  <iframe
+                    src={getPdfPreviewUrl(image)}
+                    title={`Certificado ${index + 1} de ${trainerName}`}
+                    className="w-full h-full"
+                  />
+                  <div className="absolute inset-0 pointer-events-none" />
+                </>
+              ) : (
+                <img
+                  src={image}
+                  alt={`Certificado ${index + 1} de ${trainerName}`}
+                  className="w-full h-full object-cover"
+                />
+              )}
+              {isPdf(image) && (
+                <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded">PDF</div>
+              )}
             </div>
             
             {/* Título del certificado */}
@@ -129,13 +152,21 @@ export const CertificationImages: React.FC<CertificationImagesProps> = ({
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent to-primary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                     
                     <div className="relative flex flex-col items-center space-y-6">
-                      {/* Imagen del certificado en el modal */}
+                      {/* Vista del certificado en el modal (PDF o imagen) */}
                       <div className="max-w-2xl w-full">
-                        <img
-                          src={selectedImage || image}
-                          alt={`Certificado de ${trainerName}`}
-                          className="w-full h-auto object-contain rounded-lg shadow-lg"
-                        />
+                        {isPdf(selectedImage || image) ? (
+                          <iframe
+                            src={getPdfPreviewUrl(selectedImage || image)}
+                            title={`Certificado de ${trainerName}`}
+                            className="w-full h-[70vh] rounded-lg border"
+                          />
+                        ) : (
+                          <img
+                            src={selectedImage || image}
+                            alt={`Certificado de ${trainerName}`}
+                            className="w-full h-auto object-contain rounded-lg shadow-lg"
+                          />
+                        )}
                       </div>
                       
                       {/* Botones de acción en el modal */}

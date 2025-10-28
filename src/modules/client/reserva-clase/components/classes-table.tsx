@@ -1,19 +1,8 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-interface ClaseTabla {
-    id: string;
-    nombre: string;
-    instructor: string;
-    horario: string;
-    fecha: string;
-    capacidad: number;
-    inscritos: number;
-    ubicacion: string;
-    estado: 'disponible' | 'lleno' | 'cancelado';
-}
+import type { ClaseReserva } from '../services/classes.service';
 
 interface PaginatedData {
-    content: ClaseTabla[];
+    content: ClaseReserva[];
     number: number;
     size: number;
     totalElements: number;
@@ -40,6 +29,8 @@ export const ClassesTable = ({ data, onReservar, onPageChange, currentPage }: Cl
                 return 'Lista de espera';
             case 'cancelado':
                 return 'Cancelado';
+            case 'en_progreso':
+                return 'En curso';
             default:
                 return 'Reservar';
         }
@@ -52,6 +43,8 @@ export const ClassesTable = ({ data, onReservar, onPageChange, currentPage }: Cl
             case 'lleno':
                 return 'text-primary hover:text-primary/80 cursor-pointer';
             case 'cancelado':
+                return 'text-muted-foreground cursor-not-allowed';
+            case 'en_progreso':
                 return 'text-muted-foreground cursor-not-allowed';
             default:
                 return 'text-primary hover:text-primary/80 cursor-pointer';
@@ -111,7 +104,7 @@ export const ClassesTable = ({ data, onReservar, onPageChange, currentPage }: Cl
                         {/* Acción */}
                         <div className="flex items-center">
                             <span
-                                onClick={() => clase.estado !== 'cancelado' && onReservar(clase.id)}
+                                onClick={() => clase.estado !== 'cancelado' && clase.estado !== 'en_progreso' && onReservar(clase.id)}
                                 className={`text-sm font-semibold transition-colors duration-150 ${
                                     getActionColor(clase.estado)
                                 }`}

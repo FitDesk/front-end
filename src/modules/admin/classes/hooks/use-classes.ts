@@ -1,50 +1,79 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { ClassService } from '../services/class.service';
 import type { Class, ClassRequest } from '../types/class';
 
 export const useClasses = () => {
-  return useQuery<Class[]>({
+  const queryClient = useQueryClient();
+  
+  const result = useQuery<Class[]>({
     queryKey: ['classes'],
     queryFn: async () => {
-      try {
-        const data = await ClassService.getAll();
-        return Array.isArray(data) ? data : [];
-      } catch (error) {
-        console.error('Error fetching classes:', error);
-        return [];
-      }
+      const data = await ClassService.getAll();
+      return Array.isArray(data) ? data : [];
     },
-    initialData: [],
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
   });
+
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: ['classes-calendar'],
+      queryFn: async () => {
+        const data = await ClassService.getClassesForCalendar();
+        return Array.isArray(data) ? data : [];
+      },
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [queryClient]);
+  
+  return result;
 };
 
 
 export const useClassesForCalendar = () => {
-  return useQuery<Class[]>({
+  const queryClient = useQueryClient();
+  
+  const result = useQuery<Class[]>({
     queryKey: ['classes-calendar'],
     queryFn: async () => {
-      try {
-        const data = await ClassService.getClassesForCalendar();
-        return Array.isArray(data) ? data : [];
-      } catch (error) {
-        console.error('Error fetching classes for calendar:', error);
-        return [];
-      }
+      const data = await ClassService.getClassesForCalendar();
+      return Array.isArray(data) ? data : [];
     },
-    initialData: [],
-    staleTime: 2 * 60 * 1000, // 2 minutos para el calendario
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: true,
   });
+
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: ['classes'],
+      queryFn: async () => {
+        const data = await ClassService.getAll();
+        return Array.isArray(data) ? data : [];
+      },
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [queryClient]);
+  
+  return result;
 };
 
 export const useClass = (id: string) => {
-  return useQuery<Class>({
+  const queryClient = useQueryClient();
+  
+  const result = useQuery<Class>({
     queryKey: ['class', id],
     queryFn: () => ClassService.getById(id),
     enabled: !!id
   });
+
+  useEffect(() => {
+    if (result.data && id) {
+      queryClient.setQueryData(['class', id], result.data);
+    }
+  }, [result.data, id, queryClient]);
+  
+  return result;
 };
 
 export const useCreateClass = () => {

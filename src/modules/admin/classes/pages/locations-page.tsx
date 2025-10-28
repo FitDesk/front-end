@@ -279,7 +279,7 @@ export default function LocationsPage() {
                           <h3 className="text-lg font-semibold">{location.name}</h3>
                           <Badge 
                             variant={location.isActive ? 'default' : 'secondary'} 
-                            className="mt-1"
+                            className={`mt-1 ${!location.isActive ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400' : ''}`}
                           >
                           {location.isActive ? 'Activa' : 'Inactiva'}
                         </Badge>

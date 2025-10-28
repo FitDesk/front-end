@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { 
   Clock, 
   MapPin, 
@@ -45,6 +46,8 @@ export function ClassManagementModal({
 }: ClassManagementModalProps) {
   const [actualClassStartTime, setActualClassStartTime] = useState<Date | null>(null);
   const [isRefreshingStudents, setIsRefreshingStudents] = useState(false);
+  const [hasTakenAttendance, setHasTakenAttendance] = useState(false);
+  const [finalClassTime, setFinalClassTime] = useState<{ elapsed: number; isOvertime: boolean; overtime: number } | null>(null);
   const navigate = useNavigate();
 
 
@@ -56,6 +59,28 @@ export function ClassManagementModal({
   
   
   const currentStatus = classDetail?.status || event?.status;
+  
+  useEffect(() => {
+    if (classDetail?.enrolledMembers) {
+      const hasAttendanceData = classDetail.enrolledMembers.some(
+        member => member.attendanceStatus
+      );
+      setHasTakenAttendance(hasAttendanceData);
+    }
+  }, [classDetail?.enrolledMembers]);
+  
+  useEffect(() => {
+    if (currentStatus === 'completed' && event?.id) {
+      const storageKey = `class_timer_final_${event.id}`;
+      const savedFinalTime = localStorage.getItem(storageKey);
+      if (savedFinalTime) {
+        try {
+          const finalTime = JSON.parse(savedFinalTime);
+          setFinalClassTime(finalTime);
+        } catch {}
+      }
+    }
+  }, [currentStatus, event?.id]);
   
 
   useEffect(() => {
@@ -88,7 +113,6 @@ export function ClassManagementModal({
         if (storedStartTime) {
           setActualClassStartTime(new Date(storedStartTime));
         } else if (!actualClassStartTime) {
-          // Si no hay hora almacenada, establecer la hora actual
           const now = new Date();
           setActualClassStartTime(now);
           localStorage.setItem(`class_start_time_${event.id}`, now.toISOString());
@@ -143,7 +167,48 @@ export function ClassManagementModal({
   };
 
   const handleEndClass = async () => {
+   
+    if (!hasTakenAttendance && (!classDetail?.enrolledMembers || classDetail.enrolledMembers.length === 0)) {
+      toast.error('Debes tomar asistencia antes de terminar la clase', {
+        description: 'Por favor, primero toma la asistencia de los alumnos inscritos.'
+      });
+      return;
+    }
+
+  
+    const membersWithAttendance = classDetail?.enrolledMembers?.filter(m => m.attendanceStatus) || [];
+    if (membersWithAttendance.length === 0) {
+      toast.error('Debes tomar asistencia antes de terminar la clase', {
+        description: 'Por favor, primero toma la asistencia de los alumnos inscritos.'
+      });
+      return;
+    }
+
+    
+    const storageKey = `class_timer_state_${event.id}`;
+    const finalTimeKey = `class_timer_final_${event.id}`;
+    const savedState = localStorage.getItem(storageKey);
+    if (savedState) {
+      try {
+        const { startTime: savedStartTime } = JSON.parse(savedState);
+        const realStartTime = new Date(savedStartTime);
+        const now = Date.now();
+        const elapsed = Math.max(0, now - realStartTime.getTime());
+        const scheduledDuration = event.end.getTime() - event.start.getTime();
+        const isOvertime = elapsed > scheduledDuration;
+        const overtime = isOvertime ? elapsed - scheduledDuration : 0;
+        
+        const finalTime = { elapsed, isOvertime, overtime };
+        setFinalClassTime(finalTime);
+        
+       
+        localStorage.setItem(finalTimeKey, JSON.stringify(finalTime));
+      } catch {
+      }
+    }
+
     localStorage.removeItem(`class_start_time_${event.id}`);
+    localStorage.removeItem(storageKey);
     setActualClassStartTime(null);
 
     await endClassMutation.mutateAsync({
@@ -151,6 +216,56 @@ export function ClassManagementModal({
       endTime: new Date(),
       attendees: []
     });
+  };
+
+
+  const formatTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const ms = Math.floor((milliseconds % 1000) / 10);
+    
+    return {
+      hours: String(hours).padStart(2, '0'),
+      minutes: String(minutes).padStart(2, '0'),
+      seconds: String(seconds).padStart(2, '0'),
+      milliseconds: String(ms).padStart(2, '0')
+    };
+  };
+
+
+  const getAttendanceBadgeColor = (status: string) => {
+    switch(status?.toLowerCase()) {
+      case 'present':
+      case 'presente':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'late':
+      case 'tarde':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'absent':
+      case 'ausente':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+    }
+  };
+
+
+  const getAttendanceLabel = (status: string) => {
+    switch(status?.toLowerCase()) {
+      case 'present':
+      case 'presente':
+        return 'Presente';
+      case 'late':
+      case 'tarde':
+        return 'Tarde';
+      case 'absent':
+      case 'ausente':
+        return 'Ausente';
+      default:
+        return 'Sin registrar';
+    }
   };
 
   const handleRefreshStudents = async () => {
@@ -225,10 +340,56 @@ export function ClassManagementModal({
                 classId={event.id}
               />
             )}
-            {currentStatus !== 'in_progress' && (
+            {currentStatus !== 'in_progress' && !finalClassTime && (
               <Card>
                 <CardContent className="p-8 text-center text-muted-foreground">
                   El cronómetro se mostrará cuando la clase esté en progreso
+                </CardContent>
+              </Card>
+            )}
+            
+            {currentStatus === 'completed' && finalClassTime && (
+              <Card className="border-2">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Resumen de Duración de la Clase
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-3 rounded-lg bg-muted/30">
+                    <div className="text-xs text-muted-foreground mb-1">Tiempo Programado</div>
+                    <div className="text-lg font-semibold">
+                      {format(event.start, 'HH:mm')} - {format(event.end, 'HH:mm')}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Duración: {formatTime(event.end.getTime() - event.start.getTime()).hours}:{formatTime(event.end.getTime() - event.start.getTime()).minutes}:{formatTime(event.end.getTime() - event.start.getTime()).seconds}
+                    </div>
+                  </div>
+
+                  <div className={`p-6 rounded-lg text-center transition-colors ${
+                    finalClassTime.isOvertime ? 'bg-red-500/10 border-2 border-red-500/30' : 'bg-primary/5 border-2 border-primary/20'
+                  }`}>
+                    <div className="text-xs text-muted-foreground mb-2">
+                      {finalClassTime.isOvertime ? 'Tiempo Total Transcurrido' : 'Tiempo Transcurrido'}
+                    </div>
+                    <div className="text-4xl font-mono font-bold">
+                      {formatTime(finalClassTime.elapsed).hours}:{formatTime(finalClassTime.elapsed).minutes}:{formatTime(finalClassTime.elapsed).seconds}
+                      <span className="text-2xl">.{formatTime(finalClassTime.elapsed).milliseconds}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-2">
+                      H : M : S : MS
+                    </div>
+                  </div>
+
+                  {finalClassTime.isOvertime && (
+                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                      <div className="text-xs text-red-600 font-medium mb-1">⚠️ Tiempo Adicional</div>
+                      <div className="text-xl font-mono font-bold text-red-600">
+                        +{formatTime(finalClassTime.overtime).hours}:{formatTime(finalClassTime.overtime).minutes}:{formatTime(finalClassTime.overtime).seconds}.{formatTime(finalClassTime.overtime).milliseconds}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -280,7 +441,13 @@ export function ClassManagementModal({
                     </div>
                   </div>
 
-                    
+                  <div className="flex items-center">
+                    {member.attendanceStatus && (
+                      <Badge className={cn("ml-2 rounded-md px-3 py-1", getAttendanceBadgeColor(member.attendanceStatus))}>
+                        {getAttendanceLabel(member.attendanceStatus)}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 ))}
               </div>
@@ -327,11 +494,12 @@ export function ClassManagementModal({
             {currentStatus === 'in_progress' && (
               <Button 
                 onClick={handleEndClass}
-                disabled={isLoading}
+                disabled={isLoading || !hasTakenAttendance}
                 variant="destructive"
+                title={!hasTakenAttendance ? 'Debes tomar asistencia antes de terminar la clase' : ''}
               >
                 <Square className="h-4 w-4 mr-2" />
-                {isLoading ? 'Terminando...' : 'Terminar Clase'}
+                {isLoading ? 'Terminando...' : !hasTakenAttendance ? 'Tomar asistencia primero' : 'Terminar Clase'}
               </Button>
             )}
           </div>

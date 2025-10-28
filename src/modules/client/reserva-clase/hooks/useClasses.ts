@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { ClassesService } from "../services/classes.service";
 import type { ClaseReserva } from "../services/classes.service";
 
 interface PaginatedResponse {
     content: ClaseReserva[];
-    // Add other pagination properties if needed
     number: number;
     size: number;
     totalElements: number;
@@ -30,17 +30,19 @@ export const useBuscarClases = () => {
     });
 };
 
-export const useClasesPaginated = (page: number = 0, size: number = 10, search?: string) => {
-    return useQuery<PaginatedResponse, Error>({
-        queryKey: ["classes", "paginated", page, size, search],
-        queryFn: () => ClassesService.getClasesPaginated(page, size, search) as Promise<PaginatedResponse>,
+export const useClasesPaginated = (page: number = 0, size: number = 10, search?: string, dateFilter?: string) => {
+    const queryClient = useQueryClient();
+    
+    const queryResult = useQuery<PaginatedResponse, Error>({
+        queryKey: ["classes", "paginated", page, size, search, dateFilter],
+        queryFn: () => ClassesService.getClasesPaginated(page, size, search, dateFilter) as Promise<PaginatedResponse>,
         staleTime: 2 * 60 * 1000,
         refetchInterval: (query) => {
-            const data = query.state.data;
-            if (!data?.content) return false;
+            const queryData = query.state.data;
+            if (!queryData?.content) return false;
             
-            // If any class is in progress, refetch more frequently
-            const hasClassInProgress = data.content.some((classItem: ClaseReserva) => {
+            
+            const hasClassInProgress = queryData.content.some((classItem: ClaseReserva) => {
                 const horario = classItem.horario || '';
                 const [startTimeStr, endTimeStr] = horario.split(' - ');
                 if (!startTimeStr || !endTimeStr) return false;
@@ -64,10 +66,35 @@ export const useClasesPaginated = (page: number = 0, size: number = 10, search?:
                 }
             });
             
-            // Refetch every 10 seconds if any class is in progress
+           
             return hasClassInProgress ? 10000 : false;
         },
     });
+
+  
+    useEffect(() => {
+        if (!queryResult.data) return;
+        
+        const nextPage = page + 1;
+        if (nextPage < queryResult.data.totalPages) {
+            queryClient.prefetchQuery({
+                queryKey: ["classes", "paginated", nextPage, size, search, dateFilter],
+                queryFn: () => ClassesService.getClasesPaginated(nextPage, size, search, dateFilter) as Promise<PaginatedResponse>,
+                staleTime: 2 * 60 * 1000,
+            });
+        }
+        
+    
+        if (page > 0) {
+            queryClient.prefetchQuery({
+                queryKey: ["classes", "paginated", page - 1, size, search, dateFilter],
+                queryFn: () => ClassesService.getClasesPaginated(page - 1, size, search, dateFilter) as Promise<PaginatedResponse>,
+                staleTime: 2 * 60 * 1000,
+            });
+        }
+    }, [queryResult.data, page, size, search, dateFilter, queryClient]);
+    
+    return queryResult;
 };
 
 export const useReservarClase = () => {

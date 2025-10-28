@@ -12,6 +12,7 @@ export interface CalendarEvent {
   location: string;
   capacity: number;
   trainer: string;
+  active: boolean;
 }
 
 interface WeeklyCalendarProps {
@@ -145,7 +146,11 @@ export function WeeklyCalendar({
                 {dayEvents.map((event) => (
                   <div 
                     key={event.id}
-                    className="text-xs p-2 rounded bg-primary/5 border border-primary/20 text-left space-y-2 cursor-pointer hover:bg-primary/10 transition-colors"
+                    className={`text-xs p-2 rounded border text-left space-y-2 cursor-pointer transition-colors ${
+                      event.active === false 
+                        ? 'bg-yellow-100 border-yellow-300 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-700 dark:hover:bg-yellow-900/50' 
+                        : 'bg-primary/5 border-primary/20 hover:bg-primary/10'
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       onEventClick?.(event);

@@ -164,7 +164,6 @@ export interface BulkAttendanceUpdateDTO {
   }[];
 }
 
-// Schemas de validación
 export const CreateAttendanceSessionSchema = z.object({
   classId: z.string().min(1, 'ID de clase requerido'),
   date: z.date(),
