@@ -278,7 +278,7 @@ export const studentService = {
         email: student.email,
         phone: '',
         profileImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}`,
-        attendanceStatus: 'present', // Default value, adjust as needed
+        attendanceStatus: (student as any).attendanceStatus || 'present', // Campo del backend
         totalClasses: student.totalClasses,
         attendedClasses: Math.round((student.attendancePercentage / 100) * student.totalClasses),
         attendanceRate: student.attendancePercentage,

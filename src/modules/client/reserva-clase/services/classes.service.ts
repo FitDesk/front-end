@@ -12,7 +12,7 @@ export interface ClassResponse {
     schedule: string;
     active: boolean;
     description: string;
-    status?: string; // 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+    status?: string;
 }
 
 export interface BackendPaginatedClassResponse {
@@ -73,7 +73,6 @@ export class ClassesService {
     
     private static isClassInProgress(classDate: string, schedule: string): boolean {
         try {
-            // Parse the class date and time
             const [startTime, endTime] = schedule.split(' - ');
             const [startHour, startMinute] = startTime.split(':').map(Number);
             const [endHour, endMinute] = endTime.split(':').map(Number);
@@ -89,7 +88,6 @@ export class ClassesService {
             
             return now >= startDateTime && now <= endDateTime;
         } catch (error) {
-            console.error('Error checking if class is in progress:', error);
             return false;
         }
     }
@@ -98,7 +96,6 @@ export class ClassesService {
         const inscritos = reservationsCount;
         const capacidad = classResponse.maxCapacity;
         
-        // First check if the class is marked as active/inactive
         if (!classResponse.active) {
             return {
                 id: classResponse.id,
@@ -114,12 +111,10 @@ export class ClassesService {
             };
         }
         
-        // Check if the class is in progress (from backend status or time-based)
         const isInProgress = classResponse.status === 'IN_PROGRESS' || 
                            classResponse.status === 'ACTIVE' ||
                            this.isClassInProgress(classResponse.classDate, classResponse.schedule);
         
-        // Determine the status
         let estado: 'disponible' | 'lleno' | 'cancelado' | 'en_progreso' = 'disponible';
         
         if (isInProgress) {
@@ -148,43 +143,168 @@ export class ClassesService {
                 `/classes/classes/paginated?page=0&size=1000`
             );
             
+            console.log('🔍 getClasesPorFecha - Total clases del backend:', response.data.content.length);
+            
             return response.data.content
-                .filter(clase => clase.active)
+                .filter(clase => {
+                    console.log('👀 Clase:', clase.className, 'Status:', clase.status, 'Active:', clase.active);
+                    
+                 
+                    if (!clase.active) {
+                        console.log('❌ Clase filtrada (inactiva):', clase.className);
+                        return false;
+                    }
+                    
+                    
+                    const status = clase.status?.toUpperCase() || '';
+                    console.log('📌 Status uppercase:', status);
+                    
+                    if (status === 'COMPLETADA' || status === 'COMPLETED' || 
+                        status === 'IN_PROGRESS' || status === 'EN_PROGRESO' || 
+                        status === 'EN_PROCESO' || status === 'EN CURSO' ||
+                        status === 'FINALIZADA' || status === 'FINALIZED') {
+                        console.log('❌ Clase filtrada (completada/en progreso):', clase.className, 'Status:', status);
+                        return false;
+                    }
+                    
+                    console.log('✅ Clase permitida:', clase.className, 'Status:', status);
+                    return true;
+                })
                 .map(classResponse => this.mapClassResponseToClaseReserva(classResponse));
         } catch (error: any) {
-            console.error("Error obteniendo clases por fecha:", error);
             throw new Error(error.response?.data?.errorMessage || error.message || "Error al obtener las clases");
         }
     }
 
-    static async getClasesPaginated(page: number = 0, size: number = 10, search?: string): Promise<PaginatedClassResponse> {
+    static async getClasesPaginated(page: number = 0, size: number = 10, search?: string, dateFilter?: string): Promise<PaginatedClassResponse> {
         try {
-            const params = new URLSearchParams();
-            params.append('page', page.toString());
-            params.append('size', size.toString());
+            const hasFilters = (search && search.trim()) || (dateFilter);
+            
+            let params: URLSearchParams;
+            
+            if (!hasFilters) {
+                params = new URLSearchParams();
+                params.append('page', page.toString());
+                params.append('size', size.toString());
+                
+                const backendResponse = await fitdeskApi.get<BackendPaginatedClassResponse>(
+                    `/classes/classes/paginated?${params.toString()}`
+                );
+                
+                const mappedContent = backendResponse.data.content
+                    .filter(clase => {
+                        console.log('Clase:', clase.className, 'Status:', clase.status, 'Active:', clase.active);
+                      
+                        if (!clase.active) return false;
+                        
+                        
+                        const status = clase.status?.toUpperCase() || '';
+                        console.log('Status uppercase:', status);
+                        
+                        if (status === 'COMPLETADA' || status === 'COMPLETED' || 
+                            status === 'IN_PROGRESS' || status === 'EN_PROGRESO' || 
+                            status === 'EN_PROCESO' || status === 'EN CURSO' ||
+                            status === 'FINALIZADA' || status === 'FINALIZED') {
+                            console.log('Clase filtrada:', clase.className, 'Status:', status);
+                            return false;
+                        }
+                        
+                        console.log('Clase permitida:', clase.className, 'Status:', status);
+                        return true;
+                    })
+                    .map(classResponse => this.mapClassResponseToClaseReserva(classResponse));
+                
+                return {
+                    content: mappedContent,
+                    number: backendResponse.data.number,
+                    size: backendResponse.data.size,
+                    totalElements: backendResponse.data.totalElements,
+                    totalPages: backendResponse.data.totalPages,
+                    first: backendResponse.data.first,
+                    last: backendResponse.data.last
+                };
+            }
+            
+            params = new URLSearchParams();
+            params.append('page', '0');
+            params.append('size', '1000');
+            
             if (search && search.trim()) {
                 params.append('search', search);
             }
             
-            const response = await fitdeskApi.get<BackendPaginatedClassResponse>(
+            const fetchResponse = await fitdeskApi.get<BackendPaginatedClassResponse>(
                 `/classes/classes/paginated?${params.toString()}`
             );
             
-            const mappedContent = response.data.content
-                .filter(clase => clase.active)
-                .map(classResponse => this.mapClassResponseToClaseReserva(classResponse));
+            let mappedContent = fetchResponse.data.content
+                .filter((clase: ClassResponse) => clase.active)
+                .map((classResponse: ClassResponse) => this.mapClassResponseToClaseReserva(classResponse));
+            
+            if (search && search.trim()) {
+                const searchLower = search.toLowerCase().trim();
+                mappedContent = mappedContent.filter((clase: ClaseReserva) => 
+                    clase.nombre.toLowerCase().includes(searchLower) ||
+                    clase.instructor.toLowerCase().includes(searchLower) ||
+                    clase.ubicacion.toLowerCase().includes(searchLower) ||
+                    (clase.descripcion && clase.descripcion.toLowerCase().includes(searchLower))
+                );
+            }
+            
+            if (dateFilter && !(search && search.trim())) {
+                const filterDate = new Date(dateFilter + 'T00:00:00');
+                
+                mappedContent = mappedContent.filter((clase: ClaseReserva) => {
+                    let classDate: Date;
+                    
+                    try {
+                        const fechaStr = clase.fecha;
+                        let dateString: string;
+                        
+                        if (fechaStr.includes('T')) {
+                            dateString = fechaStr.split('T')[0] + 'T00:00:00';
+                        } 
+                        else if (fechaStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                            const [day, month, year] = fechaStr.split('-');
+                            dateString = `${year}-${month}-${day}T00:00:00`;
+                        }
+                        else if (fechaStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            dateString = fechaStr + 'T00:00:00';
+                        }
+                        else {
+                            dateString = fechaStr + 'T00:00:00';
+                        }
+                        
+                        classDate = new Date(dateString);
+                        
+                        const matches = 
+                            filterDate.getFullYear() === classDate.getFullYear() &&
+                            filterDate.getMonth() === classDate.getMonth() &&
+                            filterDate.getDate() === classDate.getDate();
+                        
+                        return matches;
+                    } catch (error) {
+                        return false;
+                    }
+                });
+            }
+            
+            const totalElements = mappedContent.length;
+            const totalPages = Math.ceil(totalElements / size);
+            const startIndex = page * size;
+            const endIndex = startIndex + size;
+            const paginatedContent = mappedContent.slice(startIndex, endIndex);
             
             return {
-                content: mappedContent,
-                number: response.data.number,
-                size: response.data.size,
-                totalElements: response.data.totalElements,
-                totalPages: response.data.totalPages,
-                first: response.data.first,
-                last: response.data.last
+                content: paginatedContent,
+                number: page,
+                size: size,
+                totalElements: totalElements,
+                totalPages: totalPages,
+                first: page === 0,
+                last: page >= totalPages - 1
             };
         } catch (error: any) {
-            console.error("Error obteniendo clases paginadas:", error);
             throw new Error(error.response?.data?.errorMessage || error.message || "Error al obtener las clases");
         }
     }
@@ -197,7 +317,6 @@ export class ClassesService {
             const response = await fitdeskApi.post<ClassReservationResponse>(`/classes/reservations`, request);
             return response.data;
         } catch (error: any) {
-            console.error("Error reservando clase:", error);
             throw new Error(error.response?.data?.errorMessage || error.message || "Error al reservar la clase");
         }
     }
@@ -206,7 +325,6 @@ export class ClassesService {
         try {
             await fitdeskApi.delete(`/classes/reservations/${reservationId}`);
         } catch (error: any) {
-            console.error("Error cancelando reserva:", error);
             throw new Error(error.response?.data?.errorMessage || error.message || "Error al cancelar la reserva");
         }
     }
@@ -215,7 +333,6 @@ export class ClassesService {
         try {
             await fitdeskApi.put(`/classes/reservations/${reservationId}/confirm`);
         } catch (error: any) {
-            console.error("Error confirmando asistencia:", error);
             throw new Error(error.response?.data?.errorMessage || error.message || "Error al confirmar asistencia");
         }
     }
@@ -224,7 +341,6 @@ export class ClassesService {
         try {
             await fitdeskApi.put(`/classes/reservations/${reservationId}/complete`);
         } catch (error: any) {
-            console.error("Error completando reserva:", error);
             throw new Error(error.response?.data?.errorMessage || error.message || "Error al completar la reserva");
         }
     }
@@ -235,7 +351,6 @@ export class ClassesService {
             const response = await fitdeskApi.get<ClassReservationResponse[]>(`/classes/reservations/my${params}`);
             return response.data || [];
         } catch (error: any) {
-            console.error("Error obteniendo mis reservas:", error);
             if (error.response?.status === 204) {
                 return [];
             }
@@ -250,10 +365,23 @@ export class ClassesService {
             );
             
             return response.data.content
-                .filter(clase => clase.active)
+                .filter(clase => {
+                 
+                    if (!clase.active) return false;
+                    
+                    
+                    const status = clase.status?.toUpperCase();
+                    if (status === 'COMPLETADA' || status === 'COMPLETED' || 
+                        status === 'IN_PROGRESS' || status === 'EN_PROGRESO' || 
+                        status === 'EN_PROCESO' || status === 'EN CURSO' ||
+                        status === 'FINALIZADA' || status === 'FINALIZED') {
+                        return false;
+                    }
+                    
+                    return true;
+                })
                 .map(classResponse => this.mapClassResponseToClaseReserva(classResponse));
         } catch (error: any) {
-            console.error("Error buscando clases:", error);
             throw new Error(error.response?.data?.errorMessage || error.message || "Error al buscar clases");
         }
     }

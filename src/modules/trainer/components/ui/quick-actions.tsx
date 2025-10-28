@@ -1,7 +1,8 @@
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Users, Dumbbell, Calendar, BarChart3 } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
+import { useNavigate } from 'react-router';
 
 interface QuickActionsProps {
   title?: string;
@@ -14,43 +15,36 @@ interface QuickActionsProps {
 
 const defaultActions = [
   {
-    icon: Users,
-    label: 'Agregar Alumno',
-    color: 'blue',
-    shortcut: 'Ctrl+N',
-    action: 'addStudent',
-  },
-  {
     icon: BarChart3,
     label: 'Ver Estadísticas',
     color: 'green',
-    shortcut: 'Ctrl+A',
+    shortcut: 'Ctrl+V',
     action: 'analytics',
-  },
-  {
-    icon: Calendar,
-    label: 'Programar Clase',
-    color: 'orange',
-    shortcut: 'Ctrl+C',
-    action: 'scheduleClass',
   },
 ];
 
 export const QuickActions = memo(
   ({ title = "Acciones Rápidas" }: QuickActionsProps) => {
+    const navigate = useNavigate();
     const handleAction = (action: string) => {
       switch (action) {
-        case 'addStudent':
-          console.log('Agregando nuevo alumno...');
-          break;
         case 'analytics':
           console.log('Viendo estadísticas...');
           break;
-        case 'scheduleClass':
-          console.log('Programando clase...');
-          break;
       }
     };
+
+   
+    useEffect(() => {
+      const handler = (e: KeyboardEvent) => {
+        if (e.ctrlKey && (e.key === 'v' || e.key === 'V')) {
+          e.preventDefault();
+          navigate('/trainer/students?tab=metrics');
+        }
+      };
+      window.addEventListener('keydown', handler);
+      return () => window.removeEventListener('keydown', handler);
+    }, [navigate]);
 
     return (
       <div className="border-border bg-card/40 rounded-xl border p-6">

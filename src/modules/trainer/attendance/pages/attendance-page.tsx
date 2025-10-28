@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/shared/components/ui/dialog';
 import {
   DropdownMenu,
@@ -28,9 +29,10 @@ import {
   CheckCircle,
   XCircle,
   MoreHorizontal,
+  Eye,
 } from 'lucide-react';
 import { cn } from '@/core/lib/utils';
-import { useTrainerClass, useEndClass } from '../../calendar/hooks/use-trainer-classes';
+import { useTrainerClass, useEndClass, useClassesByDateRange } from '../../calendar/hooks/use-trainer-classes';
 import { TrainerClassService } from '../../calendar/services/trainer-class.service';
 
 type AttendanceStatus = 'present' | 'absent' | 'late';
@@ -66,6 +68,30 @@ export default function AttendanceMainPage() {
 
   const { data: classDetail, isLoading: isLoadingClass } = useTrainerClass(classIdFromCalendar || '');
   const endClassMutation = useEndClass();
+  
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - 90);
+  const endDate = new Date(today);
+  endDate.setDate(today.getDate() + 30);
+  
+  const { data: trainerClasses } = useClassesByDateRange(startDate, endDate);
+  
+  const classesArray = Array.isArray(trainerClasses) ? trainerClasses : [];
+  
+  const completedClasses = classesArray.filter(
+    (cls: any) => {
+      const status = cls.status?.toLowerCase();
+      const matches = status === 'completed' || status === 'completada' || 
+             status === 'in_progress' || status === 'en_proceso' ||
+             status === 'en_progreso';
+      return matches;
+    }
+  ).sort((a: any, b: any) => {
+    const dateA = new Date(a.classDate).getTime();
+    const dateB = new Date(b.classDate).getTime();
+    return dateB - dateA;
+  }).slice(0, 5);
 
 
   useEffect(() => {
@@ -78,23 +104,40 @@ export default function AttendanceMainPage() {
   }, [location.state]);
   
 
-  useEffect(() => {
-    if (classDetail && classIdFromCalendar && !isModalOpen) {
+  const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
 
+  useEffect(() => {
+    if (classDetail && classIdFromCalendar) {
       const initialRecords: Record<string, AttendanceRecord> = {};
       classDetail.enrolledMembers.forEach(member => {
+        const normalizeStatus = (status: string | undefined): AttendanceStatus => {
+          if (!status) return 'present';
+          const normalized = status.toLowerCase();
+          if (normalized === 'presente') return 'present';
+          if (normalized === 'ausente') return 'absent';
+          if (normalized === 'tarde') return 'late';
+          if (normalized === 'present') return 'present';
+          if (normalized === 'absent') return 'absent';
+          if (normalized === 'late') return 'late';
+          return 'present';
+        };
+        
         initialRecords[member.id] = {
           memberId: member.id,
           memberName: member.name,
           memberEmail: member.email,
-          status: 'present',
+          status: member.attendanceStatus ? normalizeStatus(member.attendanceStatus) : 'present',
         };
       });
       setAttendanceRecords(initialRecords);
       setSessionId(classDetail.id);
-      setIsModalOpen(true);
+      
+      if (!isModalOpen && !hasOpenedOnce) {
+        setIsModalOpen(true);
+        setHasOpenedOnce(true);
+      }
     }
-  }, [classDetail, classIdFromCalendar, isModalOpen]);
+  }, [classDetail, classIdFromCalendar, isModalOpen, hasOpenedOnce]);
 
   const handleStatusChange = (memberId: string, status: AttendanceStatus) => {
     setAttendanceRecords(prev => ({
@@ -144,6 +187,64 @@ export default function AttendanceMainPage() {
           </div>
         </div>
       </div>
+
+      {/* Lista de Clases Completadas */}
+      {completedClasses.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              Clases Recientes con Asistencia
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-3">
+              {completedClasses.map((cls: any) => {
+                return (
+                  <div
+                    key={cls.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setClassIdFromCalendar(cls.id);
+                      setIsModalOpen(true);
+                      setHasOpenedOnce(false);
+                    }}
+                  >
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <CalendarIcon className="h-6 w-6 text-primary" />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-lg truncate">{cls.name}</h3>
+                        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <CalendarIcon className="h-4 w-4" />
+                            {format(new Date(cls.classDate), 'dd/MM/yyyy')}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {cls.startTime}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            {cls.location}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver Detalles
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Información de la clase actual */}
       {isLoadingClass ? (
@@ -221,7 +322,15 @@ export default function AttendanceMainPage() {
       )}
 
       {/* Modal de Asistencia */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isModalOpen} onOpenChange={(open) => {
+        setIsModalOpen(open);
+        if (!open) {
+          setClassIdFromCalendar(null);
+          setAttendanceRecords({});
+          setSessionId(null);
+          setHasOpenedOnce(false);
+        }
+      }}>
         <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] max-h-[90vh] overflow-hidden flex flex-col min-w-[1400px] p-6">
           <DialogHeader className="pb-4 border-b">
             <DialogTitle className="flex items-center justify-between text-xl">
@@ -240,9 +349,12 @@ export default function AttendanceMainPage() {
                  classDetail?.status === 'in_progress' ? 'En Progreso' : 'Programada'}
               </Badge>
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Detalles de asistencia para la clase {classDetail?.name}
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-hidden grid grid-cols-4 gap-6 mt-4">
+          <div className="flex-1 overflow-y-auto grid grid-cols-4 gap-6 mt-4">
           {classDetail && (
             <>
               {/* Columna Izquierda - Información de la clase */}
@@ -263,9 +375,11 @@ export default function AttendanceMainPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm">Presentes</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {classDetail.enrolledMembers.filter(m => 
-                          !attendanceRecords[m.id] || attendanceRecords[m.id]?.status === 'present'
-                        ).length}
+                        {classDetail.enrolledMembers.filter(m => {
+                          const record = attendanceRecords[m.id];
+                          const normalized = record?.status?.toLowerCase();
+                          return normalized === 'present' || normalized === 'presente';
+                        }).length}
                       </p>
                     </div>
                   </div>
@@ -274,9 +388,11 @@ export default function AttendanceMainPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm">Ausentes</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {classDetail.enrolledMembers.filter(m => 
-                          attendanceRecords[m.id]?.status === 'absent'
-                        ).length}
+                        {classDetail.enrolledMembers.filter(m => {
+                          const record = attendanceRecords[m.id];
+                          const normalized = record?.status?.toLowerCase();
+                          return normalized === 'absent' || normalized === 'ausente';
+                        }).length}
                       </p>
                     </div>
                   </div>
@@ -285,9 +401,11 @@ export default function AttendanceMainPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm">Tarde</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {classDetail.enrolledMembers.filter(m => 
-                          attendanceRecords[m.id]?.status === 'late'
-                        ).length}
+                        {classDetail.enrolledMembers.filter(m => {
+                          const record = attendanceRecords[m.id];
+                          const normalized = record?.status?.toLowerCase();
+                          return normalized === 'late' || normalized === 'tarde';
+                        }).length}
                       </p>
                     </div>
                   </div>
@@ -295,15 +413,15 @@ export default function AttendanceMainPage() {
               </Card>
 
               {/* Columna Derecha - Lista de estudiantes */}
-              <Card className="col-span-3 flex flex-col border-2">
+              <Card className="col-span-3 flex flex-col border-2 min-h-0">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center justify-between">
                     <span>Estudiantes ({classDetail.enrolledMembers.length})</span>
                     <span className="text-sm font-normal text-muted-foreground">Scroll para ver todos</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-1 overflow-hidden flex flex-col">
-                  <div className="flex-1 overflow-y-auto space-y-2 p-1">
+                <CardContent className="flex-1 overflow-hidden flex flex-col min-h-0">
+                  <div className="flex-1 overflow-y-auto space-y-2 p-1 max-h-[60vh]">
                     {classDetail.enrolledMembers.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
                         No hay estudiantes inscritos en esta clase
@@ -311,7 +429,18 @@ export default function AttendanceMainPage() {
                     ) : (
                       classDetail.enrolledMembers.map((member) => {
                       const record = attendanceRecords[member.id];
-                      const status = record?.status || 'present';
+                      
+                      const normalizeStatus = (status: string | undefined): AttendanceStatus => {
+                        if (!status) return 'present';
+                        const normalized = status.toLowerCase();
+                        if (normalized === 'presente') return 'present';
+                        if (normalized === 'ausente') return 'absent';
+                        if (normalized === 'tarde') return 'late';
+                        return normalized as AttendanceStatus;
+                      };
+                      
+                      const status = record ? normalizeStatus(record.status) : (normalizeStatus(member.attendanceStatus) || 'present');
+                      const showHistory = (classDetail.status === 'completed' || classDetail.status === 'in_progress');
 
                       return (
                         <div
@@ -327,14 +456,27 @@ export default function AttendanceMainPage() {
                             <div className="flex-1 min-w-0">
                               <div className="font-semibold text-sm truncate">{member.name}</div>
                               <div className="text-xs text-muted-foreground truncate">{member.email}</div>
+                              {showHistory && (member.attendanceStatus || record) && (
+                                <div className="flex items-center gap-1 mt-1">
+                                  <Badge 
+                                    className={cn(
+                                      "text-xs px-2 py-0.5",
+                                      ATTENDANCE_STATUS_COLORS[status as AttendanceStatus]
+                                    )}
+                                  >
+                                    {ATTENDANCE_STATUS_LABELS[status as AttendanceStatus]}
+                                  </Badge>
+                                </div>
+                              )}
                             </div>
                           </div>
 
+                          {classDetail.status !== 'completed' && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm" className="h-9 px-3">
-                                <Badge className={cn("text-xs px-2 py-1", ATTENDANCE_STATUS_COLORS[status])}>
-                                  {ATTENDANCE_STATUS_LABELS[status]}
+                                <Badge className={cn("text-xs px-2 py-1", ATTENDANCE_STATUS_COLORS[status as AttendanceStatus])}>
+                                  {ATTENDANCE_STATUS_LABELS[status as AttendanceStatus]}
                                 </Badge>
                                 <MoreHorizontal className="h-4 w-4 ml-2" />
                               </Button>
@@ -354,6 +496,7 @@ export default function AttendanceMainPage() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
+                          )}
                         </div>
                       );
                       })
@@ -361,6 +504,97 @@ export default function AttendanceMainPage() {
                   </div>
                 </CardContent>
               </Card>
+              
+              {/* Resumen de Asistencia cuando la clase está completada */}
+              {classDetail && classDetail.status === 'completed' && (
+                <div className="col-span-4 mt-4">
+                  <Card className="border-2">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        Resumen de Asistencia - Clase Completada
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="text-center p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800">
+                          <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                            {classDetail.enrolledMembers.filter(m => {
+                              const status = m.attendanceStatus?.toLowerCase();
+                              return status === 'present' || status === 'presente';
+                            }).length}
+                          </div>
+                          <div className="text-sm font-medium text-green-800 dark:text-green-300">Presentes</div>
+                        </div>
+                        <div className="text-center p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800">
+                          <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
+                            {classDetail.enrolledMembers.filter(m => {
+                              const status = m.attendanceStatus?.toLowerCase();
+                              return status === 'late' || status === 'tarde';
+                            }).length}
+                          </div>
+                          <div className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Tarde</div>
+                        </div>
+                        <div className="text-center p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800">
+                          <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-2">
+                            {classDetail.enrolledMembers.filter(m => {
+                              const status = m.attendanceStatus?.toLowerCase();
+                              return status === 'absent' || status === 'ausente' || !m.attendanceStatus;
+                            }).length}
+                          </div>
+                          <div className="text-sm font-medium text-red-800 dark:text-red-300">Ausentes</div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
+                        <div className="text-sm font-semibold mb-2">Historial de Alumnos:</div>
+                        {classDetail.enrolledMembers.map((member) => {
+                          const normalizeStatus = (status: string | undefined): AttendanceStatus => {
+                            if (!status) return 'present';
+                            const normalized = status.toLowerCase();
+                            if (normalized === 'presente') return 'present';
+                            if (normalized === 'ausente') return 'absent';
+                            if (normalized === 'tarde') return 'late';
+                            return normalized as AttendanceStatus;
+                          };
+                          
+                          const memberStatus = normalizeStatus(member.attendanceStatus);
+                          
+                          const statusColors = {
+                            'present': 'text-green-600 dark:text-green-400',
+                            'late': 'text-yellow-600 dark:text-yellow-400',
+                            'absent': 'text-red-600 dark:text-red-400'
+                          };
+                          const statusIcons = {
+                            'present': '✓',
+                            'late': '⏱',
+                            'absent': '✗'
+                          };
+                          
+                          return (
+                            <div key={member.id} className="flex items-center justify-between p-2 rounded border">
+                              <div className="flex items-center gap-3">
+                                <span className={`text-lg ${statusColors[memberStatus as keyof typeof statusColors] || 'text-gray-500'}`}>
+                                  {statusIcons[memberStatus as keyof typeof statusIcons] || '○'}
+                                </span>
+                                <span className="text-sm font-medium">{member.name}</span>
+                              </div>
+                              <Badge 
+                                className={cn(
+                                  "text-xs",
+                                  ATTENDANCE_STATUS_COLORS[memberStatus as AttendanceStatus]
+                                )}
+                              >
+                                {ATTENDANCE_STATUS_LABELS[memberStatus as AttendanceStatus] || 'Presente'}
+                              </Badge>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </>
           )}
           </div>
@@ -369,23 +603,25 @@ export default function AttendanceMainPage() {
             <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
               Cerrar
             </Button>
-            <Button
-              onClick={handleSaveAttendance}
-              disabled={endClassMutation.isPending}
-              className="bg-primary hover:bg-primary/90 min-w-[150px]"
-            >
-              {endClassMutation.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Guardar Asistencia
-                </>
-              )}
-            </Button>
+            {classDetail && classDetail.status !== 'completed' && (
+              <Button
+                onClick={handleSaveAttendance}
+                disabled={endClassMutation.isPending}
+                className="bg-primary hover:bg-primary/90 min-w-[150px]"
+              >
+                {endClassMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Guardar Asistencia
+                  </>
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

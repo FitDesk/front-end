@@ -1,5 +1,5 @@
 export type StudentStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
-export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
+export type AttendanceStatus = 'present' | 'absent' | 'late';
 export type MembershipType = 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' | 'PREMIUM';
 export type ClassStatus = 'ACTIVE' | 'INACTIVE' | 'FULL' | 'IN_PROGRESS';
 
@@ -66,6 +66,7 @@ export interface ClassMetrics {
   }>;
 }
 export interface Student extends BaseStudent {
+  attendanceStatus?: AttendanceStatus; // Estado de asistencia específico de la clase actual
   
   membership: {
     type: MembershipType;

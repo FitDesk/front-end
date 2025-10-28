@@ -216,7 +216,6 @@ export function useEndClass() {
         });
       });
       
-      // Actualizar también en las queries de rango
       const cache = queryClient.getQueryCache();
       const queries = cache.findAll({ 
         queryKey: ['trainer-classes', 'by-range'],
@@ -235,7 +234,6 @@ export function useEndClass() {
         });
       });
       
-      // Invalidar y refetch para asegurar consistencia
       await Promise.all([
         queryClient.invalidateQueries({ 
           queryKey: trainerClassKeys.all,
@@ -387,11 +385,29 @@ export function useCalendarPrefetching() {
     });
   };
 
+ 
+  const prefetchHeaderData = (currentDate: Date) => {
+    
+    queryClient.prefetchQuery({
+      queryKey: trainerClassKeys.stats(),
+      queryFn: () => TrainerClassService.getTrainerStats(),
+      staleTime: 5 * 60 * 1000,
+    });
+
+    
+    queryClient.prefetchQuery({
+      queryKey: trainerClassKeys.byDate(currentDate),
+      queryFn: () => TrainerClassService.getClassesByDate(currentDate),
+      staleTime: 60 * 1000,
+    });
+  };
+
   return {
     prefetchNextWeek,
     prefetchPreviousWeek,
     prefetchNextMonth,
     prefetchPreviousMonth,
     prefetchClassDetails,
+    prefetchHeaderData,
   };
 }

@@ -10,13 +10,13 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 
 import { useStudents } from '../hooks/use-students';
 import { useStudentMetrics } from '../hooks/use-student-metrics';
-import { useTrainerClasses, useClassStudents, useClassMetrics, useClassDetails } from '../hooks/use-class-students';
+import { useTrainerClasses, useClassStudents, useClassDetails } from '../hooks/use-class-students';
 import { useStudentsStore } from '../store/students-store';
 
 import { StudentFilters } from '../components/StudentFilters';
 import { StudentsTable } from '../components/StudentsTable';
-import { ClassMetricsView } from '../components/ClassMetricsView';
 import { StudentAttendanceHistoryView } from '../components/StudentAttendanceHistoryView';
+import { GeneralMetricsView } from '../components/GeneralMetricsView';
 
 import type { Student, StudentStatus, ClassStudent } from '../types';
 
@@ -57,12 +57,6 @@ export default function StudentsPage() {
     refetch: refetchClassStudents 
   } = useClassStudents(selectedClassId, filters, pagination);
 
-  // Fetch metrics for the selected class
-  const { 
-    data: classMetrics, 
-    isLoading: isLoadingClassMetrics,
-    refetch: refetchClassMetrics 
-  } = useClassMetrics(selectedClassId);
 
   // Get class details for the selected class
   const { data: selectedClass } = useClassDetails(selectedClassId);
@@ -115,6 +109,7 @@ export default function StudentsPage() {
       profileImage: classStudent.profileImage,
       status: classStudent.membershipStatus as StudentStatus,
       joinDate: classStudent.joinDate,
+      attendanceStatus: classStudent.attendanceStatus,
       membership: {
         type: classStudent.membershipType,
         startDate: '',
@@ -188,23 +183,18 @@ export default function StudentsPage() {
   const handleRefresh = () => {
     if (selectedClassId) {
       refetchClassStudents();
-      refetchClassMetrics();
     } else {
       refreshStudents();
     }
     refetchClasses();
   };
 
-  useEffect(() => {
-    if (selectedTab === 'metrics' && selectedClassId) {
-      refetchClassMetrics();
-    }
-  }, [selectedTab, selectedClassId]);
 
   if (showHistoryView && selectedStudentForHistory) {
     return (
       <StudentAttendanceHistoryView 
         student={selectedStudentForHistory}
+        classId={selectedClassId || undefined}
         onBack={() => setShowHistoryView(false)}
       />
     );
@@ -315,7 +305,6 @@ export default function StudentsPage() {
             <TabsTrigger 
               value="metrics" 
               className="flex items-center gap-2"
-              disabled={!selectedClassId}
             >
               <BarChart3 className="h-4 w-4" />
               <span>Métricas</span>
@@ -345,11 +334,12 @@ export default function StudentsPage() {
                 limit: displayPagination.limit || 10
               }}
               isLoading={displayIsLoading}
+              isClassSpecific={!!selectedClassId}
               onPageChange={handlePageChange}
               onStudentStatusUpdate={handleStudentStatusUpdate}
               onStudentDelete={handleStudentDelete}
               onStudentMessage={(student) => {
-                // Implementar lógica de mensajería si es necesario
+                
                 console.log('Enviar mensaje a:', student.email);
               }}
               onStudentHistory={(student) => {
@@ -362,30 +352,7 @@ export default function StudentsPage() {
         </TabsContent>
 
         <TabsContent value="metrics" className="space-y-4">
-          {isLoadingClassMetrics ? (
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="h-[110px] w-full" />
-                ))}
-              </div>
-              <Skeleton className="h-[400px] w-full" />
-            </div>
-          ) : selectedClass && classMetrics ? (
-            <ClassMetricsView 
-              metrics={classMetrics} 
-              classData={selectedClass}
-            />
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Selecciona una clase</CardTitle>
-                <CardDescription>
-                  Por favor, selecciona una clase para ver sus métricas detalladas.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
+          <GeneralMetricsView />
         </TabsContent>
       </Tabs>
     </div>

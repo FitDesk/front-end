@@ -109,14 +109,6 @@ export default function ClassesPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="flex justify-between items-center mb-6">
@@ -134,14 +126,20 @@ export default function ClassesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <WeeklyCalendar
-            events={events}
-            onEventClick={handleEventClick}
-            onNewEvent={handleNewClass}
-            onRefresh={handleRefresh}
-            isRefreshing={isRefreshing}
-            className="h-[600px]"
-          />
+          {isLoading ? (
+            <div className="flex items-center justify-center h-[600px]">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <WeeklyCalendar
+              events={events}
+              onEventClick={handleEventClick}
+              onNewEvent={handleNewClass}
+              onRefresh={handleRefresh}
+              isRefreshing={isRefreshing}
+              className="h-[600px]"
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -175,6 +173,7 @@ export default function ClassesPage() {
                 {selectedClass ? 'Editar Clase' : 'Nueva Clase'}
               </h2>
               <ClassForm
+                key={selectedClass?.id || 'new'}
                 initialData={selectedClass}
                 onSubmit={handleSubmit}
                 onCancel={() => {

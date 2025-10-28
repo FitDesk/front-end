@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { ArrowLeft, Filter, MoreHorizontal, Edit, X, Check, User, Calendar } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ArrowLeft, Filter, User, Calendar, Check, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { useStudentMetrics } from '../hooks/use-student-metrics';
+import { fitdeskApi } from '@/core/api/fitdeskApi';
 import { Button } from '@/shared/components/ui/button';
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
 import {
@@ -19,62 +19,104 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { studentService } from '../services/student.service';
 
-import type { Student } from '../types';
+import type { Student, AttendanceStatus } from '../types';
 
 interface StudentAttendanceHistoryViewProps {
   student: Student;
+  classId?: string; // ID de la clase seleccionada para filtrar
   onBack: () => void;
 }
 export function StudentAttendanceHistoryView({
   student,
+  classId,
   onBack
 }: StudentAttendanceHistoryViewProps) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
 
-  const { data: attendanceData } = useQuery({
-    queryKey: ['student-attendance', student.id],
-    queryFn: () => studentService.getAttendanceHistory()
+  // Obtener clases completadas del trainer
+  const { data: classesData } = useQuery({
+    queryKey: ['trainer-classes-for-history'],
+    queryFn: async () => {
+      const response = await fitdeskApi.get<any[]>(
+        `/classes/stadistic/my-classes/stats`
+      );
+      return response.data || [];
+    }
   });
 
-  const { markAttendance } = useStudentMetrics();
+  // Obtener detalles de cada clase completada para saber si el estudiante está inscrito
+  const { data: detailedClasses } = useQuery({
+    queryKey: ['detailed-classes', classesData],
+    queryFn: async () => {
+      if (!classesData || classesData.length === 0) return [];
+      
+      const completedClassIds = classesData
+        .filter((cls: any) => {
+          const status = cls.status?.toLowerCase();
+          return status === 'completed' || status === 'completada';
+        })
+        .map((cls: any) => cls.id);
+      
+      // Si hay una clase específica seleccionada, solo obtener esa clase
+      const idsToFetch = classId 
+        ? [classId] 
+        : completedClassIds.slice(0, 5);
+      
+      const detailsPromises = idsToFetch.map(id => 
+        fitdeskApi.get(`/classes/stadistic/${id}/detail`)
+          .then(res => res.data)
+          .catch(() => null)
+      );
+      
+      return Promise.all(detailsPromises).then(results => 
+        results.filter(r => r !== null)
+      );
+    },
+    enabled: !!classesData && classesData.length > 0
+  });
 
-  const attendanceRecords = attendanceData?.data || [];
+  // Filtrar clases completadas donde el estudiante esté inscrito
+  const attendanceRecords = useMemo(() => {
+    if (!detailedClasses || detailedClasses.length === 0) return [];
+    
+    return detailedClasses
+      .filter((cls: any) => {
+        return cls.students?.some((s: any) => s.memberId === student.id || s.id === student.id);
+      })
+      .map((cls: any) => {
+        const studentData = cls.students?.find((s: any) => s.memberId === student.id || s.id === student.id);
+        
+        // Parsear fecha
+        const [day, month, year] = cls.classDate.split('-');
+        const classDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        
+        // Normalizar estado de asistencia
+        const normalizeStatus = (status: string | undefined): AttendanceStatus => {
+          if (!status) return 'absent';
+          const normalized = status.toLowerCase();
+          if (normalized === 'presente' || normalized === 'present') return 'present';
+          if (normalized === 'ausente' || normalized === 'absent') return 'absent';
+          if (normalized === 'tarde' || normalized === 'late') return 'late';
+          return 'absent';
+        };
 
-  const handleUpdateAttendance = async (recordId: string, newStatus: 'present' | 'absent' | 'late' | 'excused') => {
-    try {
-      await markAttendance({
-        studentId: student.id,
-        classId: recordId, 
-        status: newStatus,
-        notes: `Asistencia actualizada desde historial`
-      });
-      setEditingRecordId(null);
-    } catch (error) {
-      console.error('Error updating attendance:', error);
-    }
-  };
-
-  const handleEditRecord = (recordId: string) => {
-    setEditingRecordId(recordId);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingRecordId(null);
-  };
-
-  const handleSaveChanges = () => {
-    setEditingRecordId(null);
-  };
+        return {
+          id: cls.id,
+          studentId: student.id,
+          classId: cls.id,
+          className: cls.className,
+          date: classDate.toISOString(),
+          status: normalizeStatus(studentData?.attendanceStatus),
+          trainer: {
+            id: '',
+            name: cls.trainerName || 'Entrenador'
+          }
+        };
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [detailedClasses, student.id]);
 
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -83,17 +125,16 @@ export function StudentAttendanceHistoryView({
 
   const filteredHistory = statusFilter === 'all' 
     ? attendanceRecords 
-    : attendanceRecords.filter(record => record.status === statusFilter);
+    : attendanceRecords.filter((record) => record.status === statusFilter);
 
   const stats = {
     total: attendanceRecords.length,
-    present: attendanceRecords.filter(r => r.status === 'present').length,
-    absent: attendanceRecords.filter(r => r.status === 'absent').length,
-    late: attendanceRecords.filter(r => r.status === 'late').length,
-    excused: attendanceRecords.filter(r => r.status === 'excused').length
+    present: attendanceRecords.filter((r) => r.status === 'present').length,
+    absent: attendanceRecords.filter((r) => r.status === 'absent').length,
+    late: attendanceRecords.filter((r) => r.status === 'late').length || 0  
   };
 
-  const attendanceRate = stats.total > 0 ? ((stats.present + stats.late + stats.excused) / stats.total * 100).toFixed(1) : '0.0';
+  const attendanceRate = stats.total > 0 ? ((stats.present + stats.late) / stats.total * 100).toFixed(1) : '0.0';
 
   return (
     <div className="p-6 space-y-6">
@@ -216,7 +257,6 @@ export function StudentAttendanceHistoryView({
             <SelectItem value="present">Presente</SelectItem>
             <SelectItem value="absent">Ausente</SelectItem>
             <SelectItem value="late">Tarde</SelectItem>
-            <SelectItem value="excused">Justificado</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -231,16 +271,13 @@ export function StudentAttendanceHistoryView({
               <TableHead className="text-center">A</TableHead>
               <TableHead className="text-center">T</TableHead>
               <TableHead className="text-center">F</TableHead>
-              <TableHead className="text-center">J</TableHead>
               <TableHead>Trainer</TableHead>
-              <TableHead>Notas</TableHead>
-              <TableHead className="w-[50px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredHistory.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   No se encontraron registros de asistencia
                 </TableCell>
               </TableRow>
@@ -269,12 +306,7 @@ export function StudentAttendanceHistoryView({
                         record.status === 'present' 
                           ? 'bg-green-600' 
                           : 'bg-transparent border-2 border-gray-300'
-                      } ${
-                        editingRecordId === record.id 
-                          ? 'cursor-pointer hover:border-green-400 hover:bg-green-50' 
-                          : ''
                       }`}
-                      onClick={() => editingRecordId === record.id && handleUpdateAttendance(record.id, 'present')}
                     >
                     </div>
                   </TableCell>
@@ -285,12 +317,7 @@ export function StudentAttendanceHistoryView({
                         record.status === 'late' 
                           ? 'bg-orange-600' 
                           : 'bg-transparent border-2 border-gray-300'
-                      } ${
-                        editingRecordId === record.id 
-                          ? 'cursor-pointer hover:border-orange-400 hover:bg-orange-50' 
-                          : ''
                       }`}
-                      onClick={() => editingRecordId === record.id && handleUpdateAttendance(record.id, 'late')}
                     >
                     </div>
                   </TableCell>
@@ -301,28 +328,7 @@ export function StudentAttendanceHistoryView({
                         record.status === 'absent' 
                           ? 'bg-red-600' 
                           : 'bg-transparent border-2 border-gray-300'
-                      } ${
-                        editingRecordId === record.id 
-                          ? 'cursor-pointer hover:border-red-400 hover:bg-red-50' 
-                          : ''
                       }`}
-                      onClick={() => editingRecordId === record.id && handleUpdateAttendance(record.id, 'absent')}
-                    >
-                    </div>
-                  </TableCell>
-                  {/* Columna J (Justificado) */}
-                  <TableCell className="text-center">
-                    <div
-                      className={`w-6 h-6 rounded-full mx-auto transition-all duration-200 ${
-                        record.status === 'excused' 
-                          ? 'bg-blue-600' 
-                          : 'bg-transparent border-2 border-gray-300'
-                      } ${
-                        editingRecordId === record.id 
-                          ? 'cursor-pointer hover:border-blue-400 hover:bg-blue-50' 
-                          : ''
-                      }`}
-                      onClick={() => editingRecordId === record.id && handleUpdateAttendance(record.id, 'excused')}
                     >
                     </div>
                   </TableCell>
@@ -332,65 +338,12 @@ export function StudentAttendanceHistoryView({
                       <span className="text-sm">{record.trainer.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {record.notes || '-'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        {editingRecordId === record.id ? (
-                          <DropdownMenuItem 
-                            onClick={handleCancelEdit}
-                            className="text-gray-600"
-                          >
-                            <X className="mr-2 h-4 w-4" />
-                            Cancelar
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem 
-                            onClick={() => handleEditRecord(record.id)}
-                            className="text-blue-600"
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
-
-      {/* Botón Guardar cuando está en modo de edición */}
-      {editingRecordId && (
-        <div className="flex justify-end gap-2 mt-4">
-          <Button
-            variant="outline"
-            onClick={handleCancelEdit}
-            className="text-gray-600"
-          >
-            <X className="mr-2 h-4 w-4" />
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSaveChanges}
-          >
-            <Check className="mr-2 h-4 w-4" />
-            Guardar Cambios
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

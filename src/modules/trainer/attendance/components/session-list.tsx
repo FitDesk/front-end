@@ -65,7 +65,6 @@ export function SessionList({ onSessionClick, onStartSession, onCompleteSession 
 
   const handleSearchChange = (value: string) => {
     setLocalSearchTerm(value);
-    // Debounce search
     setTimeout(() => {
       setSearchTerm(value);
     }, 300);

@@ -10,6 +10,7 @@ export interface CalendarEvent {
   capacity: number;
   trainer: string;
   description?: string;
+  active: boolean;
 }
 
 export function convertClassesToEvents(classes: Class[]): CalendarEvent[] {
@@ -69,7 +70,8 @@ export function convertClassesToEvents(classes: Class[]): CalendarEvent[] {
       location: cls.locationName || 'Sala no especificada',
       capacity: cls.maxCapacity || 0,
       trainer: cls.trainerName || 'Entrenador no asignado',
-      description: cls.description
+      description: cls.description,
+      active: cls.active ?? true
     };
     
     console.log('Created event:', event);

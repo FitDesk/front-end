@@ -67,7 +67,6 @@ export function useAttendanceCalendar() {
     });
   }, [selectedDate, sessions]);
 
-  // Agrupar días en semanas
   const calendarWeeks = useMemo((): CalendarWeek[] => {
     const weeks: CalendarWeek[] = [];
     for (let i = 0; i < calendarDays.length; i += 7) {
@@ -200,7 +199,6 @@ export function useWeeklyAttendanceView() {
   };
 }
 
-// Hook para obtener sesiones de un día específico
 export function useDaySessions(date: Date | string) {
   const { data: sessions, isLoading, error } = useSessionsByDate(date);
   
@@ -259,26 +257,22 @@ export function useCalendarStats() {
       };
     }
 
-    // Validar que selectedDate es un objeto Date válido
     const validSelectedDate = selectedDate instanceof Date ? selectedDate : new Date(selectedDate);
     
     const today = new Date();
     const currentMonth = validSelectedDate.getMonth();
     const currentYear = validSelectedDate.getFullYear();
 
-    // Sesiones del mes actual
     const monthSessions = sessions.filter(session => {
       const sessionDate = new Date(session.date);
       return sessionDate.getMonth() === currentMonth && 
              sessionDate.getFullYear() === currentYear;
     });
 
-    // Sesiones de hoy
     const todaySessions = sessions.filter(session => 
       isSameDay(new Date(session.date), today)
     );
 
-    // Estadísticas del mes
     const monthStats = {
       totalSessions: monthSessions.length,
       completedSessions: monthSessions.filter(s => s.status === 'completed').length,
@@ -289,7 +283,6 @@ export function useCalendarStats() {
         : 0
     };
 
-    // Estadísticas de hoy
     const todayStats = {
       totalSessions: todaySessions.length,
       completedSessions: todaySessions.filter(s => s.status === 'completed').length,

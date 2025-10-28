@@ -61,10 +61,6 @@ const TrainerSidebar = memo(() => {
                                             loading="lazy"
                                             className="h-20 w-20"
                                         />
-                                        <div className="grid flex-1 text-left text-sm leading-tight">
-                                            <span className="truncate font-semibold">TechCorp</span>
-                                            <span className="truncate text-xs">Panel Entrenador</span>
-                                        </div>
                                     </>
                                 )}
                             </Link>

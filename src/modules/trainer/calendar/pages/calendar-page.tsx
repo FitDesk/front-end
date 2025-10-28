@@ -67,7 +67,8 @@ export default function CalendarPage() {
   const {
     prefetchNextWeek,
     prefetchPreviousWeek,
-    prefetchClassDetails
+    prefetchClassDetails,
+    prefetchHeaderData
   } = useCalendarPrefetching();
 
   const events = useMemo(() => {
@@ -96,6 +97,7 @@ export default function CalendarPage() {
   useEffect(() => {
     prefetchNextWeek(currentDate);
     prefetchPreviousWeek(currentDate    );
+    prefetchHeaderData(currentDate);
   }, [currentDate, prefetchNextWeek, prefetchPreviousWeek]);
 
   

@@ -303,6 +303,7 @@ export class TrainerClassService {
   static async getTrainerStats(): Promise<{
     totalClasses: number;
     completedClasses: number;
+    scheduledClasses: number;
     totalStudents: number;
     averageAttendance: number;
     upcomingClasses: number;
@@ -310,17 +311,72 @@ export class TrainerClassService {
     const response = await fitdeskApi.get<any[]>(`${this.STATS_ENDPOINT}/my-classes/stats`);
     const classes = response.data;
     
-    const totalClasses = classes.length;
-    const completedClasses = classes.filter((c: any) => c.status === 'COMPLETADA').length;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const classesThisMonth = classes.filter((c: any) => {
+      if (!c.classDate) return false;
+      const [day, month, year] = c.classDate.split('-');
+      const classDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      return classDate.getMonth() === currentMonth && classDate.getFullYear() === currentYear;
+    });
+    
+    const normalizeStatus = (status: string) => {
+      if (!status) return '';
+      const normalized = status.toUpperCase().trim();
+      if (normalized === 'PROGRAMADA' || normalized === 'ACTIVA' || normalized === 'SCHEDULED') return 'PROGRAMADA';
+      if (normalized === 'COMPLETADA' || normalized === 'COMPLETED') return 'COMPLETADA';
+      if (normalized === 'EN_PROCESO' || normalized === 'IN_PROGRESS') return 'EN_PROCESO';
+      if (normalized === 'CANCELADA' || normalized === 'CANCELLED') return 'CANCELADA';
+      return normalized;
+    };
+    
+    const totalClasses = classesThisMonth.filter((c: any) => 
+      normalizeStatus(c.status) !== 'CANCELADA'
+    ).length;
+    
+    const scheduledClasses = classes.filter((c: any) => {
+      const status = normalizeStatus(c.status);
+      const isScheduled = status === 'PROGRAMADA' || status === 'ACTIVA';
+      
+      if (isScheduled && c.classDate) {
+        const [day, month, year] = c.classDate.split('-');
+        const classDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        const classDateOnly = new Date(classDate.getFullYear(), classDate.getMonth(), classDate.getDate());
+        return classDateOnly >= today;
+      }
+      
+      return false;
+    }).length;
+    
+    const completedClasses = classesThisMonth.filter((c: any) => 
+      normalizeStatus(c.status) === 'COMPLETADA'
+    ).length;
     const totalStudents = classes.reduce((sum: number, c: any) => sum + (c.currentStudents || 0), 0);
     const avgAttendance = classes.length > 0 
       ? classes.reduce((sum: number, c: any) => sum + (c.averageAttendance || 0), 0) / classes.length
       : 0;
-    const upcomingClasses = classes.filter((c: any) => c.status === 'PROGRAMADA').length;
+    
+    const upcomingClasses = classes.filter((c: any) => {
+      if (!c.classDate) return false;
+      
+      const [day, month, year] = c.classDate.split('-');
+      const classDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const classDateOnly = new Date(classDate.getFullYear(), classDate.getMonth(), classDate.getDate());
+      
+      const isFuture = classDateOnly >= today;
+      const isNotCompletedOrCancelled = c.status !== 'COMPLETADA' && c.status !== 'CANCELADA';
+      
+      return isFuture && isNotCompletedOrCancelled;
+    }).length;
     
     return {
       totalClasses,
       completedClasses,
+      scheduledClasses,
       totalStudents,
       averageAttendance: avgAttendance,
       upcomingClasses

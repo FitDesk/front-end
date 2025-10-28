@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { format, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { Calendar as CalendarIcon, Settings } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -63,37 +63,9 @@ export function ClassForm({
 }: ClassFormProps) {
   const { trainers = [], isLoading: isLoadingTrainers, error: trainersError } = useTrainersForSelect();
   const { locations = [], isLoading: isLoadingLocations } = useLocations();
-  const [dataLoaded, setDataLoaded] = useState(false);
   
   const form = useForm<ClassFormValues>({
-    defaultValues: initialData ? {
-      className: initialData.className || '',
-      description: initialData.description || '',
-      trainerId: '', 
-      locationId: '', 
-      date: initialData.classDate ? (() => {
-
-        let parsedDate: Date;
-        if (typeof initialData.classDate === 'string' && initialData.classDate.includes('-')) {
-          const [day, month, year] = initialData.classDate.split('-');
-          parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        } else {
-          parsedDate = parseISO(initialData.classDate);
-        }
-        
-        if (isNaN(parsedDate.getTime())) {
-          console.error('Invalid date in form:', initialData.classDate);
-          return addDays(new Date(), 1);
-        }
-        
-        return parsedDate;
-      })() : addDays(new Date(), 1),
-      startTime: initialData.schedule ? initialData.schedule.split(' - ')[0] : '09:00',
-      endTime: initialData.schedule ? initialData.schedule.split(' - ')[1] : '10:00',
-      duration: initialData.duration || 60,
-      maxCapacity: initialData.maxCapacity || 1,
-      active: initialData.active ?? true,
-    } : {
+    defaultValues: {
       className: '',
       description: '',
       trainerId: '',
@@ -107,8 +79,64 @@ export function ClassForm({
     },
   });
 
-  const handleFormSubmit = (formData: ClassFormValues) => {
+  // Resetear el formulario cuando cambia initialData o cuando los datos se cargan
+  useEffect(() => {
+    // Para nueva clase, resetear sin datos
+    if (!initialData) {
+      form.reset({
+        className: '',
+        description: '',
+        trainerId: '',
+        locationId: '',
+        date: addDays(new Date(), 1),
+        startTime: '09:00',
+        endTime: '10:00',
+        duration: 60,
+        maxCapacity: 1,
+        active: true,
+      });
+      return;
+    }
 
+    // Para editar, esperar a que los datos estén listos
+    if (!initialData.id || !trainers.length || !locations.length) return;
+    
+    let parsedDate: Date;
+    try {
+      if (typeof initialData.classDate === 'string' && initialData.classDate.includes('-')) {
+        const [day, month, year] = initialData.classDate.split('-');
+        parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        parsedDate = parseISO(initialData.classDate);
+      }
+      
+      if (isNaN(parsedDate.getTime())) {
+        parsedDate = addDays(new Date(), 1);
+      }
+    } catch {
+      parsedDate = addDays(new Date(), 1);
+    }
+    
+    const trainer = trainers.find(t => t.name === initialData.trainerName);
+    const location = locations.find(l => l.name === initialData.locationName);
+    const scheduleParts = initialData.schedule ? initialData.schedule.split(' - ') : [];
+    
+    form.reset({
+      className: initialData.className || '',
+      description: initialData.description || '',
+      trainerId: trainer?.id || '',
+      locationId: location?.id || '',
+      date: parsedDate,
+      startTime: scheduleParts[0] || '09:00',
+      endTime: scheduleParts[1] || '10:00',
+      duration: initialData.duration || 60,
+      maxCapacity: initialData.maxCapacity || 1,
+      active: initialData.active ?? true,
+    });
+    
+  }, [initialData?.id, trainers.length, locations.length]);
+
+  const handleFormSubmit = (formData: ClassFormValues) => {
     if (!formData.className || formData.className.length < 3) {
       form.setError('className', {
         type: 'manual',
@@ -132,7 +160,6 @@ export function ClassForm({
       });
       return;
     }
-
 
     const [startHour, startMin] = formData.startTime.split(':').map(Number);
     const [endHour, endMin] = formData.endTime.split(':').map(Number);
@@ -177,27 +204,13 @@ export function ClassForm({
 
 
   useEffect(() => {
-    if (initialData && trainers.length > 0 && locations.length > 0 && !dataLoaded) {
-      // Buscar el entrenador por nombre
-      const trainer = trainers.find(t => t.name === initialData.trainerName);
-      if (trainer?.id) {
-        form.setValue('trainerId', trainer.id);
+    if (selectedLocation?.capacity !== undefined) {
+      const currentMaxCapacity = form.getValues('maxCapacity');
+      if (currentMaxCapacity !== selectedLocation.capacity) {
+        form.setValue('maxCapacity', selectedLocation.capacity);
       }
-      
-      const location = locations.find(l => l.name === initialData.locationName);
-      if (location?.id) {
-        form.setValue('locationId', location.id);
-      }
-      
-      setDataLoaded(true);
     }
-  }, [initialData?.id, trainers.length, locations.length]);
-
-
-  useEffect(() => {
-    if (selectedLocation?.capacity) {
-      form.setValue('maxCapacity', selectedLocation.capacity);
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLocationId]);
 
   const renderFormButtons = () => (
@@ -370,69 +383,19 @@ export function ClassForm({
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-background" align="start">
-                    <div className="space-y-4 p-4">
-                      <div className="flex items-center justify-between px-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 p-0 text-foreground/80 hover:text-foreground hover:bg-accent/50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const date = new Date(field.value || new Date());
-                            date.setMonth(date.getMonth() - 1);
-                            field.onChange(date);
-                          }}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <span className="text-sm font-medium text-foreground">
-                          {field.value ? format(field.value, 'MMMM yyyy', { locale: es }) : ''}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 p-0 text-foreground/80 hover:text-foreground hover:bg-accent/50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const date = new Date(field.value || new Date());
-                            date.setMonth(date.getMonth() + 1);
-                            field.onChange(date);
-                          }}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                        locale={es}
-                        className="rounded-md border-0"
-                        classNames={{
-                          months: "w-full",
-                          month: "w-full space-y-4",
-                          caption: "hidden",
-                          caption_label: "sr-only",
-                          nav: "hidden",
-                          table: "w-full border-collapse space-y-1",
-                          head_row: "flex justify-between",
-                          head_cell: "text-muted-foreground rounded-md w-9 font-normal text-sm",
-                          row: "flex w-full mt-2 justify-between",
-                          cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                          day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md flex items-center justify-center text-foreground",
-                          day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary focus:text-primary-foreground",
-                          day_today: "bg-accent text-accent-foreground font-medium",
-                          day_outside: "text-muted-foreground opacity-50",
-                          day_disabled: "text-muted-foreground opacity-50",
-                          day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                          day_hidden: "invisible"
-                        }}
-                      />
-                    </div>
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        date.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
+                      initialFocus
+                      locale={es}
+                    />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
