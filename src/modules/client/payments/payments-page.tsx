@@ -78,7 +78,7 @@ export default function PaymentsPage() {
         setTimeout(() => navigate("/client/membership"), 1800);
     };
 
-    const handleFinalSubmit = async () => {
+        const handleFinalSubmit = async () => {
         if (!user || !selectedPlan) {
             toast.error("Faltan datos para procesar el pago.");
             return;
@@ -96,31 +96,44 @@ export default function PaymentsPage() {
                 }
                 const { card, cvv } = savedCardSelection;
 
-                // 1. Crear el token de un solo uso
                 const oneTimeToken = await PaymentService.createClonedCardToken(
-                    card.cardToken, // <-- Ahora tenemos el token correcto
+                    card.cardToken,
                     cvv
                 );
-                const paymentRequest = {
-                    token: oneTimeToken.id,
-                    externalReference: `SAVED_CARD_${user.id}_${Date.now()}`,
-                    userId: user.id,
-                    planId: selectedPlan.id,
-                    amount: upgradeInfo?.upgradeCost ?? selectedPlan.price,
-                    payerEmail: user.email,
-                    payerFirstName: member?.firstName || "Usuario",
-                    payerLastName: member?.lastName || "FitDesk",
-                    description: `Pago con tarjeta guardada (${card.displayName})`,
-                    installments: 1,
-                    paymentMethodId: card.cardBrand.toLowerCase(),
-                    identificationType: "DNI",
-                    identificationNumber: member?.dni || "00000000",
-                };
 
-                // 3. Usar el flujo de pago directo que ya funciona
-                const response = await PaymentService.processDirectPayment(paymentRequest);
-
-                handlePaymentSuccess(response);
+                if (isUpgrade) {
+                    // --- LÓGICA PARA CAMBIO DE PLAN (UPGRADE) ---
+                    const upgradeRequest = {
+                        userId: user.id,
+                        newPlanId: selectedPlan.id,
+                        token: oneTimeToken.id,
+                        installments: 1,
+                        paymentMethodId: card.cardBrand.toLowerCase(),
+                        identificationType: "DNI",
+                        identificationNumber: member?.dni || "00000000",
+                    };
+                    const response = await PaymentService.processPlanUpgrade(upgradeRequest);
+                    handlePaymentSuccess(response);
+                } else {
+                    // --- LÓGICA PARA PAGO NORMAL ---
+                    const paymentRequest = {
+                        token: oneTimeToken.id,
+                        externalReference: `SAVED_CARD_${user.id}_${Date.now()}`,
+                        userId: user.id,
+                        planId: selectedPlan.id,
+                        amount: selectedPlan.price,
+                        payerEmail: user.email,
+                        payerFirstName: member?.firstName || "Usuario",
+                        payerLastName: member?.lastName || "FitDesk",
+                        description: `Pago con tarjeta guardada (${card.displayName})`,
+                        installments: 1,
+                        paymentMethodId: card.cardBrand.toLowerCase(),
+                        identificationType: "DNI",
+                        identificationNumber: member?.dni || "00000000",
+                    };
+                    const response = await PaymentService.processDirectPayment(paymentRequest);
+                    handlePaymentSuccess(response);
+                }
             } else {
                 toast.info(
                     "Por favor, utiliza el formulario para añadir una nueva tarjeta.",
