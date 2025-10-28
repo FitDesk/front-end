@@ -12,9 +12,10 @@ import { Field, FieldLabel, FieldLegend, FieldSet } from "./ui/field";
 import { Input } from "./ui/input";
 import { motion } from "motion/react";
 import type { PlanResponse } from "@/core/interfaces/plan.interface";
-import type { PaymentResponse } from "@/core/interfaces/payment.interface";
-import { CheckCircle, CreditCard, Lock, Shield } from "lucide-react";
+import type { PaymentResponse, UpgradeCostResponse } from "@/core/interfaces/payment.interface"; // ✅ ACTUALIZADO
+import { CheckCircle, CreditCard, Lock, Shield, ArrowUpCircle } from "lucide-react"; // ✅ AÑADIDO ArrowUpCircle
 import { usePaymentForm } from "@/core/hooks/use-payment-form";
+import { Badge } from "./ui/badge"; // ✅ AÑADIDO
 
 interface PaymentFormProps {
   userId: string;
@@ -22,7 +23,8 @@ interface PaymentFormProps {
   plan: PlanResponse;
   onPaymentSuccess: (paymentData: PaymentResponse) => void;
   isProcessingPayment?: boolean;
-   isUpgrade: boolean;
+  isUpgrade: boolean;
+  upgradeInfo?: UpgradeCostResponse | null; // ✅ NUEVO
 }
 
 const PaymentForm = ({
@@ -31,7 +33,8 @@ const PaymentForm = ({
   plan,
   onPaymentSuccess,
   isProcessingPayment,
-  isUpgrade
+  isUpgrade,
+  upgradeInfo, // ✅ NUEVO
 }: PaymentFormProps) => {
   const {
     formData,
@@ -52,18 +55,16 @@ const PaymentForm = ({
     userEmail,
     plan,
     onPaymentSuccess,
-    isUpgrade
+    isUpgrade,
+    upgradeInfo, 
   });
-  // const setFormData = (updater: (prev: typeof formData) => typeof formData) => {
-  //   const newData = updater(formData);
-  //   Object.keys(newData).forEach(key => {
-  //     const field = key as keyof typeof formData;
-  //     if (newData[field] !== formData[field]) {
-  //       setFormData(prev => ({ ...prev, [field]: newData[field] }));
-  //     }
-  //   });
-  // };
+
+  const getDisplayAmount = () => {
+    return isUpgrade && upgradeInfo ? upgradeInfo.upgradeCost : plan.price;
+  };
+
   const CardLogo = CardDesing[cardType];
+  
   if (isProcessingPayment) {
     return (
       <motion.div
@@ -76,7 +77,7 @@ const PaymentForm = ({
         </div>
         <h2 className="text-2xl font-bold mb-2">¡Pago exitoso!</h2>
         <p className="text-muted-foreground mb-8">
-          Tu membresía ha sido activada correctamente. Estamos
+          Tu membresía ha sido {isUpgrade ? "actualizada" : "activada"} correctamente. Estamos
           redireccionándote...
         </p>
         <div className="flex items-center justify-center">
@@ -92,6 +93,7 @@ const PaymentForm = ({
       </motion.div>
     );
   }
+  
   return (
     <>
       {/* CSS para el efecto 3D flip */}
@@ -115,12 +117,26 @@ const PaymentForm = ({
           >
             <div className="aspect-[1097/845] w-[68.5625rem] bg-gradient-to-r from-orange-500 to-red-500 opacity-25" />
           </div>
+          {/* ✅ ACTUALIZADO: Título dinámico según si es upgrade o no */}
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {plan.name}
+            {isUpgrade ? (
+              <span className="flex items-center justify-center gap-3">
+                <ArrowUpCircle className="h-8 w-8 text-orange-500" />
+                Actualizar a {plan.name}
+              </span>
+            ) : (
+              plan.name
+            )}
           </h2>
           <p className="mt-2 text-lg leading-8 text-muted-foreground">
             {plan.description}
           </p>
+          {/* ✅ NUEVO: Mostrar info del upgrade si aplica */}
+          {isUpgrade && upgradeInfo && (
+            <Badge variant="secondary" className="mt-4 text-sm px-4 py-1">
+              Solo pagas la diferencia prorrateada por {upgradeInfo.daysRemaining} días
+            </Badge>
+          )}
         </div>
       </motion.div>
 
@@ -192,7 +208,7 @@ const PaymentForm = ({
                   </Field>
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
-                    
+                
                     <div className="grid grid-cols-2 gap-2">
                       <Field>
                         <FieldLabel htmlFor="card-date" className="font-medium">
@@ -201,12 +217,12 @@ const PaymentForm = ({
                         <Input
                           id="card-date"
                           type="text"
-                          onFocus={hideBackCard}
-                          onClick={hideBackCard}
                           value={formData.expDate}
                           onChange={onExpChange}
-                          maxLength={5}
+                          onFocus={hideBackCard}
+                          onClick={hideBackCard}
                           placeholder="MM/YY"
+                          maxLength={5}
                           required
                         />
                       </Field>
@@ -218,12 +234,12 @@ const PaymentForm = ({
                         <Input
                           id="card-ccv"
                           type="text"
-                          onFocus={showBackCard}
-                          onClick={showBackCard}
                           value={formData.ccv}
                           onChange={onCcvChange}
-                          maxLength={3}
+                          onFocus={showBackCard}
+                          onClick={showBackCard}
                           placeholder="•••"
+                          maxLength={3}
                           required
                         />
                       </Field>
@@ -231,72 +247,63 @@ const PaymentForm = ({
                   </div>
 
                   <Field>
-                    <FieldLabel htmlFor="card-dni" className="font-medium">
-                      DNI
+                    <FieldLabel htmlFor="dni" className="font-medium">
+                      DNI del Titular
                     </FieldLabel>
                     <Input
-                      id="card-dni"
+                      id="dni"
                       type="text"
-                      onFocus={hideBackCard}
-                      onClick={hideBackCard}
                       value={formData.dni}
                       onChange={onDniChange}
+                      onFocus={hideBackCard}
+                      onClick={hideBackCard}
+                      placeholder="12345678"
                       maxLength={9}
-                      placeholder="123456789"
                       required
                     />
                   </Field>
                 </FieldSet>
               </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-              ></motion.div>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="w-full lg:w-1/2 flex items-center justify-center"
-            >
-              <div
-                className="w-full max-w-sm h-56"
-                style={{ perspective: 1000 }}
+            {/* Columna derecha - Previsualización de tarjeta */}
+            <div className="w-full lg:w-1/2">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                ref={cardRef}
+                className={`creditCard relative h-56 mx-auto max-w-sm ${
+                  formData.showBack ? "seeBack" : ""
+                }`}
+                onClick={toggleBackCard}
               >
+                {/* Frente de la tarjeta */}
                 <div
-                  ref={cardRef}
-                  role="button"
-                  tabIndex={0}
-                  aria-label="Tarjeta de crédito interactiva"
-                  onClick={toggleBackCard}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") toggleBackCard();
-                  }}
-                  className={`relative creditCard cursor-pointer w-full h-56 ${formData.showBack ? "seeBack" : ""}`}
+                  className={`absolute w-full h-56 rounded-2xl text-white shadow-2xl cardFace p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-br ${getCardGradient()}`}
                 >
-                  {/* Frente de la tarjeta */}
-                  <div
-                    className={`absolute w-full h-56 rounded-2xl text-white shadow-2xl cardFace overflow-hidden bg-gradient-to-br ${getCardGradient()}`}
-                  >
-                    {/* Patrón de fondo sutil */}
-                    <div className="absolute inset-0 opacity-10">
-                      <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full blur-3xl"></div>
-                      <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full blur-2xl"></div>
+                  <div className="absolute inset-0 bg-[url('/card-pattern.svg')] opacity-10"></div>
+
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between">
+                      <div className="flex flex-col">
+                        <div className="h-12 w-12 rounded-md bg-white/20 p-2 backdrop-blur-sm">
+                          <div className="h-full w-full rounded bg-white/80"></div>
+                        </div>
+                      </div>
+                      <CardLogo />
                     </div>
 
-                    <div className="relative w-full px-6 py-6 h-full flex flex-col justify-between">
-                      {/* Logo y Chip */}
-                      <div className="flex justify-between items-start">
-                        <div className="w-12 h-10 bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-md flex items-center justify-center">
-                          <div className="w-8 h-8 border-2 border-yellow-600 rounded-sm"></div>
-                        </div>
-                        <CardLogo />
+                    <div className="flex items-center gap-2 mt-6 mb-8">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-inner"></div>
+                      <div className="flex-1 opacity-90">
+                        <div className="h-0.5 bg-white/20 mb-1"></div>
+                        <div className="h-0.5 bg-white/20"></div>
                       </div>
+                    </div>
 
-                      {/* Número de tarjeta */}
+                    {/* Número de tarjeta */}
+                    <div className="mb-6">
                       <div>
                         <p className="font-mono text-xl tracking-[0.2em] mb-1">
                           {formData.cardNumber || "•••• •••• •••• ••••"}
@@ -349,8 +356,8 @@ const PaymentForm = ({
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </form>
         </CardContent>
 
@@ -375,15 +382,14 @@ const PaymentForm = ({
               </>
             ) : (
               <>
-                {" "}
-                <h1>Confirmar Pago</h1>{" "}
+                {isUpgrade && <ArrowUpCircle className="mr-2 h-5 w-5" />}
+                <span>{isUpgrade ? "Actualizar Plan" : "Confirmar Pago"}</span>
               </>
             )}
           </Button>
         </CardFooter>
       </Card>
 
-      {/* Resumen del plan seleccionado */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -392,39 +398,78 @@ const PaymentForm = ({
       >
         <Card className="border border-border/40 bg-card/60 backdrop-blur-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">
-              Resumen del Plan
+            <CardTitle className="text-lg font-medium flex items-center gap-2">
+              {isUpgrade && <ArrowUpCircle className="h-5 w-5 text-orange-500" />}
+              {isUpgrade ? "Resumen del Upgrade" : "Resumen del Plan"}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
               <div className="flex justify-between py-1 text-sm">
-                <span className="text-muted-foreground">Plan:</span>
+                <span className="text-muted-foreground">
+                  {isUpgrade ? "Nuevo Plan:" : "Plan:"}
+                </span>
                 <span className="font-medium">{plan.name}</span>
               </div>
-              <div className="flex justify-between py-1 text-sm">
-                <span className="text-muted-foreground">Precio:</span>
-                <span className="font-medium">
-                  {new Intl.NumberFormat("es-PE", {
-                    style: "currency",
-                    currency: "PEN",
-                  }).format(plan.price)}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 text-sm">
-                <span className="text-muted-foreground">Duración:</span>
-                <span className="font-medium">{plan.durationMonths} meses</span>
-              </div>
+              
+              {isUpgrade && upgradeInfo ? (
+                <>
+                  <div className="flex justify-between py-1 text-sm">
+                    <span className="text-muted-foreground">Precio original:</span>
+                    <span className="font-medium line-through text-muted-foreground">
+                      {new Intl.NumberFormat("es-PE", {
+                        style: "currency",
+                        currency: "PEN",
+                      }).format(plan.price)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 text-sm">
+                    <span className="text-muted-foreground">Crédito aplicado:</span>
+                    <span className="font-medium text-green-600">
+                      -{new Intl.NumberFormat("es-PE", {
+                        style: "currency",
+                        currency: "PEN",
+                      }).format(upgradeInfo.unusedCredit)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 text-sm">
+                    <span className="text-muted-foreground">Días restantes:</span>
+                    <span className="font-medium">{upgradeInfo.daysRemaining} días</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between py-1 text-sm">
+                    <span className="text-muted-foreground">Precio:</span>
+                    <span className="font-medium">
+                      {new Intl.NumberFormat("es-PE", {
+                        style: "currency",
+                        currency: "PEN",
+                      }).format(plan.price)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 text-sm">
+                    <span className="text-muted-foreground">Duración:</span>
+                    <span className="font-medium">{plan.durationMonths} meses</span>
+                  </div>
+                </>
+              )}
+              
               <div className="border-t border-border mt-2 pt-2">
                 <div className="flex justify-between text-base font-semibold">
-                  <span>Total:</span>
+                  <span>Total a pagar:</span>
                   <span className="text-orange-600">
                     {new Intl.NumberFormat("es-PE", {
                       style: "currency",
                       currency: "PEN",
-                    }).format(plan.price)}
+                    }).format(getDisplayAmount())}
                   </span>
                 </div>
+                {isUpgrade && upgradeInfo && (
+                  <p className="text-xs text-muted-foreground mt-1 text-right">
+                    Pago único por actualización
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
