@@ -47,11 +47,21 @@ export const TrainerDetailView: React.FC<TrainerDetailViewProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    if (!dateString) return 'N/A';
+    const ddmmyyyy = /^\d{2}-\d{2}-\d{4}$/;
+    const yyyymmdd = /^\d{4}-\d{2}-\d{2}$/;
+    let date: Date;
+    if (ddmmyyyy.test(dateString)) {
+      const [day, month, year] = dateString.split('-').map(Number);
+      date = new Date(year, month - 1, day);
+    } else if (yyyymmdd.test(dateString)) {
+      date = new Date(dateString);
+    } else {
+      const tryDate = new Date(dateString);
+      if (isNaN(tryDate.getTime())) return dateString;
+      date = tryDate;
+    }
+    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const formatSalary = (salary: number, contractType: string) => {
