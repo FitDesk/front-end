@@ -138,7 +138,7 @@ export function PaymentsTable({
                   <TableCell className="capitalize">
                     {payment.paymentMethodId}
                   </TableCell>
-                  <TableCell>${payment.amount.toFixed(2)}</TableCell>
+                  <TableCell>S/.{payment.amount.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(payment.status)}>
                       {payment.status.charAt(0).toUpperCase() +

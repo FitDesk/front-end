@@ -96,7 +96,6 @@ const PaymentForm = ({
   
   return (
     <>
-      {/* CSS para el efecto 3D flip */}
       <style>{`
         .creditCard { transform-style: preserve-3d; transition: transform 0.5s; }
         .creditCard.seeBack { transform: rotateY(-180deg); }
@@ -117,7 +116,6 @@ const PaymentForm = ({
           >
             <div className="aspect-[1097/845] w-[68.5625rem] bg-gradient-to-r from-orange-500 to-red-500 opacity-25" />
           </div>
-          {/* ✅ ACTUALIZADO: Título dinámico según si es upgrade o no */}
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {isUpgrade ? (
               <span className="flex items-center justify-center gap-3">
@@ -131,7 +129,6 @@ const PaymentForm = ({
           <p className="mt-2 text-lg leading-8 text-muted-foreground">
             {plan.description}
           </p>
-          {/* ✅ NUEVO: Mostrar info del upgrade si aplica */}
           {isUpgrade && upgradeInfo && (
             <Badge variant="secondary" className="mt-4 text-sm px-4 py-1">
               Solo pagas la diferencia prorrateada por {upgradeInfo.daysRemaining} días
@@ -159,7 +156,6 @@ const PaymentForm = ({
             onSubmit={handleSubmit}
             className="flex flex-col lg:flex-row gap-8"
           >
-            {/* Columna izquierda - Formulario de entrada */}
             <div className="w-full lg:w-1/2 space-y-6">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}

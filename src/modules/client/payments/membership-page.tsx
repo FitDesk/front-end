@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "motion/react";
-import { Shield, Calendar, CreditCard, CheckCircle, Users, ArrowRight, ArrowUpCircle, User } from "lucide-react";
+import {  Calendar, CreditCard, CheckCircle, Users, ArrowRight, ArrowUpCircle, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";

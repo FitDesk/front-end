@@ -27,9 +27,9 @@ export function usePaymentForm(options: {
   plan: PlanResponse;
   onPaymentSuccess: (data: PaymentResponse) => void;
   isUpgrade: boolean;
-  upgradeInfo?: UpgradeCostResponse | null; // ✅ NUEVO: Añadir upgradeInfo
+  upgradeInfo?: UpgradeCostResponse | null; 
 }) {
-  const { userId, userEmail, plan, onPaymentSuccess, isUpgrade, upgradeInfo } = options; // ✅ Desestructurar upgradeInfo
+  const { userId, userEmail, plan, onPaymentSuccess, isUpgrade, upgradeInfo } = options; 
   const [detectedPaymentMethod, setDetectedPaymentMethod] = useState("visa");
   const [formData, setFormData] = useState<PaymentFormData>({
     cardNumber: "",
@@ -134,8 +134,8 @@ export function usePaymentForm(options: {
       let paymentResponse: PaymentResponse;
 
       if (isUpgrade) {
-        console.log("🚀 Iniciando proceso de Upgrade de Plan...");
-        console.log("💰 Usando costo prorrateado:", upgradeInfo?.upgradeCost); // ✅ Log para debug
+        console.log("Iniciando proceso de Upgrade de Plan...");
+        console.log("Usando costo prorrateado:", upgradeInfo?.upgradeCost); 
         
         const upgradeRequest: PlanUpgradeRequest = {
           userId,
@@ -154,7 +154,7 @@ export function usePaymentForm(options: {
           externalReference,
           userId,
           planId: plan.id,
-          amount: plan.price, // ✅ Para nuevo pago, usa el precio del plan
+          amount: plan.price, 
           payerEmail: userEmail,
           payerFirstName: formData.cardName.split(" ")[0],
           payerLastName: formData.cardName.split(" ").slice(1).join(" ") || "N/A",
@@ -185,7 +185,7 @@ export function usePaymentForm(options: {
         );
       }
     } catch (error: any) {
-      console.error("❌ Error procesando pago:", error);
+      console.error(" Error procesando pago:", error);
       toast.error(`Error al procesar el pago: ${error.message}`);
     } finally {
       setIsSubmitting(false);
@@ -207,7 +207,6 @@ export function usePaymentForm(options: {
     }
   };
 
-  // ✅ NUEVO: Función para obtener el monto a mostrar
   const getDisplayAmount = () => {
     return isUpgrade && upgradeInfo ? upgradeInfo.upgradeCost : plan.price;
   };
@@ -228,7 +227,7 @@ export function usePaymentForm(options: {
     hideBackCard,
     handleSubmit,
     getCardGradient,
-    getDisplayAmount, // ✅ NUEVO: Exportar función para obtener el monto
-    upgradeInfo, // ✅ NUEVO: Exportar upgradeInfo para usar en el componente
+    getDisplayAmount,
+    upgradeInfo,
   };
 }
