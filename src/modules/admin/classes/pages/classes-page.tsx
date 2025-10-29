@@ -1,19 +1,22 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, Suspense, lazy } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Dialog, DialogContent } from '@/shared/components/animated/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/shared/components/animated/dialog';
 import { toast } from 'sonner';
 import DeleteConfirmationModal from '../components/delete-confirmation-modal';
+import ClassErrorBoundary from '../components/error-boundary';
 
 import { useClasses, useClassesForCalendar, useCreateClass, useUpdateClass, useDeleteClass } from '../hooks/use-classes';
 import type { CalendarEvent } from '../lib/calendar-utils';
 import { convertClassesToEvents } from '../lib/calendar-utils';
 import { WeeklyCalendar } from '../components/weekly-calendar';
-import { ClassForm } from '../components/class-form';
 import { ClassDetailModal } from '../components/class-detail-modal';
 
 import type { Class, ClassRequest } from '../types/class';
+
+// Lazy load del formulario para evitar conflictos de DOM
+const ClassForm = lazy(() => import('../components/class-form').then(module => ({ default: module.ClassForm })));
 
 export default function ClassesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -157,35 +160,49 @@ export default function ClassesPage() {
       />
 
       {/* Modal de formulario de clase */}
-      {isFormOpen && (
-        <Dialog 
-          open={isFormOpen} 
-          onOpenChange={(open) => {
-            setIsFormOpen(open);
-            if (!open) {
-              setSelectedClass(null);
+      <Dialog 
+        open={isFormOpen} 
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) {
+            setSelectedClass(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogTitle className="text-xl font-semibold">
+            {selectedClass ? 'Editar Clase' : 'Nueva Clase'}
+          </DialogTitle>
+          <DialogDescription>
+            {selectedClass 
+              ? 'Modifica los detalles de la clase existente.' 
+              : 'Completa la información para crear una nueva clase.'
             }
-          }}
-        >
-          <DialogContent className="sm:max-w-2xl">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">
-                {selectedClass ? 'Editar Clase' : 'Nueva Clase'}
-              </h2>
-              <ClassForm
-                key={selectedClass?.id || 'new'}
-                initialData={selectedClass}
-                onSubmit={handleSubmit}
-                onCancel={() => {
-                  setIsFormOpen(false);
-                  setSelectedClass(null);
-                }}
-                isSubmitting={createClassMutation.isPending || updateClassMutation.isPending}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          </DialogDescription>
+          <div className="space-y-4">
+            {isFormOpen && (
+              <ClassErrorBoundary>
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                  </div>
+                }>
+                  <ClassForm
+                    key={`${selectedClass?.id || 'new'}-${Date.now()}`}
+                    initialData={selectedClass}
+                    onSubmit={handleSubmit}
+                    onCancel={() => {
+                      setIsFormOpen(false);
+                      setSelectedClass(null);
+                    }}
+                    isSubmitting={createClassMutation.isPending || updateClassMutation.isPending}
+                  />
+                </Suspense>
+              </ClassErrorBoundary>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de confirmación de eliminación */}
       <DeleteConfirmationModal

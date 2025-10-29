@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { format, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -63,6 +63,8 @@ export function ClassForm({
 }: ClassFormProps) {
   const { trainers = [], isLoading: isLoadingTrainers, error: trainersError } = useTrainersForSelect();
   const { locations = [], isLoading: isLoadingLocations } = useLocations();
+  const isInitialized = useRef(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   const form = useForm<ClassFormValues>({
     defaultValues: {
@@ -79,27 +81,43 @@ export function ClassForm({
     },
   });
 
-  // Resetear el formulario cuando cambia initialData o cuando los datos se cargan
   useEffect(() => {
-    // Para nueva clase, resetear sin datos
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+
+
+  useEffect(() => {
+
+    if (!isMounted || isLoadingTrainers || isLoadingLocations || isInitialized.current) return;
+
+   
     if (!initialData) {
-      form.reset({
-        className: '',
-        description: '',
-        trainerId: '',
-        locationId: '',
-        date: addDays(new Date(), 1),
-        startTime: '09:00',
-        endTime: '10:00',
-        duration: 60,
-        maxCapacity: 1,
-        active: true,
-      });
+      isInitialized.current = true;
+
+      setTimeout(() => {
+        if (isMounted) {
+          form.reset({
+            className: '',
+            description: '',
+            trainerId: '',
+            locationId: '',
+            date: addDays(new Date(), 1),
+            startTime: '09:00',
+            endTime: '10:00',
+            duration: 60,
+            maxCapacity: 1,
+            active: true,
+          });
+        }
+      }, 0);
       return;
     }
 
-    // Para editar, esperar a que los datos estén listos
+
     if (!initialData.id || !trainers.length || !locations.length) return;
+    
+    isInitialized.current = true;
     
     let parsedDate: Date;
     try {
@@ -109,32 +127,41 @@ export function ClassForm({
       } else {
         parsedDate = parseISO(initialData.classDate);
       }
-      
+
       if (isNaN(parsedDate.getTime())) {
         parsedDate = addDays(new Date(), 1);
       }
     } catch {
       parsedDate = addDays(new Date(), 1);
     }
-    
+
     const trainer = trainers.find(t => t.name === initialData.trainerName);
     const location = locations.find(l => l.name === initialData.locationName);
     const scheduleParts = initialData.schedule ? initialData.schedule.split(' - ') : [];
-    
-    form.reset({
-      className: initialData.className || '',
-      description: initialData.description || '',
-      trainerId: trainer?.id || '',
-      locationId: location?.id || '',
-      date: parsedDate,
-      startTime: scheduleParts[0] || '09:00',
-      endTime: scheduleParts[1] || '10:00',
-      duration: initialData.duration || 60,
-      maxCapacity: initialData.maxCapacity || 1,
-      active: initialData.active ?? true,
-    });
-    
-  }, [initialData?.id, trainers.length, locations.length]);
+
+    setTimeout(() => {
+      if (isMounted) {
+        form.reset({
+          className: initialData.className || '',
+          description: initialData.description || '',
+          trainerId: trainer?.id || '',
+          locationId: location?.id || '',
+          date: parsedDate,
+          startTime: scheduleParts[0] || '09:00',
+          endTime: scheduleParts[1] || '10:00',
+          duration: initialData.duration || 60,
+          maxCapacity: initialData.maxCapacity || 1,
+          active: initialData.active ?? true,
+        });
+      }
+    }, 0);
+
+  }, [isMounted, initialData?.id, trainers.length, locations.length, isLoadingTrainers, isLoadingLocations]);
+
+
+  useEffect(() => {
+    isInitialized.current = false;
+  }, [initialData?.id]);
 
   const handleFormSubmit = (formData: ClassFormValues) => {
     if (!formData.className || formData.className.length < 3) {
@@ -204,14 +231,19 @@ export function ClassForm({
 
 
   useEffect(() => {
-    if (selectedLocation?.capacity !== undefined) {
+    if (isMounted && selectedLocation?.capacity !== undefined) {
       const currentMaxCapacity = form.getValues('maxCapacity');
       if (currentMaxCapacity !== selectedLocation.capacity) {
-        form.setValue('maxCapacity', selectedLocation.capacity);
+       
+        setTimeout(() => {
+          if (isMounted) {
+            form.setValue('maxCapacity', selectedLocation.capacity);
+          }
+        }, 0);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLocationId]);
+
+  }, [isMounted, selectedLocationId]);
 
   const renderFormButtons = () => (
     <div className="flex justify-end space-x-4">
