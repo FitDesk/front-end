@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import useRoleStore from '../store/useRoleStore';
-import { toast } from 'sonner';
+import { toast } from 'sonner'; // Using sonner like in client classes
 import type { UserRole } from '../types';
 import { UserTable } from '../components/UserTable';
 import { Badge } from '@/shared/components/ui/badge';
@@ -9,21 +9,45 @@ import { motion } from 'motion/react';
 import { Users, Shield, UserCheck } from 'lucide-react';
 import { useGetUserStatistics } from '@/core/queries/useAdminUserQuery';
 import { useAllMembersQuery } from '@/core/queries/useMemberQuery';
+import { AdminUserService } from '@/core/services/admin-user.service';
+import type { MemberWithRoles } from '@/core/interfaces/member.interface';
 
 
 export default function UserRolesPage() {
   const [isLoading, setIsLoading] = useState(true);
+  const [usersWithRoles, setUsersWithRoles] = useState<MemberWithRoles[]>([]);
+  // Using sonner toast like in client classes
 
   const { data: userStats } = useGetUserStatistics();
   const { data: members } = useAllMembersQuery({});
 
-  console.log(userStats)
-  console.log(members)
   const {
-    users,
-    fetchUsers,
-    updateUserRole
+    fetchUsers
   } = useRoleStore();
+
+  // Función para obtener roles de usuarios
+  const fetchUserRoles = async (members: any[]) => {
+    const usersWithRolesPromises = members.map(async (member) => {
+      try {
+        const rolesData = await AdminUserService.getUserRoles(member.userId);
+        return {
+          ...member,
+          roles: rolesData.roles.map(roleName => ({ name: roleName })),
+          lastLogin: null // Por ahora no tenemos esta información
+        } as MemberWithRoles;
+      } catch (error) {
+        console.warn(`No se pudieron obtener roles para usuario ${member.userId}:`, error);
+        return {
+          ...member,
+          roles: [],
+          lastLogin: null
+        } as MemberWithRoles;
+      }
+    });
+
+    const usersWithRoles = await Promise.all(usersWithRolesPromises);
+    setUsersWithRoles(usersWithRoles);
+  };
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -32,9 +56,7 @@ export default function UserRolesPage() {
         await fetchUsers();
       } catch (error) {
         console.error('Error loading users:', error);
-        toast.error('Error al cargar los usuarios', {
-          description: error instanceof Error ? error.message : 'Por favor, intente nuevamente.'
-        });
+        toast.error('Error al cargar los usuarios');
       } finally {
         setIsLoading(false);
       }
@@ -43,18 +65,37 @@ export default function UserRolesPage() {
     loadUsers();
   }, [fetchUsers]);
 
+  // Cargar roles cuando se obtengan los miembros
+  useEffect(() => {
+    if (members?.members && members.members.length > 0) {
+      fetchUserRoles(members.members);
+    }
+  }, [members]);
+
 
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     try {
-      await updateUserRole({ userId, role: newRole });
-      toast.success('Rol actualizado correctamente');
+      // Encontrar el usuario para mostrar su nombre en la notificación
+      const user = usersWithRoles.find(u => u.userId === userId);
+      const userName = user ? `${user.firstName} ${user.lastName}` : 'Usuario';
+      
+      // Usar el servicio directamente - ahora obtiene los roles actuales del backend
+      await AdminUserService.changeUserRole(userId, newRole, []);
+      
+      // Notificación específica con el nombre del usuario y el nuevo rol
+      const roleLabels = {
+        ADMIN: 'Administrador',
+        TRAINER: 'Entrenador', 
+        MEMBER: 'Miembro'
+      };
+      
+      toast.success(`${userName} ahora tiene el rol de ${roleLabels[newRole]}`);
 
-      await fetchUsers();
+      // Recargar los roles del usuario
+      await fetchUserRoles(members?.members || []);
     } catch (error) {
-      toast.error('Error al actualizar el rol', {
-        description: error instanceof Error ? error.message : 'Por favor, intente nuevamente.'
-      });
+      toast.error('Error al actualizar el rol');
 
       throw error;
     }
@@ -193,13 +234,13 @@ export default function UserRolesPage() {
 
 
       <UserTable
-        users={members?.members || []}
+        users={usersWithRoles}
         isLoading={isLoading}
         onRoleChange={handleRoleChange}
       />
 
       <div className="mt-4 text-sm text-muted-foreground">
-        <p>Mostrando {members?.totalElements} usuarios</p>
+        <p>Mostrando {usersWithRoles.length} usuarios</p>
       </div>
     </div>
   );

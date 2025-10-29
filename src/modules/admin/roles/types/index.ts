@@ -3,7 +3,7 @@ export type UserRole = 'ADMIN' | 'TRAINER' | 'MEMBER';
 
 
 export interface UserWithRole {
-  id: string;
+  userId: string;
   name: string;
   email: string;
   role: UserRole;

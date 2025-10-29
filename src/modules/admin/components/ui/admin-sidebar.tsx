@@ -122,9 +122,9 @@ export const AdminSidebar = memo(() => {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem className={togglerWrapperClass}>
-                        <SidebarMenuButton className="flex w-full justify-center p-0">
+                        <div className="flex w-full justify-center p-0">
                             <ThemeTogglerButton showLabel="auto" variant="ghost" direction='bottom-left' />
-                        </SidebarMenuButton>
+                        </div>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
