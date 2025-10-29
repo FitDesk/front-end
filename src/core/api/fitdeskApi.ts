@@ -71,6 +71,20 @@ class FitdeskApiClient {
   private initializeRequestInterceptor() {
     this.instance.interceptors.request.use(
       (config) => {
+        
+        try {
+          const method = (config.method || 'get').toLowerCase();
+          const needsCsrf = method === 'post' || method === 'put' || method === 'patch' || method === 'delete';
+          const hasHeader = !!config.headers && ('X-XSRF-TOKEN' in (config.headers as Record<string, unknown>) || 'x-xsrf-token' in (config.headers as Record<string, unknown>));
+          if (needsCsrf && !hasHeader) {
+            const token = getCookie('XSRF-TOKEN');
+            if (token) {
+              const headers = (config.headers ?? {}) as Record<string, unknown>;
+              headers['X-XSRF-TOKEN'] = token;
+              config.headers = headers as any;
+            }
+          }
+        } catch {}
         return config;
       },
       (error) => {
@@ -104,3 +118,10 @@ class FitdeskApiClient {
 
 const fitdeskApi = new FitdeskApiClient();
 export { fitdeskApi };
+
+
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}

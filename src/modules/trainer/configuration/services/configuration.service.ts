@@ -41,7 +41,16 @@ class ConfigurationService {
   }
 
   async changePassword(data: ChangePasswordDTO): Promise<string> {
-    const response = await fitdeskApi.post<ApiResponse<null>>(`${this.baseUrl}/change-password`, data);
+   
+    const payload = {
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    };
+   
+    try {
+      await fitdeskApi.get(`/security/auth/status`);
+    } catch {}
+    const response = await fitdeskApi.post<ApiResponse<null>>(`/security/auth/change-password`, payload);
     return response.data.message;
   }
 
