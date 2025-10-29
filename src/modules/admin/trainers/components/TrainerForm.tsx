@@ -91,11 +91,20 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
       const formattedBirthDate = formatDateForForm(trainer.birthDate || '');
       const formattedJoinDate = formatDateForForm(trainer.joinDate || '');
     
+    
+      const allDaysLower = DAYS_OF_WEEK.map((d) => d.toLowerCase());
+      const sourceAvailability = trainer.availability || {};
+      const fullAvailability = allDaysLower.reduce((acc: Record<string, boolean>, dLower) => {
+        const isAvailable = Object.keys(sourceAvailability).some((k) => k.toLowerCase() === dLower && (sourceAvailability as any)[k]);
+        acc[dLower] = !!isAvailable;
+        return acc;
+      }, {} as Record<string, boolean>);
+
       reset({
         ...trainer,
         birthDate: formattedBirthDate,
         joinDate: formattedJoinDate,
-        availability: trainer.availability || {}
+        availability: fullAvailability,
       });
       
   
@@ -103,11 +112,7 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
       setValue('joinDate', formattedJoinDate);
       
   
-      if (trainer.availability) {
-        Object.keys(trainer.availability).forEach(day => {
-          setValue(`availability.${day}`, trainer.availability[day]);
-        });
-      }
+     
       if (trainer.profileImage && typeof trainer.profileImage === 'string') {
         setPreviewImage(trainer.profileImage);
        
