@@ -7,6 +7,7 @@ import {
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import { ToastProvider } from "@/shared/components/ui/toast"
+import { Toaster } from "sonner"
 
 import { MotionConfig } from "motion/react"
 import { ThemeProvider } from "./core/providers/theme-provider"
@@ -27,6 +28,7 @@ export default function App() {
                         </CheckAuthProvider>
                         <ReactQueryDevtools initialIsOpen={false} />
                     </ToastProvider>
+                    <Toaster position="top-right" richColors />
                 </ThemeProvider>
             </QueryClientProvider>
         </MotionConfig>

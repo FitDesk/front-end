@@ -85,9 +85,10 @@ export interface MemberSecurityData {
   provider: string;
   membership: Membership | null;
 }
-export interface ImageUploadResponseDto {
-  url: string;
-  publicId: string;
-  version: string;
-  signature: string;
+export interface MemberWithRoles extends Member {
+  roles?: Array<{
+    name: string;
+    description?: string;
+  }>;
+  lastLogin?: string;
 }
