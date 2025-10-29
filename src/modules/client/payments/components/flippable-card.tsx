@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import type { SavedPaymentMethod } from '@/core/interfaces/payment-method.interface';
-import { SiAmericanexpress ,SiVisa } from 'react-icons/si';
+import { SiAmericanexpress, SiVisa } from 'react-icons/si';
 import { FaCcMastercard } from "react-icons/fa";
 
 const CardLogo = ({ brand }: { brand: string }) => {
@@ -29,7 +29,6 @@ export function FlippableCard({ card }: { card: SavedPaymentMethod }) {
 
     const formattedCardNumber = `•••• •••• •••• ${card.lastFourDigits}`;
     const formattedExpDate = `${String(card.expirationMonth).padStart(2, '0')}/${String(card.expirationYear).slice(-2)}`;
-  console.log("Formato de fecha ",formattedExpDate)
     return (
         <div className="w-full max-w-sm mx-auto cursor-pointer" style={{ perspective: '1000px' }} onClick={() => setIsFlipped(!isFlipped)}>
             <motion.div

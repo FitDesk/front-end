@@ -10,7 +10,7 @@ import type {
 } from "@/core/interfaces/payment.interface";
 import { useAuthStore } from "@/core/store/auth.store";
 import { useMembershipStore } from "./store/useMembershipState";
-import { PaymentService } from "@/core/services/payment.service"; // <-- Asegúrate que esté importado
+import { PaymentService } from "@/core/services/payment.service"; 
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import {
@@ -102,7 +102,7 @@ export default function PaymentsPage() {
                 );
 
                 if (isUpgrade) {
-                    // --- LÓGICA PARA CAMBIO DE PLAN (UPGRADE) ---
+                    
                     const upgradeRequest = {
                         userId: user.id,
                         newPlanId: selectedPlan.id,
@@ -115,7 +115,7 @@ export default function PaymentsPage() {
                     const response = await PaymentService.processPlanUpgrade(upgradeRequest);
                     handlePaymentSuccess(response);
                 } else {
-                    // --- LÓGICA PARA PAGO NORMAL ---
+                    
                     const paymentRequest = {
                         token: oneTimeToken.id,
                         externalReference: `SAVED_CARD_${user.id}_${Date.now()}`,
