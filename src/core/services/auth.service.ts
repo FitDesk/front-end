@@ -50,6 +50,19 @@ export const AuthService = {
         } catch (error) {
             throw new Error(`Error al cerrar sesión: ${error instanceof Error ? error.message : String(error)}`);
         }
+    },
+    async changePassword(payload: { currentPassword: string; newPassword: string; }): Promise<string> {
+        try {
+            try { await fitdeskApi.get("/security/auth/status"); } catch {}
+            const { data } = await fitdeskApi.post<{ message?: string }>(
+                "/security/auth/change-password",
+                { currentPassword: payload.currentPassword, newPassword: payload.newPassword }
+            );
+            return (data as any)?.message ?? "Contraseña cambiada correctamente";
+        } catch (error: any) {
+            const msg = error?.response?.data?.message || (error instanceof Error ? error.message : String(error));
+            throw new Error(`Error al cambiar contraseña: ${msg}`);
+        }
     }
 };
 
