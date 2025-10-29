@@ -35,6 +35,7 @@ const DashboardTrainer = lazy(() => import("@/modules/trainer/dashboard/Dashboar
 const TrainerCalendarPage = lazy(() => import("@/modules/trainer/calendar/pages/calendar-page"))
 const TrainerAttendancePage = lazy(() => import("@/modules/trainer/attendance").then(m => ({ default: m.AttendancePage })))
 const TrainerStudentsPage = lazy(() => import("@/modules/trainer/students/pages/students-page"))
+const TrainerProfilePage = lazy(() => import("@/modules/trainer/profile/pages/profile-page"))
 
 
 
@@ -252,7 +253,7 @@ export const appRouter = createBrowserRouter([
             },
             {
                 path: "profile",
-                element: <div className="p-6">Profile Page</div>
+                element: <Suspense fallback={<PageLoader />}><TrainerProfilePage /></Suspense>
             },
             {
                 path: "settings",

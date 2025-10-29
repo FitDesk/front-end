@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -32,6 +32,7 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [certifications, setCertifications] = useState<File[]>([]);
   const [certificationPreviews, setCertificationPreviews] = useState<string[]>([]);
+  const blobUrlRef = useRef<string | null>(null);
 
   
   const defaultValues: TrainerFormData = {
@@ -109,9 +110,20 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
       }
       if (trainer.profileImage && typeof trainer.profileImage === 'string') {
         setPreviewImage(trainer.profileImage);
+       
+        setValue('profileImage', trainer.profileImage);
       }
     }
   }, [trainer, reset, setValue]);
+
+ 
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+    };
+  }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -122,16 +134,26 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
       return;
     }
 
+    
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('El archivo es demasiado grande. El tamaño máximo permitido es 5MB');
+      return;
+    }
+
     setIsUploading(true);
     
     try {
-   
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-
+      
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+      
+     
+      const blobUrl = URL.createObjectURL(file);
+      blobUrlRef.current = blobUrl;
+      setPreviewImage(blobUrl);
+      
       
       setValue('profileImage', file);
       toast.success('Imagen seleccionada correctamente');
@@ -182,6 +204,13 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
   const onSubmit = async (data: TrainerFormData) => {
     try {
       setIsSubmitting(true);
+      console.log('Iniciando actualización de entrenador:', { 
+        trainerId: trainer?.id, 
+        hasPreviewImage: !!previewImage,
+        previewImageType: typeof previewImage,
+        certificationsCount: certifications.length 
+      });
+      
       const formDataObj = new FormData();
       
       
@@ -273,12 +302,23 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
 
       formDataObj.append('trainer', JSON.stringify(trainerData));
     
-      if (previewImage && typeof previewImage === 'object' && 'name' in previewImage) {
-        formDataObj.append('profileImage', previewImage as File);
+     
+      if (previewImage && typeof previewImage === 'string' && previewImage.startsWith('blob:')) {
+       
+        const file = form.getValues('profileImage') as File;
+        if (file && file instanceof File) {
+          console.log('Agregando imagen de perfil:', { fileName: file.name, fileSize: file.size });
+          formDataObj.append('profileImage', file);
+        }
+      } else if (previewImage && typeof previewImage === 'object' && 'name' in previewImage) {
+        
+        console.log('Agregando imagen de perfil (File directo):', { fileName: (previewImage as File).name });
+        formDataObj.append('profileImage', previewImage);
       }
 
       
       certifications.forEach((file) => {
+        console.log('Agregando certificación:', { fileName: file.name, fileSize: file.size });
         formDataObj.append('certifications', file);
       });
 

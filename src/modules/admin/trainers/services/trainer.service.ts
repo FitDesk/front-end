@@ -1,5 +1,9 @@
 import { fitdeskApi } from '../../../../core/api/fitdeskApi';
 import type { Trainer, TrainerFormData } from '../types';
+import { securityService, type TrainerRegistrationRequest, type TrainerRegistrationResponse } from './security.service';
+
+
+export type { TrainerRegistrationRequest, TrainerRegistrationResponse } from './security.service';
 
 
 interface TrainerResponseDTO {
@@ -132,11 +136,16 @@ export const trainerService = {
     return mapTrainerResponse(response.data as TrainerResponseDTO);
   },
 
+  async createBasicTrainer(trainerData: TrainerRegistrationRequest): Promise<TrainerRegistrationResponse> {
+    return await securityService.registerTrainer(trainerData);
+  },
+
   async create(trainer: FormData): Promise<Trainer> {
     const response = await fitdeskApi.post('/classes/trainers', trainer, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 60000,
     });
     return mapTrainerResponse(response.data as TrainerResponseDTO);
   },
@@ -144,16 +153,26 @@ export const trainerService = {
   async update(id: string, trainer: Partial<TrainerFormData> | FormData): Promise<Trainer> {
     const isFormData = trainer instanceof FormData;
     
-    const response = await fitdeskApi.put(
-      `/classes/trainers/${id}`,
-      trainer,
-      {
-        headers: isFormData 
-          ? { 'Content-Type': 'multipart/form-data' }
-          : { 'Content-Type': 'application/json' },
-      }
-    );
-    return mapTrainerResponse(response.data as TrainerResponseDTO);
+    try {
+      console.log('Actualizando entrenador:', { id, isFormData, hasProfileImage: isFormData && trainer.has('profileImage') });
+      
+      const response = await fitdeskApi.put(
+        `/classes/trainers/${id}`,
+        trainer,
+        {
+          headers: isFormData 
+            ? { 'Content-Type': 'multipart/form-data' }
+            : { 'Content-Type': 'application/json' },
+          timeout: isFormData ? 60000 : 10000,
+        }
+      );
+      
+      console.log('Entrenador actualizado exitosamente');
+      return mapTrainerResponse(response.data as TrainerResponseDTO);
+    } catch (error) {
+      console.error('Error al actualizar entrenador:', error);
+      throw error;
+    }
   },
 
   async delete(id: string): Promise<void> {

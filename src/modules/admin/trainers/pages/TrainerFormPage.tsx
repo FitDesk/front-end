@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { TrainerForm } from '../components/TrainerForm';
+import { BasicTrainerForm } from '../components/BasicTrainerForm';
 import { trainerService } from '../services/trainer.service';
 import { PageHeader } from '@/shared/components/page-header';
 import { Button } from '@/shared/components/ui/button';
@@ -54,9 +55,14 @@ export function TrainerFormPage({ isEditMode = false }: TrainerFormPageProps) {
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
-        ) : (
+        ) : isEditMode ? (
           <TrainerForm 
             trainer={trainer} 
+            onSuccess={handleSuccess}
+            onCancel={handleCancel}
+          />
+        ) : (
+          <BasicTrainerForm
             onSuccess={handleSuccess}
             onCancel={handleCancel}
           />

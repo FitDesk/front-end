@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import useRoleStore from '../store/useRoleStore';
-import { toast } from 'sonner'; // Using sonner like in client classes
+import { toast } from 'sonner';
 import type { UserRole } from '../types';
 import { UserTable } from '../components/UserTable';
 import { Badge } from '@/shared/components/ui/badge';
@@ -16,7 +16,6 @@ import type { MemberWithRoles } from '@/core/interfaces/member.interface';
 export default function UserRolesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [usersWithRoles, setUsersWithRoles] = useState<MemberWithRoles[]>([]);
-  // Using sonner toast like in client classes
 
   const { data: userStats } = useGetUserStatistics();
   const { data: members } = useAllMembersQuery({});
@@ -25,7 +24,7 @@ export default function UserRolesPage() {
     fetchUsers
   } = useRoleStore();
 
-  // Función para obtener roles de usuarios
+
   const fetchUserRoles = async (members: any[]) => {
     const usersWithRolesPromises = members.map(async (member) => {
       try {
@@ -33,7 +32,7 @@ export default function UserRolesPage() {
         return {
           ...member,
           roles: rolesData.roles.map(roleName => ({ name: roleName })),
-          lastLogin: null // Por ahora no tenemos esta información
+          lastLogin: null
         } as MemberWithRoles;
       } catch (error) {
         console.warn(`No se pudieron obtener roles para usuario ${member.userId}:`, error);
@@ -65,7 +64,7 @@ export default function UserRolesPage() {
     loadUsers();
   }, [fetchUsers]);
 
-  // Cargar roles cuando se obtengan los miembros
+
   useEffect(() => {
     if (members?.members && members.members.length > 0) {
       fetchUserRoles(members.members);
@@ -76,23 +75,20 @@ export default function UserRolesPage() {
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     try {
-      // Encontrar el usuario para mostrar su nombre en la notificación
       const user = usersWithRoles.find(u => u.userId === userId);
       const userName = user ? `${user.firstName} ${user.lastName}` : 'Usuario';
       
-      // Usar el servicio directamente - ahora obtiene los roles actuales del backend
       await AdminUserService.changeUserRole(userId, newRole, []);
       
-      // Notificación específica con el nombre del usuario y el nuevo rol
+      
       const roleLabels = {
         ADMIN: 'Administrador',
         TRAINER: 'Entrenador', 
-        MEMBER: 'Miembro'
+        USER: 'Usuario'
       };
       
       toast.success(`${userName} ahora tiene el rol de ${roleLabels[newRole]}`);
 
-      // Recargar los roles del usuario
       await fetchUserRoles(members?.members || []);
     } catch (error) {
       toast.error('Error al actualizar el rol');
@@ -175,7 +171,7 @@ export default function UserRolesPage() {
                   </Badge>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Miembros:</span>
+                  <span>Usuarios:</span>
                   <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
                     {userStats?.roleCounts.USER || 0}
                   </Badge>

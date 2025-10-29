@@ -29,8 +29,8 @@ const roleConfig = {
     color: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     permissions: ['Crear clases', 'Gestionar clientes', 'Ver reportes básicos']
   },
-  MEMBER: {
-    label: 'Miembro',
+  USER: {
+    label: 'Usuario',
     description: 'Acceso básico al sistema',
     icon: User,
     color: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
@@ -40,7 +40,7 @@ const roleConfig = {
 
 export function RoleEditDialog({ user, onRoleChange, children }: RoleEditDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>('MEMBER');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('USER');
   const [isLoading, setIsLoading] = useState(false);
   const [currentRoles, setCurrentRoles] = useState<string[]>([]);
 
@@ -53,10 +53,10 @@ export function RoleEditDialog({ user, onRoleChange, children }: RoleEditDialogP
         setSelectedRole('ADMIN');
       } else if (roleNames.includes('TRAINER')) {
         setSelectedRole('TRAINER');
-      } else if (roleNames.includes('MEMBER')) {
-        setSelectedRole('MEMBER');
+      } else if (roleNames.includes('USER')) {
+        setSelectedRole('USER');
       } else {
-        setSelectedRole('MEMBER');
+        setSelectedRole('USER');
       }
     }
   }, [user]);
@@ -84,13 +84,13 @@ export function RoleEditDialog({ user, onRoleChange, children }: RoleEditDialogP
   const getRoleIcon = (role: string) => {
 
     const roleMapping: Record<string, UserRole> = {
-      'USER': 'MEMBER',
-      'MEMBER': 'MEMBER',
+      'USER': 'USER',
+      'MEMBER': 'USER',
       'TRAINER': 'TRAINER',
       'ADMIN': 'ADMIN'
     };
     
-    const validRole = roleMapping[role] || 'MEMBER';
+    const validRole = roleMapping[role] || 'USER';
     const Icon = roleConfig[validRole].icon;
     return <Icon className="h-4 w-4" />;
   };
