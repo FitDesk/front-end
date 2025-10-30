@@ -142,9 +142,6 @@ export const trainerService = {
 
   async create(trainer: FormData): Promise<Trainer> {
     const response = await fitdeskApi.post('/classes/trainers', trainer, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
       timeout: 60000,
     });
     return mapTrainerResponse(response.data as TrainerResponseDTO);
@@ -160,8 +157,9 @@ export const trainerService = {
         `/classes/trainers/${id}`,
         trainer,
         {
+          // Evitar forzar Content-Type en FormData para que el boundary sea correcto
           headers: isFormData 
-            ? { 'Content-Type': 'multipart/form-data' }
+            ? undefined
             : { 'Content-Type': 'application/json' },
           timeout: isFormData ? 60000 : 10000,
         }

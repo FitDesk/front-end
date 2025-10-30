@@ -11,6 +11,7 @@ interface DeleteConfirmationModalProps {
   className?: string;
   title?: string;
   description?: string;
+  confirmText?: string;
 }
 
 export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
@@ -20,7 +21,8 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
   isDeleting = false,
   className = '',
   title = '¿Eliminar clase?',
-  description = 'Esta acción no se puede deshacer. La clase desaparecerá del calendario permanentemente.'
+  description = 'Esta acción no se puede deshacer. La clase desaparecerá del calendario permanentemente.',
+  confirmText = 'Eliminar Clase'
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -73,7 +75,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
             ) : (
               <>
                 <Trash2 className="h-4 w-4" />
-                Eliminar Clase
+                {confirmText}
               </>
             )}
           </Button>

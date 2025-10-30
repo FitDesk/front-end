@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { AdminSidebar } from '@/modules/admin/components/ui/admin-sidebar';
 import { DashboardHeader } from '@/modules/admin/components/ui/dashboard-header';
@@ -8,16 +9,15 @@ import { SidebarInset, SidebarProvider } from '../components/animated/sidebar';
 
 export default function AdminDashboard() {
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
+    const queryClient = useQueryClient();
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setIsRefreshing(false);
-    };
-
-    const handleExport = () => {
-        console.log('Exporting data...');
+        try {
+            await queryClient.refetchQueries({ type: 'active' });
+        } finally {
+            setIsRefreshing(false);
+        }
     };
 
 
@@ -28,10 +28,7 @@ export default function AdminDashboard() {
             <SidebarInset>
                 <div className="px-4 md:px-6 py-4">
                     <DashboardHeader
-                        searchQuery={searchQuery}
-                        onSearchChange={setSearchQuery}
                         onRefresh={handleRefresh}
-                        onExport={handleExport}
                         isRefreshing={isRefreshing}
                     />
                     <main className="mt-6">

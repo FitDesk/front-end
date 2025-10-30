@@ -64,11 +64,16 @@ export const TrainerDetailView: React.FC<TrainerDetailViewProps> = ({
     return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
-  const formatSalary = (salary: number, contractType: string) => {
-    if (contractType === 'PER_HOUR') {
-      return `S/ ${salary.toLocaleString()} por hora`;
+  const formatSalary = (salary: number | null | undefined, contractType: string) => {
+    if (salary == null || Number.isNaN(Number(salary))) {
+      return 'N/A';
     }
-    return `S/ ${salary.toLocaleString()} mensuales`;
+    const amount = Number(salary);
+    const formatted = amount.toLocaleString('es-PE');
+    if (contractType === 'PER_HOUR') {
+      return `S/ ${formatted} por hora`;
+    }
+    return `S/ ${formatted} mensuales`;
   };
 
   return (
