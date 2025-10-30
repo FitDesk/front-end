@@ -44,10 +44,6 @@ const ClientDashboard = () => {
   const { data: dashboardData } = useDashboardMember();
   const { data: myReservations, isLoading: reservationsLoading } = useMisReservas(false); // Solo reservas activas
 
-  const handleBookClass = () => {
-    console.log('Reservar clase...');
-  };
-
   const handleViewInvoices = () => {
     console.log('Ver facturas...');
   };
@@ -291,7 +287,7 @@ const ClientDashboard = () => {
                   <h3 className="text-lg font-medium mb-2">No tienes reservas activas</h3>
                   <p className="text-sm mb-4">¡Reserva tu primera clase y comienza tu rutina de entrenamiento!</p>
                   <Button asChild>
-                    <Link to="/client/reserva-clase">Reservar Clase</Link>
+                    <Link to="/reserva-clase">Reservar Clase</Link>
                   </Button>
                 </div>
               </Card>
@@ -309,15 +305,17 @@ const ClientDashboard = () => {
           <Button
             variant="outline"
             className="h-auto flex-col items-start gap-3 p-4 text-left"
-            onClick={handleBookClass}
+            asChild
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
-              <Calendar className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-medium">Reservar Clase</h3>
-              <p className="text-sm text-muted-foreground">Encuentra y reserva tu próxima clase</p>
-            </div>
+            <Link to="/reserva-clase">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-medium">Reservar Clase</h3>
+                <p className="text-sm text-muted-foreground">Encuentra y reserva tu próxima clase</p>
+              </div>
+            </Link>
           </Button>
 
           <Button
@@ -358,7 +356,7 @@ const ClientDashboard = () => {
                 className="h-2 w-full max-w-md" 
               />
               <Button variant="ghost" size="sm" className="mt-4 md:mt-0 md:ml-4" asChild>
-                <Link to="/client/reserva-clase">Reservar Clase</Link>
+                <Link to="/reserva-clase">Reservar Clase</Link>
               </Button>
             </div>
           </div>

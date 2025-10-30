@@ -2,12 +2,14 @@ import { useState, useMemo, useEffect } from 'react';
 import { Plus, Search, Loader2, MapPin, Users, Filter, Edit, Trash2, Check, XCircle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
+import { toast } from 'sonner';
 import { Dialog, DialogContent } from '@/shared/components/animated/dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from '@/shared/components/ui/dropdown-menu';
 import { useLocations } from '../hooks/use-locations';
 import { LocationForm } from '../components/location-form';
+import DeleteConfirmationModal from '../components/delete-confirmation-modal';
 import type { Location, LocationRequest } from '../types/location';
 
 
@@ -27,11 +29,6 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-const useToast = () => ({
-  toast: (data: { title: string; description: string; variant?: 'default' | 'destructive' }) => {
-    console[data.variant === 'destructive' ? 'error' : 'log'](`${data.title}: ${data.description}`);
-  }
-});
 
 const StatusFilter = {
   ALL: 'all',
@@ -42,12 +39,12 @@ const StatusFilter = {
 type StatusFilterType = keyof typeof StatusFilter;
 
 export default function LocationsPage() {
-  const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   
   
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -88,15 +85,13 @@ export default function LocationsPage() {
           id: selectedLocation.id,
           data
         });
-        toast({
-          title: 'Ubicación actualizada',
+        toast.success('Ubicación actualizada', {
           description: 'La ubicación ha sido actualizada correctamente',
         });
       } else {
      
         await createLocation(data);
-        toast({
-          title: 'Ubicación creada',
+        toast.success('Ubicación creada', {
           description: 'La ubicación ha sido creada correctamente',
         });
       }
@@ -104,10 +99,8 @@ export default function LocationsPage() {
       setSelectedLocation(null);
     } catch (error) {
       console.error('Error saving location:', error);
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: 'No se pudo guardar la ubicación',
-        variant: 'destructive',
       });
     }
   };
@@ -117,19 +110,12 @@ export default function LocationsPage() {
       console.error('No se proporcionó un ID para eliminar');
       return;
     }
-    
-    const confirmDelete = window.confirm('¿Estás seguro de que deseas eliminar esta ubicación? Esta acción no se puede deshacer.');
-    
-    if (!confirmDelete) return;
-    
     try {
       console.log('Intentando eliminar ubicación con ID:', id);
       const success = await deleteLocation(id);
-      
       if (success) {
         console.log('Ubicación eliminada exitosamente');
-        toast({
-          title: 'Ubicación eliminada',
+        toast.success('Ubicación eliminada', {
           description: 'La ubicación ha sido eliminada correctamente',
         });
       } else {
@@ -137,11 +123,12 @@ export default function LocationsPage() {
       }
     } catch (error) {
       console.error('Error al eliminar la ubicación:', error);
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: error instanceof Error ? error.message : 'No se pudo eliminar la ubicación',
-        variant: 'destructive',
       });
+    } finally {
+      setShowDeleteModal(false);
+      setSelectedLocation(null);
     }
   };
 
@@ -155,8 +142,7 @@ export default function LocationsPage() {
       });
       
       if (updatedLocation) {
-        toast({
-          title: 'Estado actualizado',
+        toast.success('Estado actualizado', {
           description: `La ubicación ha sido ${!location.isActive ? 'activada' : 'desactivada'}`,
         });
       } else {
@@ -164,10 +150,8 @@ export default function LocationsPage() {
       }
     } catch (error) {
       console.error('Error toggling location status:', error);
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: 'No se pudo actualizar el estado de la ubicación',
-        variant: 'destructive',
       });
     }
   };
@@ -325,7 +309,8 @@ export default function LocationsPage() {
                           size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(location.id);
+                            setSelectedLocation(location);
+                            setShowDeleteModal(true);
                           }}
                           disabled={isDeleting}
                           title="Eliminar"
@@ -423,6 +408,20 @@ export default function LocationsPage() {
         </DialogContent>
       </Dialog>
     )}
+
+    {/* Modal de confirmación de eliminación */}
+    <DeleteConfirmationModal
+      isOpen={showDeleteModal}
+      onClose={() => {
+        setShowDeleteModal(false);
+        setSelectedLocation(null);
+      }}
+      onConfirm={() => handleDelete(selectedLocation?.id)}
+      isDeleting={isDeleting}
+      title="¿Eliminar ubicación?"
+      description={selectedLocation ? `¿Estás seguro de que deseas eliminar la ubicación "${selectedLocation.name}"? Esta acción no se puede deshacer.` : 'Esta acción no se puede deshacer.'}
+      confirmText="Eliminar Ubicación"
+    />
   </div>
 );
 }
