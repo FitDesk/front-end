@@ -8,7 +8,7 @@ interface DashboardCardProps {
         value: string;
         change: string;
         changeType: 'positive' | 'negative';
-        // biome-ignore lint/suspicious/noExplicitAny: ignore
+        progress?: number;
         icon: any;
         color: string;
         bgColor: string;
@@ -61,7 +61,7 @@ export const DashboardCard = memo(({ stat, index }: DashboardCardProps) => {
                     <div className="bg-muted h-2 overflow-hidden rounded-full">
                         <motion.div
                             initial={{ width: 0 }}
-                            animate={{ width: `${65 + index * 8}%` }}
+                            animate={{ width: `${Math.max(0, Math.min(100, stat.progress ?? (65 + index * 8)))}%` }}
                             transition={{ duration: 1, delay: index * 0.1 }}
                             className={`h-full rounded-full ${stat.color.replace('text-', 'bg-')}`}
                         />
