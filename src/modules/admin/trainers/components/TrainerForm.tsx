@@ -723,7 +723,7 @@ export function TrainerForm({ trainer, onSuccess, onCancel }: TrainerFormProps) 
             <Label htmlFor="salary">Salario/Pago por Clase</Label>
             <div className="relative mt-1 rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">$</span>
+                <span className="text-gray-500 sm:text-sm">S/.</span>
               </div>
               <Input
                 id="salary"

@@ -46,7 +46,7 @@ export function PlanCard({ plan, onEdit, onDelete, isDeleting }: PlanCardProps) 
           <div className="space-y-1">
             <div className="flex items-end">
               <span className="text-3xl font-bold">
-                ${plan.price.toFixed(2)}
+                S/.{plan.price.toFixed(2)}
               </span>
               <span className="text-muted-foreground ml-2">
                 /{plan.durationMonths} {plan.durationMonths === 1 ? 'mes' : 'meses'}

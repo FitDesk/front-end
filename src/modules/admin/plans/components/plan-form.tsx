@@ -64,7 +64,7 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
       durationMonths: plan?.durationMonths || 1,
       isActive: plan?.isActive ?? true,
       isPopular: plan?.isPopular ?? false,
-      currency: plan?.currency || 'USD',
+      currency: plan?.currency || 'PEN',
       features: plan?.features || [],
     },
   });
@@ -114,7 +114,7 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
                 <FormLabel>Precio mensual</FormLabel>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm">$</span>
+                    <span className="text-gray-500 sm:text-sm">S/.</span>
                   </div>
                   <FormControl>
                     <Input

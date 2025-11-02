@@ -39,7 +39,7 @@ export function PaymentsTable({
   const getStatusVariant = (status: string) => {
     switch (status) {
       case "approved":
-        return "default";
+        return "outline";
       case "pending":
         return "outline";
       case "failed":
