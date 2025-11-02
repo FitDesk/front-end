@@ -54,13 +54,12 @@ export const usePlansByDuration = (months: number) => {
   });
 };
 
-
 export const useCreatePlan = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (planData: CreatePlanRequest) =>
-      PlanService.createPlan(planData),
+    mutationFn: ({ planData, image }: { planData: CreatePlanRequest; image?: File }) =>
+      PlanService.createPlan(planData, image),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["plans"] });
     },
@@ -71,8 +70,8 @@ export const useUpdatePlan = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdatePlanRequest }) =>
-      PlanService.updatePlan(id, data),
+    mutationFn: ({ id, data, image }: { id: string; data: UpdatePlanRequest; image?: File }) =>
+      PlanService.updatePlan(id, data, image),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["plans", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["plans", "active"] });
@@ -88,6 +87,33 @@ export const useDeletePlan = () => {
     mutationFn: (id: string) => PlanService.deletePlan(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["plans"] });
+    },
+  });
+};
+
+export const useUploadPlanImage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ planId, file }: { planId: string; file: File }) =>
+      PlanService.uploadPlanImage(planId, file),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["plans", variables.planId] });
+      queryClient.invalidateQueries({ queryKey: ["plans", "all"] });
+      queryClient.invalidateQueries({ queryKey: ["plans", "active"] });
+    },
+  });
+};
+
+export const useDeletePlanImage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (planId: string) => PlanService.deletePlanImage(planId),
+    onSuccess: (_, planId) => {
+      queryClient.invalidateQueries({ queryKey: ["plans", planId] });
+      queryClient.invalidateQueries({ queryKey: ["plans", "all"] });
+      queryClient.invalidateQueries({ queryKey: ["plans", "active"] });
     },
   });
 };

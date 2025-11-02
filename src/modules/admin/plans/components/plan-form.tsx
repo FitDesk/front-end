@@ -2,7 +2,7 @@
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import {
   Form,
@@ -15,9 +15,11 @@ import {
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Switch } from '@/shared/components/ui/switch';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Camera, Image as ImageIcon } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import type { PlanResponse } from '@/core/interfaces/plan.interface';
+import { usePlanImageStore } from '../store/usePlanImageStore';
+import { PlanImageCrop } from './plan-image-crop';
 
 declare global {
   interface Window {
@@ -46,7 +48,7 @@ const formSchema = z.object({
 
 type PlanFormProps = {
   plan?: PlanResponse;
-  onSubmit: (values: FormValues) => void;
+  onSubmit: (values: FormValues & { image?: File }) => void;
   isLoading?: boolean;
 };
 
@@ -54,6 +56,17 @@ export type FormValues = z.infer<typeof formSchema>;
 
 export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
   const [featureInput, setFeatureInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const {
+    selectedImage,
+    imageToCrop,
+    croppedImageFile,
+    setSelectedImage,
+    setImageToCrop,
+    setCroppedImageFile,
+    reset: resetImageStore
+  } = usePlanImageStore();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -84,13 +97,115 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
     setValue('features', features.filter(f => f !== featureToRemove));
   };
 
-  const handleFormSubmit: SubmitHandler<FormValues> = (data) => {
-    onSubmit(data);
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageToCrop(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
+
+  const handleCropComplete = (croppedFile: File) => {
+    setCroppedImageFile(croppedFile);
+    setImageToCrop(null);
+  };
+
+  const handleCropCancel = () => {
+    setImageToCrop(null);
+    setSelectedImage(null);
+  };
+
+  const removeImage = () => {
+    resetImageStore();
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFormSubmit: SubmitHandler<FormValues> = (data) => {
+    onSubmit({
+      ...data,
+      image: croppedImageFile || undefined
+    });
+  };
+
+  const getImagePreview = () => {
+    if (croppedImageFile) {
+      return URL.createObjectURL(croppedImageFile);
+    }
+    if (plan?.planImageUrl) {
+      return plan.planImageUrl;
+    }
+    return null;
+  };
+
+  const imagePreview = getImagePreview();
 
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+        {/* Image Upload Section */}
+        <div className="space-y-4">
+          <FormLabel>Imagen del plan</FormLabel>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-32 h-20 rounded-lg border-2 border-dashed border-gray-300 overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              
+              {imagePreview && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                  onClick={removeImage}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+            
+            <div className="flex-1 space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full"
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                {imagePreview ? 'Cambiar imagen' : 'Seleccionar imagen'}
+              </Button>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              
+              <p className="text-xs text-muted-foreground">
+                Recomendado: 800x450px (16:9). Máximo 5MB.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
@@ -223,7 +338,6 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
               </FormItem>
             )}
           />
-
         </div>
 
         <div className="space-y-4">
@@ -277,6 +391,14 @@ export function PlanForm({ plan, onSubmit, isLoading = false }: PlanFormProps) {
           </Button>
         </div>
       </form>
+
+      {/* Image Crop Modal */}
+      <PlanImageCrop
+        imageSrc={imageToCrop}
+        onCropComplete={handleCropComplete}
+        onCancel={handleCropCancel}
+        isOpen={!!imageToCrop}
+      />
     </Form>
   );
 }

@@ -1,12 +1,11 @@
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: <> */
-import { Check, Star } from 'lucide-react';
+import { Check, Star, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 
 const cn = (...classes: (string | undefined)[]) => classes.filter(Boolean).join(' ');
 import type { PlanResponse, UpdatePlanRequest } from '@/core/interfaces/plan.interface';
-
 
 type PlanCardProps = {
   plan: PlanResponse;
@@ -21,19 +20,34 @@ export function PlanCard({ plan, onEdit, onDelete, isDeleting }: PlanCardProps) 
       "relative overflow-hidden transition-all hover:shadow-lg",
       plan.isPopular ? "border-2 border-amber-400 dark:border-amber-500" : "border-border/50"
     )}>
-      {/* Popular Badge */}
-      {plan.isPopular && (
-        <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg flex items-center">
-          <Star className="w-3 h-3 mr-1" />
-          POPULAR
-        </div>
-      )}
+      {/* Plan Image */}
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
+        {plan.planImageUrl ? (
+          <img
+            src={plan.planImageUrl}
+            alt={plan.name}
+            className="w-full h-full object-cover transition-transform hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-muted">
+            <ImageIcon className="h-16 w-16 text-muted-foreground" />
+          </div>
+        )}
+        
+        {/* Popular Badge */}
+        {plan.isPopular && (
+          <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center shadow-md">
+            <Star className="w-3 h-3 mr-1" />
+            POPULAR
+          </div>
+        )}
+      </div>
 
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start gap-2">
           <div>
-            <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-            <CardDescription className="mt-1">{plan.description}</CardDescription>
+            <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
+            <CardDescription className="mt-1 text-sm">{plan.description}</CardDescription>
           </div>
           <Badge variant={plan.isActive ? 'default' : 'secondary'} className="shrink-0">
             {plan.isActive ? 'Activo' : 'Inactivo'}
@@ -52,10 +66,7 @@ export function PlanCard({ plan, onEdit, onDelete, isDeleting }: PlanCardProps) 
                 /{plan.durationMonths} {plan.durationMonths === 1 ? 'mes' : 'meses'}
               </span>
             </div>
-
           </div>
-
-
 
           {plan.features?.length > 0 && (
             <div className="space-y-3 pt-2">

@@ -32,7 +32,7 @@ const DashboardPage = () => {
         },
         {
             title: 'Ganancias',
-            value: `${revenue?.currency === 'PEN' ? 'S/' : revenue?.currency === 'USD' ? '$' : ''}${(revenue?.totalRevenue ?? 0).toLocaleString('es-PE')}`,
+            value: `${revenue?.currency === 'PEN' ? 'S/' : revenue?.currency === 'USD' ? 'S/.' : ''}${(revenue?.totalRevenue ?? 0).toLocaleString('es-PE')}`,
             change: (() => {
                 const curr = revenueCompare?.current ?? 0;
                 const prev = revenueCompare?.previous ?? 0;

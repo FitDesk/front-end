@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { Plus, Shield } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
@@ -7,21 +7,28 @@ import { toast } from 'sonner';
 import { PlanModal } from '../components/plan-modal';
 import { PlanCard } from '../components/plan-card';
 import { useDeletePlan, useAllPlans, useUpdatePlan, useCreatePlan } from '../hooks/usePlansQuery';
+import { usePlanImageStore } from '../store/usePlanImageStore';
 import type { PlanResponse } from '@/core/interfaces/plan.interface';
 import type { FormValues } from '../components/plan-form';
 
 const PlansPage = () => {
-
-
-  const { data: plans, isLoading, error } = useAllPlans()
-  console.log(plans)
+  const { data: plans, isLoading, error } = useAllPlans();
   const createPlan = useCreatePlan();
   const updatePlan = useUpdatePlan();
   const deletePlan = useDeletePlan();
+  const { reset: resetImageStore } = usePlanImageStore();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PlanResponse | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Reset image store when modal closes
+  useEffect(() => {
+    if (!isModalOpen) {
+      resetImageStore();
+    }
+  }, [isModalOpen, resetImageStore]);
 
   const handleEdit = (plan: PlanResponse) => {
     setSelectedPlan(plan);
@@ -32,18 +39,30 @@ const PlansPage = () => {
     setSelectedPlan(undefined);
     setIsModalOpen(true);
   };
-  const handleSubmit = async (values: FormValues) => {
+
+  const handleSubmit = async (values: FormValues & { image?: File }) => {
     setIsSubmitting(true);
     try {
+      const { image, ...planData } = values;
+      
       if (selectedPlan?.id) {
-        await updatePlan.mutateAsync({ id: selectedPlan.id, data: values });
+        await updatePlan.mutateAsync({ 
+          id: selectedPlan.id, 
+          data: planData, 
+          image 
+        });
         toast.success('El plan se ha actualizado correctamente');
       } else {
-        await createPlan.mutateAsync(values);
+        await createPlan.mutateAsync({ 
+          planData, 
+          image 
+        });
         toast.success('El plan se ha creado correctamente');
       }
+      
       setIsModalOpen(false);
       setSelectedPlan(undefined);
+      resetImageStore();
     } catch (error) {
       console.error('Error saving plan:', error);
       toast.error('Ha ocurrido un error al guardar el plan');
@@ -51,6 +70,7 @@ const PlansPage = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este plan?')) {
       return;
