@@ -51,6 +51,7 @@ const ReservaClasePage = lazy(() => import("@/modules/client/reserva-clase").the
 const SesionesPersonalizadasPage = lazy(() => import("@/modules/client/sesiones-personalizadas/pages/sesiones-personalizadas-page"))
 const BlogPage = lazy(() => import("@/modules/client/blog/pages/blog-page"))
 const NosotrosPage = lazy(() => import("@/modules/client/nosotros/pages/LandingPage"))
+const AIChatbotPage = lazy(() => import("@/modules/client/ai-chatbot/pages/ai-chatbot-page"))
 
 // Auth
 const AuthLayout = lazy(() => import("@/shared/layouts/AuthLayout"))
@@ -128,6 +129,10 @@ export const appRouter = createBrowserRouter([
             {
                 path: "messages",
                 element: <Suspense fallback={<PageLoader />}><ClientMessagePage /></Suspense>
+            },
+            {
+                path: "ai-chatbot",
+                element: <Suspense fallback={<PageLoader />}><AIChatbotPage /></Suspense>
             },
         ]
     },

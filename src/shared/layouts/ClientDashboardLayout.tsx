@@ -8,6 +8,7 @@ import { Image } from '../components/ui/image';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/core/store/auth.store';
 import { MemberService } from '@/core/services/member.service';
+import { ChatbotWidget } from '@/modules/client/ai-chatbot/components/ChatbotWidget';
 
 
 export default function ClientDashboardLayout() {
@@ -45,6 +46,8 @@ export default function ClientDashboardLayout() {
         queryFn: () => MemberService.getMemberById(user?.id ?? ''),
         staleTime: 5 * 60 * 1000,
       });
+    } else if (path === '/client/ai-chatbot') {
+      // Prefetch para el chatbot si es necesario
     }
 
   }
@@ -242,6 +245,7 @@ export default function ClientDashboardLayout() {
           </div>
         )}
       </main>
+      <ChatbotWidget />
       <Toaster />
     </div>
   );
